@@ -1,6 +1,6 @@
 # 🏰 Asgard — System Architecture
 
-> A self-hosted AI platform running entirely on Apple Silicon.
+> A self-hosted AI platform running entirely on Apple Silicon & NVIDIA GPU.
 
 ## High-Level Overview
 
@@ -17,7 +17,7 @@ graph TB
         subgraph mimir["🧠 Mimir — Knowledge & Agent Builder"]
             RAG["📚 RAG Pipeline<br/>Ingest → Chunk → Embed → Search"]
             AgentBuilder["🤖 Agent Builder<br/>CRUD · Templates · Publish"]
-            KB["💾 Knowledge Base<br/>(SQLite + Vectors)"]
+            KB["💾 Knowledge Base<br/>(MariaDB + Qdrant)"]
             RAG --> KB
             AgentBuilder --> |"deploy agent"| BifrostLink["→ Bifrost"]
         end
@@ -48,10 +48,11 @@ graph TB
         end
     end
 
-    subgraph backends["⚙️ LLM Backends (Apple Silicon)"]
+    subgraph backends["⚙️ LLM Backends"]
         MLX["🍎 MLX<br/>mlx_lm · mlx_vlm"]
         Llama["🦙 llama.cpp<br/>GGUF Models"]
         Ollama["🐫 Ollama<br/>Managed Models"]
+        VLLM["🟢 vLLM<br/>NVIDIA CUDA"]
     end
 
     Dashboard --> mimir
@@ -65,6 +66,7 @@ graph TB
     heimdall --> MLX
     heimdall --> Llama
     heimdall --> Ollama
+    heimdall --> VLLM
 
     style asgard fill:transparent,stroke:#6366f1,stroke-width:3px
     style mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
@@ -91,7 +93,7 @@ sequenceDiagram
     participant LLM as 🍎 MLX/llama.cpp
 
     User->>M: Create Agent (system prompt, model, tools)
-    M->>M: Save to SQLite
+    M->>M: Save to MariaDB
     M-->>User: Agent ID + API Key
 
     Note over User, LLM: === Agent Execution ===
@@ -146,7 +148,7 @@ graph LR
     end
 
     subgraph storage["💾 Storage"]
-        SQLite["SQLite<br/>(Metadata)"]
+        MariaDB["MariaDB<br/>(Relational)"]
         Vectors["Vector Store<br/>(Embeddings)"]
     end
 
@@ -167,7 +169,7 @@ graph LR
 
 | Feature | Description |
 |:--|:--|
-| **Stack** | Rust (Axum) + Next.js + SQLite |
+| **Stack** | Rust (Axum + Rig.rs) + Next.js 14 + MariaDB + Qdrant |
 | **Port** | `3000` (API) / `3001` (Dashboard) |
 | **Repo** | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) |
 
@@ -201,7 +203,7 @@ graph LR
 | **Stack** | Rust (Axum + Tokio) |
 | **Port** | `8080` |
 | **Protocol** | OpenAI-compatible API |
-| **Backends** | MLX, mlx_vlm, llama.cpp, Ollama |
+| **Backends** | MLX, mlx_vlm, llama.cpp, Ollama, vLLM |
 | **Repo** | [megacare-dev/Heimdall](https://github.com/megacare-dev/Heimdall) |
 
 ---
@@ -305,7 +307,7 @@ graph LR
 |:--|:--|:--|
 | **LLM Inference** | MLX, llama.cpp, Ollama | Apple Silicon optimized |
 | **Gateway** | Rust (Axum + Tokio) | Zero-cost abstractions, async |
-| **RAG Backend** | Rust (Axum) + SQLite | Type-safe, fast, embedded DB |
+| **RAG Backend** | Rust (Axum) + MariaDB + Qdrant | Type-safe, fast, scalable |
 | **Dashboard** | Next.js + React | Modern, SSR, component-based |
 | **Agent Runtime** | Python (FastAPI) | Rich AI ecosystem (MCP, LangGraph) |
 | **Computer Use** | Rust (ZeroClaw) | Lightweight, secure, < 5MB RAM |
