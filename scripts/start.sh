@@ -15,10 +15,13 @@ set -euo pipefail
 #   ./scripts/start.sh heimdall     # Heimdall only
 #   ./scripts/start.sh mimir        # Mimir only
 #   ./scripts/start.sh --status     # Check status
+#
+# Environment:
+#   ASGARD_BASE  — parent directory of Mimir/Heimdall (default: ~/Developer)
 # ============================================
 
 # ── Configuration ─────────────────────────────────────────────────
-BASE_DIR="${ASGARD_BASE:-$HOME/Documents}"
+BASE_DIR="${ASGARD_BASE:-$HOME/Developer}"
 MIMIR_DIR="$BASE_DIR/Mimir"
 HEIMDALL_DIR="$BASE_DIR/Heimdall"
 
@@ -50,7 +53,6 @@ check_status() {
     echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
     echo ""
 
-    # Infrastructure
     echo -e "${BLUE}── Phase 1: Infrastructure ──${NC}"
     local services=("mimir_mariadb:3306" "mimir_qdrant:6333" "mimir_redis:6379" "mimir_vault:$VAULT_PORT" "mimir_rustfs:9000" "mimir_neo4j:7474")
     for svc in "${services[@]}"; do
@@ -98,14 +100,13 @@ start_infra() {
 
     if [ ! -d "$MIMIR_DIR" ]; then
         err "Mimir directory not found: $MIMIR_DIR"
-        err "Set ASGARD_BASE to the parent directory of Mimir/Heimdall"
+        err "Set ASGARD_BASE to the parent of Mimir/Heimdall"
         exit 1
     fi
 
     info "Starting Docker containers..."
     (cd "$MIMIR_DIR" && docker compose up -d 2>&1)
 
-    # Wait for MariaDB
     info "Waiting for MariaDB..."
     for i in $(seq 1 30); do
         if docker exec mimir_mariadb healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1; then
@@ -116,7 +117,6 @@ start_infra() {
         sleep 2
     done
 
-    # Wait for Vault
     info "Waiting for Vault..."
     for i in $(seq 1 15); do
         if curl -sf http://localhost:$VAULT_PORT/v1/sys/health >/dev/null 2>&1; then
@@ -137,11 +137,10 @@ start_heimdall() {
 
     if [ ! -d "$HEIMDALL_DIR" ]; then
         err "Heimdall directory not found: $HEIMDALL_DIR"
-        err "Set ASGARD_BASE to the parent directory of Mimir/Heimdall"
+        err "Set ASGARD_BASE to the parent of Mimir/Heimdall"
         exit 1
     fi
 
-    # Check if already running
     if curl -sf http://localhost:$HEIMDALL_PORT/health >/dev/null 2>&1; then
         ok "Heimdall already running on :$HEIMDALL_PORT"
         return
@@ -164,25 +163,24 @@ start_mimir() {
     if curl -sf http://localhost:$MIMIR_API_PORT/health >/dev/null 2>&1; then
         ok "Mimir API already running on :$MIMIR_API_PORT"
     else
-        local backend_bin="$MIMIR_DIR/target/release/ro-ai-bridge"
+        local backend_bin="$MIMIR_DIR/ro-ai-bridge/target/release/ro-ai-bridge"
         if [ ! -f "$backend_bin" ]; then
             info "Backend not built. Building release..."
             (cd "$MIMIR_DIR/ro-ai-bridge" && cargo build --release 2>&1 | tail -1)
         fi
 
         info "Starting Mimir API on :$MIMIR_API_PORT..."
-        cd "$MIMIR_DIR/ro-ai-bridge"
+        cd "$MIMIR_DIR"
         nohup "$backend_bin" > "$MIMIR_DIR/logs/backend.log" 2>&1 &
         local backend_pid=$!
         echo "$backend_pid" > "$MIMIR_DIR/.pids/backend.pid"
 
-        # Wait for API
-        for i in $(seq 1 15); do
+        for i in $(seq 1 20); do
             if curl -sf http://localhost:$MIMIR_API_PORT/health >/dev/null 2>&1; then
                 ok "Mimir API ready (PID $backend_pid)"
                 break
             fi
-            [ "$i" -eq 15 ] && warn "API not ready after 15s — check logs/backend.log"
+            [ "$i" -eq 20 ] && warn "API not ready after 20s — check $MIMIR_DIR/logs/backend.log"
             sleep 2
         done
     fi
@@ -197,12 +195,12 @@ start_mimir() {
         local dash_pid=$!
         echo "$dash_pid" > "$MIMIR_DIR/.pids/dashboard.pid"
 
-        for i in $(seq 1 15); do
+        for i in $(seq 1 20); do
             if curl -sf http://localhost:$DASHBOARD_PORT >/dev/null 2>&1; then
                 ok "Dashboard ready (PID $dash_pid)"
                 break
             fi
-            [ "$i" -eq 15 ] && warn "Dashboard not ready after 15s — check logs/dashboard.log"
+            [ "$i" -eq 20 ] && warn "Dashboard not ready after 20s — check $MIMIR_DIR/logs/dashboard.log"
             sleep 2
         done
     fi
@@ -211,6 +209,7 @@ start_mimir() {
 # ── Main ──────────────────────────────────────────────────────────
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║   🏰 Asgard AI Platform — Start          ║${NC}"
+echo -e "${CYAN}║   Base: $BASE_DIR${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
 
 case "${1:-all}" in
