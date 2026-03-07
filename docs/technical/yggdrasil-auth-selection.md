@@ -95,7 +95,7 @@ yggdrasil:
     - "8085:8080"
   environment:
     ZITADEL_DATABASE_POSTGRES_HOST: yggdrasil-db
-    ZITADEL_EXTERNALDOMAIN: auth.asgard.local
+    ZITADEL_EXTERNALDOMAIN: auth.asgardai.dev
   depends_on:
     - yggdrasil-db
 
