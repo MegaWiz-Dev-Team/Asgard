@@ -69,12 +69,15 @@ Asgard is a **complete, modular, self-hosted AI platform**:
 
 ## 5. Business Model & Revenue Streams
 
-| Stream | Type | Timing |
-|:--|:--|:--|
-| **Enterprise License** | Recurring (annual) | Year 2+ |
-| **Support & SLA** | Recurring (annual) | Year 2+ |
-| **Consulting** | One-time | Year 1+ |
-| **Training & Workshops** | One-time | Year 2+ |
+| Stream | Type | Timing | Margin |
+|:--|:--|:--|:--|
+| **Enterprise License** | Recurring (annual) | Year 2+ | ~95% |
+| **Hardware Bundles** | One-time + support | Year 1+ | 40-50% |
+| **Support & SLA** | Recurring (annual) | Year 2+ | ~90% |
+| **Consulting** | One-time | Year 1+ | ~80% |
+| **Training & Workshops** | One-time | Year 2+ | ~85% |
+
+> See [pricing-strategy.md](../business/pricing-strategy.md) for hardware bundle tiers: Mini ($2.5K), Pro ($3.8K), Studio ($5.9K), Ultra ($9.5K), GPU ($6-15K)
 
 ### Pricing Tiers
 
@@ -110,23 +113,25 @@ Asgard is a **complete, modular, self-hosted AI platform**:
 | | Year 1 (2026) | Year 2 (2027) | Year 3 (2028) |
 |:--|:--|:--|:--|
 | Enterprise Licenses | $0 | $180K | $774K |
+| Hardware Bundles | $15K | $80K | $200K |
 | Consulting | $30K | $60K | $100K |
 | Training | $0 | $20K | $50K |
-| **Total Revenue** | **$30K** | **$260K** | **$924K** |
+| **Total Revenue** | **$45K** | **$340K** | **$1,124K** |
 
 ### Cost Structure
 
 | | Year 1 | Year 2 | Year 3 |
 |:--|:--|:--|:--|
+| Hardware COGS (60%) | $9K | $48K | $120K |
 | Engineering (founder) | $0* | $120K | $240K |
 | Infrastructure (servers, domains) | $5K | $12K | $30K |
 | Marketing & Community | $5K | $30K | $60K |
 | Sales | $0 | $60K | $120K |
 | Legal & Admin | $5K | $10K | $20K |
-| **Total Costs** | **$15K** | **$232K** | **$470K** |
-| **Net** | **$15K** | **$28K** | **$454K** |
+| **Total Costs** | **$24K** | **$280K** | **$590K** |
+| **Net** | **$21K** | **$60K** | **$534K** |
 
-*Assumption: Year 1 founder works without salary, bootstrapped*
+*Assumption: Year 1 founder works without salary, bootstrapped. Hardware COGS ~60% of hardware revenue.*
 
 ### Key Assumptions
 - Community Edition drives 10x awareness vs paid marketing
