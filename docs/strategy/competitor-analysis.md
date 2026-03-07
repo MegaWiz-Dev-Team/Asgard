@@ -1,6 +1,6 @@
 # 🏰 Asgard — Competitor & Target Market Analysis
 
-> วิเคราะห์คู่แข่ง, target ของคู่แข่ง, และช่องว่างในตลาดที่ Asgard สามารถเข้าไปแย่งได้
+> Competitor analysis, target market mapping, and market gaps where Asgard can differentiate.
 
 ---
 
@@ -35,19 +35,19 @@ graph TB
 
 ---
 
-## 2. เปรียบเทียบคู่แข่งรายตัว
+## 2. Competitor Breakdown
 
 ### 💬 Open WebUI
 
 | | |
 |:--|:--|
-| **ประเภท** | Chat UI สำหรับ Ollama / OpenAI-compatible |
-| **Target** | 🧑‍💻 Developer, Homelab, มหาวิทยาลัย, Enterprise |
-| **ลูกค้าตัวอย่าง** | Samsung Semiconductor, Johannes Gutenberg University (30K+) |
-| **ราคา** | ฟรี (MIT License) |
-| **จุดแข็ง** | ⭐ 80K+ GitHub stars, UI สวย, RBAC, SCIM 2.0 |
-| **จุดอ่อน** | ไม่มี RAG pipeline, ไม่มี Agent runtime, ไม่มี Gateway |
-| **Asgard ชนะตรงไหน** | Full-stack (Gateway + RAG + Agent + Computer Use) |
+| **Type** | Chat UI for Ollama / OpenAI-compatible backends |
+| **Target** | 🧑‍💻 Developers, Homelab, Universities, Enterprise |
+| **Customers** | Samsung Semiconductor, Johannes Gutenberg University (30K+) |
+| **Pricing** | Free (MIT License) |
+| **Strengths** | ⭐ 80K+ GitHub stars, beautiful UI, RBAC, SCIM 2.0 |
+| **Weaknesses** | No RAG pipeline, no Agent runtime, no Gateway |
+| **Where Asgard wins** | Full-stack (Gateway + RAG + Agent + Computer Use) |
 
 ---
 
@@ -55,26 +55,26 @@ graph TB
 
 | | |
 |:--|:--|
-| **ประเภท** | RAG + Chat (All-in-one local AI) |
-| **Target** | 🧑‍💻 Individual, Small team, Privacy-conscious users, Offline env |
-| **ราคา** | Desktop ฟรี (MIT), Cloud ~$50/month |
-| **จุดแข็ง** | ง่ายมาก, รองรับ document หลายแบบ |
-| **จุดอ่อน** | ไม่มี multi-tenancy, ไม่มี Agent runtime, ไม่มี Gateway |
-| **Asgard ชนะตรงไหน** | Multi-tenant, Enterprise features, Gateway |
+| **Type** | RAG + Chat (All-in-one local AI) |
+| **Target** | 🧑‍💻 Individuals, Small teams, Privacy-conscious users |
+| **Pricing** | Desktop free (MIT), Cloud ~$50/month |
+| **Strengths** | Very easy to use, supports many document formats |
+| **Weaknesses** | No multi-tenancy, no Agent runtime, no Gateway |
+| **Where Asgard wins** | Multi-tenant, Enterprise features, Gateway |
 
 ---
 
-### 🤖 Dify — **คู่แข่งหลัก**
+### 🤖 Dify — **Primary Competitor**
 
 | | |
 |:--|:--|
-| **ประเภท** | LLM App Builder (Low-code) |
+| **Type** | LLM App Builder (Low-code) |
 | **Target** | 🏢 Mid-market B2B, Enterprise |
-| **ราคา** | Free self-host, Cloud $59-159/month, Enterprise ¥500K/year |
+| **Pricing** | Free self-host, Cloud $59-159/month, Enterprise ¥500K/year |
 | **GitHub** | ⭐ 60K+ stars |
-| **จุดแข็ง** | Visual workflow, Plugin marketplace, Enterprise features ครบ |
-| **จุดอ่อน** | ❌ ไม่มี LLM Gateway, ❌ ไม่มี Computer Use, ❌ ต้องใช้ cloud APIs |
-| **Asgard ชนะตรงไหน** | **Native local inference** (MLX/vLLM), Gateway, Computer Use |
+| **Strengths** | Visual workflow, Plugin marketplace, Full Enterprise features |
+| **Weaknesses** | ❌ No LLM Gateway, ❌ No Computer Use, ❌ Requires cloud APIs |
+| **Where Asgard wins** | **Native local inference** (MLX/vLLM), Gateway, Computer Use |
 
 ---
 
@@ -82,11 +82,11 @@ graph TB
 
 | | |
 |:--|:--|
-| **ประเภท** | LLM Workflow Builder (Low-code) |
-| **Target** | 🧑‍💻 Developer, Small team |
-| **ราคา** | Free (Apache 2.0), Cloud $35-65/month |
-| **จุดแข็ง** | Drag-and-drop UI, Human-in-the-Loop |
-| **จุดอ่อน** | ❌ ไม่มี Gateway, ❌ ไม่มี Computer Use |
+| **Type** | LLM Workflow Builder (Low-code) |
+| **Target** | 🧑‍💻 Developers, Small teams |
+| **Pricing** | Free (Apache 2.0), Cloud $35-65/month |
+| **Strengths** | Drag-and-drop UI, Human-in-the-Loop |
+| **Weaknesses** | ❌ No Gateway, ❌ No Computer Use |
 
 ---
 
@@ -94,10 +94,10 @@ graph TB
 
 | | |
 |:--|:--|
-| **ประเภท** | Visual AI Workflow Builder (Developer-focused) |
-| **Target** | 🧑‍💻 Developer, AI researchers |
-| **ราคา** | Free (MIT), Enterprise $2K+/month |
-| **จุดอ่อน** | Technical เกินไป, ต้องประกอบเอง |
+| **Type** | Visual AI Workflow Builder (Developer-focused) |
+| **Target** | 🧑‍💻 Developers, AI researchers |
+| **Pricing** | Free (MIT), Enterprise $2K+/month |
+| **Weaknesses** | Too technical, requires manual assembly |
 
 ---
 
@@ -105,10 +105,10 @@ graph TB
 
 | | |
 |:--|:--|
-| **ประเภท** | Workflow Automation + AI features |
+| **Type** | Workflow Automation + AI features |
 | **Target** | 🏢 Business automation, IT ops |
-| **ราคา** | Free self-host, Cloud €20-800/month |
-| **จุดอ่อน** | AI เป็นแค่ feature เสริม ไม่ใช่ core |
+| **Pricing** | Free self-host, Cloud €20-800/month |
+| **Weaknesses** | AI is just an add-on feature, not core |
 
 ---
 
@@ -166,25 +166,25 @@ quadrantChart
 
 ## 5. 🕳️ Market Gaps
 
-> **ไม่มีใครในตลาดที่ deliver "Full-Stack Self-Hosted AI + Local Inference + Enterprise Features" ได้ครบ**
+> **No one in the market delivers "Full-Stack Self-Hosted AI + Local Inference + Enterprise Features" completely.**
 
-| # | Gap | อธิบาย |
+| # | Gap | Explanation |
 |:--|:--|:--|
-| 1 | **Gateway + Inference + RAG ในตัวเดียว** | Dify ต้องใช้ cloud API, AnythingLLM ไม่มี Gateway |
-| 2 | **Enterprise Self-Host 100%** | Dify เน้น cloud, Flowise/LangFlow ต้องต่อ cloud APIs |
-| 3 | **Dual Hardware (Apple + NVIDIA)** | ไม่มีใครรองรับทั้ง MLX + vLLM |
+| 1 | **Gateway + Inference + RAG in one platform** | Dify requires cloud APIs, AnythingLLM has no Gateway |
+| 2 | **Enterprise Self-Host 100%** | Dify leans cloud, Flowise/LangFlow need cloud APIs |
+| 3 | **Dual Hardware (Apple + NVIDIA)** | No one supports both MLX + vLLM |
 
-### กลุ่มลูกค้าที่ยังไม่มีใครจับ
+### Underserved Customer Segments
 
-| กลุ่ม | ทำไม Asgard เหมาะ |
+| Segment | Why Asgard fits |
 |:--|:--|
-| 🏥 **Healthcare SME** | ข้อมูลผู้ป่วย sensitive → 100% local |
-| ⚖️ **Legal Firm** | เอกสาร confidential → RAG + local inference |
+| 🏥 **Healthcare SME** | Patient data is sensitive → 100% local |
+| ⚖️ **Legal Firm** | Confidential documents → RAG + local inference |
 | 🏦 **Financial SME** | Compliance → Audit trail (Zitadel) |
 | 🎮 **Game Studio** | IP protection + Fenrir (automated QA) + NPC AI |
-| 🏭 **Manufacturing** | Air-gapped → Offline capable |
-| 🏛️ **Government** | ต้อง self-host + compliance |
-| 🎓 **University** | Budget จำกัด → Free community + multi-tenant |
+| 🏭 **Manufacturing** | Air-gapped environments → Offline capable |
+| 🏛️ **Government** | Must self-host + compliance |
+| 🎓 **University** | Limited budget → Free community + multi-tenant |
 
 ---
 
@@ -194,12 +194,12 @@ quadrantChart
 
 > **🏥 Healthcare + ⚖️ Legal + 🏦 Financial + 🎮 Game Studio**
 
-| เหตุผล | |
+| Rationale | |
 |:--|:--|
-| **Pain ชัด** | ข้อมูลห้ามออก → self-host only → Dify ไม่ตอบโจทย์ |
-| **งบพร้อม** | SME ใน 4 กลุ่มนี้มี budget สำหรับ IT infra |
+| **Clear pain** | Data must stay on-premise → self-host only → Dify doesn't fit |
+| **Budget ready** | SMEs in these 4 segments have IT infrastructure budget |
 | **Compliance** | PDPA / HIPAA / financial regulations → audit trail |
-| **ขนาดพอดี** | 10-200 users → Mac Mini/DGX Spark พอ |
+| **Right size** | 10-200 users → Mac Mini/DGX Spark is sufficient |
 
 #### 🎮 Game Industry Use Cases
 

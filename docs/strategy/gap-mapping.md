@@ -1,14 +1,14 @@
 # 🗺️ Gap → Project Mapping Analysis
 
-> วิเคราะห์ว่าแต่ละ gap ควร implement ไว้ใน project ไหน หรือต้องสร้างใหม่
+> Analysis of which project each gap should be implemented in, or whether a new project is needed.
 >
-> อ้างอิงจากสถานะจริงของทุก repo (ตรวจสอบ 7 มี.ค. 2026)
+> Based on actual repo status as of March 7, 2026.
 
 ---
 
-## สถานะปัจจุบันของแต่ละ Repo
+## Current Status by Repo
 
-| Repo | Tech | สถานะ | มีอะไรแล้ว |
+| Repo | Tech | Status | What exists |
 |:--|:--|:--|:--|
 | 🧠 **Mimir** | Rust (Axum+Rig.rs), Next.js 14 | ✅ Sprint 1-8 | Multi-Tenant IAM, Dashboard, RAG Pipeline, Data Ingress |
 | 🛡️ **Heimdall** | Rust (Axum) | ✅ Production | Gateway proxy, SSE streaming, Prometheus |
@@ -22,10 +22,10 @@
 
 ### 1. Centralized Auth — 🌳 Yggdrasil (Zitadel)
 
-> ✅ **ตัดสินใจแล้ว:** ใช้ Zitadel เป็น Yggdrasil
-> 📄 ดูรายละเอียดที่ [yggdrasil-auth-selection.md](../technical/yggdrasil-auth-selection.md)
+> ✅ **Decided:** Use Zitadel as Yggdrasil
+> 📄 See details at [yggdrasil-auth-selection.md](../technical/yggdrasil-auth-selection.md)
 
-| Implement ที่ไหน | Action |
+| Where to implement | Action |
 |:--|:--|
 | 🏰 **Asgard** docker-compose | Deploy Zitadel + Postgres |
 | 🛡️ **Heimdall** | Validate Zitadel JWT |
@@ -44,35 +44,35 @@
 
 ### 7. A2A Protocol (Agent-to-Agent) → 🧠 Mimir + ⚡ Bifrost
 
-> ✅ **ตัดสินใจแล้ว:** Support A2A ใน Mimir
+> ✅ **Decided:** Support A2A in Mimir
 
-[A2A](https://github.com/google/A2A) คือ open standard จาก Google (อยู่ใน Linux Foundation) สำหรับให้ agent คุยกันข้าม platform ได้
+[A2A](https://github.com/google/A2A) is an open standard from Google (hosted by Linux Foundation) enabling cross-platform agent communication.
 
 | | |
 |:--|:--|
-| **มาตรฐาน** | HTTP + JSON-RPC + SSE (เหมือน web stack ปกติ) |
-| **เสริมกับ MCP** | MCP = agent ↔ tools, **A2A = agent ↔ agent** |
-| **Agent Card** | JSON ที่อธิบาย capabilities ของ agent → ใช้สำหรับ discovery |
+| **Standard** | HTTP + JSON-RPC + SSE (standard web stack) |
+| **Complements MCP** | MCP = agent ↔ tools, **A2A = agent ↔ agent** |
+| **Agent Card** | JSON describing agent capabilities → used for discovery |
 | **Task lifecycle** | submitted → working → completed/failed |
 
-| Implement ที่ไหน | Action |
+| Where to implement | Action |
 |:--|:--|
 | 🧠 **Mimir** | A2A Server — expose agents as A2A endpoints + Agent Card registry |
-| ⚡ **Bifrost** | A2A Client — ให้ agent เรียก external A2A agents ได้ |
+| ⚡ **Bifrost** | A2A Client — enable agents to call external A2A agents |
 | 🛡️ **Heimdall** | A2A proxy/auth — route + validate A2A requests |
 
 ---
 
 ## 🟡 Important Gaps (Enterprise Track)
 
-| Gap | Implement | เหตุผล |
+| Gap | Implement in | Rationale |
 |:--|:--|:--|
-| **Audit Log** | 🧠 Mimir | มี DB + API layer แล้ว |
-| **Rate Limiting** | 🛡️ Heimdall | Gateway = จุดตรวจสอบ |
-| **SSO** | 🌳 Zitadel | ได้มาฟรี |
+| **Audit Log** | 🧠 Mimir | Already has DB + API layer |
+| **Rate Limiting** | 🛡️ Heimdall | Gateway = inspection point |
+| **SSO** | 🌳 Zitadel | Included for free |
 | **HA / Clustering** | 🏰 Asgard compose | Docker Swarm/K8s config |
-| **Usage Analytics** | 🧠 Mimir Dashboard | เพิ่ม analytics page |
-| **Model Management UI** | 🧠 Mimir Dashboard | เพิ่มหน้าจัดการ model |
+| **Usage Analytics** | 🧠 Mimir Dashboard | Add analytics page |
+| **Model Management UI** | 🧠 Mimir Dashboard | Add model management page |
 
 ---
 
@@ -113,7 +113,7 @@ graph LR
     end
 ```
 
-> **ไม่ต้องสร้าง project ใหม่เลย** — ทุก gap map ลง project ที่มีอยู่ได้ทั้งหมด
+> **No new projects needed** — every gap maps to an existing project.
 
 ---
 

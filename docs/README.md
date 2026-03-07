@@ -1,25 +1,26 @@
 # 📚 Asgard AI Platform — Documentation
 
-> เอกสารรวมของ Asgard AI Platform สำหรับ Developers, Partners, และ Investors
+> Consolidated documentation for developers, partners, and investors.
 
 ---
 
-## 📋 สารบัญ (Table of Contents)
+## 📋 Table of Contents
 
 ### Strategy & Business
 
 | Document | Description |
 |:--|:--|
-| 📊 [Platform Review](strategy/platform-review.md) | ภาพรวม platform, จุดแข็ง, gap analysis, roadmap, licensing strategy |
-| 🎯 [Competitor & Target Market Analysis](strategy/competitor-analysis.md) | วิเคราะห์คู่แข่ง 8 ราย, ช่องว่างตลาด, positioning |
-| 🗺️ [Gap → Project Mapping](strategy/gap-mapping.md) | แผนที่ mapping gaps → projects สำหรับ implementation |
+| 📊 [Platform Review](strategy/platform-review.md) | Platform overview, strengths, gap analysis, roadmap, licensing |
+| 🎯 [Competitor & Target Market Analysis](strategy/competitor-analysis.md) | 8 competitors analyzed, market gaps, positioning |
+| 🗺️ [Gap → Project Mapping](strategy/gap-mapping.md) | Maps every gap to a specific project for implementation |
 
 ### Architecture & Technical
 
 | Document | Description |
 |:--|:--|
 | 🏗️ [Architecture Overview](architecture.md) | System architecture, data flow, component specs |
-| 🌳 [Yggdrasil Auth Selection](technical/yggdrasil-auth-selection.md) | การเลือก Auth platform (Zitadel) + migration plan |
+| 🌳 [Yggdrasil Auth Selection](technical/yggdrasil-auth-selection.md) | Auth platform comparison — Zitadel selected |
+| 🔧 [ADK-Rust Evaluation](technical/adk-rust-evaluation.md) | ADK-Rust analysis, workflow builder decision, A2A protocol |
 
 ### Legal & Licensing
 
@@ -62,19 +63,19 @@ graph LR
 
 ## 💼 For Investors
 
-หากคุณสนใจ Asgard AI Platform ในเชิงธุรกิจ แนะนำอ่านตามลำดับ:
+Recommended reading order:
 
-1. **[Platform Review](strategy/platform-review.md)** — เข้าใจ platform + roadmap
-2. **[Competitor Analysis](strategy/competitor-analysis.md)** — เข้าใจตลาดและจุดต่าง
-3. **[COMMERCIAL.md](../COMMERCIAL.md)** — Business model + Enterprise features
+1. **[Platform Review](strategy/platform-review.md)** — Understand the platform, roadmap, and licensing
+2. **[Competitor Analysis](strategy/competitor-analysis.md)** — Market landscape and differentiation
+3. **[COMMERCIAL.md](../COMMERCIAL.md)** — Business model and Enterprise features
 
 ---
 
 ## 📞 Contact
 
-- 📧 Email: enterprise@megacare.dev
-- 🏢 Organization: [megacare-dev](https://github.com/megacare-dev)
+- 📧 Email: paripol@megawiz.co
+- 🏢 Organization: [MegaWiz](https://github.com/megacare-dev)
 
 ---
 
-© 2026 MegaCare Dev — Licensed under AGPL-3.0
+© 2026 MegaWiz — Licensed under AGPL-3.0

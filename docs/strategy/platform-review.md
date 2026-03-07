@@ -1,21 +1,21 @@
 # 🏰 Asgard Platform Review — SME Self-Hosted + Open Source Strategy
 
-> **Context**: ทบทวนสถาปัตยกรรม Asgard สำหรับ use case: Self-hosted on-prem สำหรับ SME ขนาดกลาง
-> โดยวางแผนเป็น **Community Edition (OSS)** + **Enterprise Edition (Commercial)** ในอนาคต
+> **Context**: Architecture review of Asgard for SME on-premise self-hosted deployment.
+> Planned as **Community Edition (OSS)** + **Enterprise Edition (Commercial)** in the future.
 
 ---
 
-## 1. 💪 จุดแข็งของ Platform ปัจจุบัน
+## 1. 💪 Current Platform Strengths
 
-### Architecture ดีมาก
-- **Modular Microservices** — แยก component ชัดเจน (Heimdall, Mimir, Bifrost, Fenrir) ทำให้ deploy เฉพาะส่วนที่ต้องการได้
-- **OpenAI-Compatible API** — ลูกค้า SME ที่ใช้ OpenAI อยู่แล้วสามารถ migrate มาใช้ได้โดยแค่เปลี่ยน endpoint
-- **Multi-Backend Strategy** — MLX, llama.cpp, Ollama, vLLM ครอบคลุมทุก use case
-- **Rust + Python hybrid** — Performance-critical parts (Gateway, RAG) ใช้ Rust, AI-ecosystem parts (Agent) ใช้ Python
+### Strong Architecture
+- **Modular Microservices** — Separate components (Heimdall, Mimir, Bifrost, Fenrir) allow selective deployment
+- **OpenAI-Compatible API** — SMEs already using OpenAI can migrate by simply changing the endpoint
+- **Multi-Backend Strategy** — MLX, llama.cpp, Ollama, vLLM cover all use cases
+- **Rust + Python hybrid** — Performance-critical parts (Gateway, RAG) use Rust; AI-ecosystem parts (Agent) use Python
 
-### Mimir มีความพร้อมสูง (8 Sprints Done)
+### Mimir Is Production-Ready (8 Sprints Done)
 
-| Feature | Status | รายละเอียด |
+| Feature | Status | Details |
 |:--|:--|:--|
 | **Multi-Tenant IAM** | ✅ Done | JWT auth, Argon2id password, role-based access |
 | **Admin Dashboard** | ✅ Done | Tenant switcher, user management, settings |
@@ -41,33 +41,33 @@
 | Embedding | nomic-embed-text, text-embedding-004, bge-m3 |
 | Infrastructure | Docker Compose |
 
-### เหมาะกับ SME On-Prem
-- **Zero Cloud Dependency** — ข้อมูลไม่ออกจากบริษัท → ตอบโจทย์ data sovereignty
-- **Single Machine Deployment** — Mac Mini M4 Pro เครื่องเดียวรันได้ทั้งระบบ
-- **Low Operational Cost** — ไม่มี API call charges, ไม่ต้องมี DevOps team ใหญ่
+### Ideal for SME On-Prem
+- **Zero Cloud Dependency** — Data never leaves the company → data sovereignty
+- **Single Machine Deployment** — Runs on a single Mac Mini M4 Pro
+- **Low Operational Cost** — No API call charges, no large DevOps team needed
 
 ---
 
-## 2. ⚠️ Gap Analysis — สิ่งที่ยังขาดสำหรับ SME + Commercial
+## 2. ⚠️ Gap Analysis — What's Missing for SME + Commercial
 
-### 🔴 Critical Gaps (ต้องมีก่อนปล่อย Community)
+### 🔴 Critical Gaps (Required before Community release)
 
-| Gap | ปัญหา | แนวทาง |
+| Gap | Problem | Solution |
 |:--|:--|:--|
-| **Centralized Auth** | แต่ละ component ใช้ auth แยกกัน | ✅ ตัดสินใจแล้ว: ใช้ Zitadel (Yggdrasil) |
-| **All-in-One Docker Compose** | ยังแยก stack กับ Heimdall/Bifrost | สร้าง unified `docker-compose.yml` |
-| **Backup/Restore** | ไม่มีระบบ backup อัตโนมัติ | เพิ่ม backup CLI + cron |
-| **Bifrost ยังไม่เสร็จ** | Agent Runtime เป็น core value | Prioritize MVP |
-| **Setup Wizard** | ต้อง config `.env` หลายไฟล์ | สร้าง CLI + Web wizard |
+| **Centralized Auth** | Each component uses separate auth | ✅ Decided: Zitadel (Yggdrasil) |
+| **All-in-One Docker Compose** | Stacks for Heimdall/Bifrost still separate | Create unified `docker-compose.yml` |
+| **Backup/Restore** | No automated backup system | Add backup CLI + cron |
+| **Bifrost not ready** | Agent Runtime is a core value | Prioritize MVP |
+| **Setup Wizard** | Must manually configure `.env` files | Create CLI + Web wizard |
 
-### 🟡 Important Gaps (ควรมีก่อน Enterprise)
+### 🟡 Important Gaps (Required before Enterprise)
 
-| Gap | เหตุผล |
+| Gap | Reason |
 |:--|:--|
-| **Audit Log** | Enterprise ต้องการ audit trail สำหรับ compliance |
-| **Rate Limiting / Quota** | ป้องกัน abuse, จำกัด usage per user/team |
-| **SSO Integration** | Enterprise ใช้ LDAP/SAML/OIDC เป็นหลัก |
-| **HA / Clustering** | บริษัทขนาดกลางขึ้นไปต้องการ high availability |
+| **Audit Log** | Enterprise requires audit trail for compliance |
+| **Rate Limiting / Quota** | Prevent abuse, limit usage per user/team |
+| **SSO Integration** | Enterprise uses LDAP/SAML/OIDC |
+| **HA / Clustering** | Mid-to-large companies need high availability |
 | **Usage Analytics Dashboard** | Billing, cost tracking, usage reporting |
 
 ---
@@ -75,10 +75,10 @@
 ## 3. 🗺️ Roadmap — Community → Enterprise
 
 ### Phase 1: Community Foundation (v1.0) 🎯
-> เป้าหมาย: **ใครก็ได้โหลดไป run ได้ใน 15 นาที**
+> Goal: **Anyone can download and run it in 15 minutes**
 
 ```
-✅ มีอยู่แล้ว (จาก Mimir)              🆕 ต้องเพิ่ม
+✅ Already built (from Mimir)              🆕 To be added
 ├── Multi-Tenant IAM (JWT+RBAC)       ├── Unified docker-compose (all components)
 ├── Admin Dashboard (Next.js)          ├── Shared Auth (Zitadel)
 ├── Docker Compose (partial)           ├── One-command install script
@@ -87,42 +87,42 @@
 └── Real-time Monitoring               └── Asgard Quick Start Guide
 ```
 
-**Hardware Tiers สำหรับ SME:**
+**Hardware Tiers for SMEs:**
 
 #### 🍎 Apple Silicon Track (MLX / llama.cpp / Ollama)
 
-| Tier | Hardware | รองรับ | ราคาเครื่อง |
+| Tier | Hardware | Capacity | Approx. Price |
 |:--|:--|:--|:--|
-| **Starter** | Mac Mini M4 (16GB) | 1-5 users, 7B model | ~฿25,000 |
-| **Standard** | Mac Mini M4 Pro (36GB) | 10-20 users, 14B model | ~฿60,000 |
-| **Pro** | Mac Mini M4 Pro (64GB) | 20-50 users, 30B+ model | ~฿80,000 |
-| **Max** | Mac Studio M4 Ultra (192GB) | 50-200 users, 70B+ model | ~฿180,000 |
+| **Starter** | Mac Mini M4 (16GB) | 1-5 users, 7B model | ~$700 |
+| **Standard** | Mac Mini M4 Pro (36GB) | 10-20 users, 14B model | ~$1,700 |
+| **Pro** | Mac Mini M4 Pro (64GB) | 20-50 users, 30B+ model | ~$2,300 |
+| **Max** | Mac Studio M4 Ultra (192GB) | 50-200 users, 70B+ model | ~$5,100 |
 
 #### 🟢 NVIDIA Track (vLLM + CUDA)
 
-| Tier | Hardware | รองรับ | ราคาเครื่อง |
+| Tier | Hardware | Capacity | Approx. Price |
 |:--|:--|:--|:--|
-| **DGX Spark** | NVIDIA DGX Spark (128GB) | 50-200 users, 70B+ model | ~฿350,000 |
-| **DGX Station** | NVIDIA DGX Station (A100/H100) | 200+ users, multi-model | ~฿2,000,000+ |
+| **DGX Spark** | NVIDIA DGX Spark (128GB) | 50-200 users, 70B+ model | ~$10,000 |
+| **DGX Station** | NVIDIA DGX Station (A100/H100) | 200+ users, multi-model | ~$60,000+ |
 
 ### Phase 2: Community Growth (v1.x)
-> เป้าหมาย: **Community เริ่มใช้งานจริง + รองรับ NVIDIA**
+> Goal: **Real-world community usage + NVIDIA support**
 
 - [ ] Bifrost MVP (Agent Runtime — ReAct loop, tool execution)
-- [ ] 🟢 Heimdall: vLLM backend — CUDA support สำหรับ NVIDIA DGX Spark
-- [ ] 🟢 Heimdall: Intelligent Router — Auto-route ตาม hardware (MLX vs vLLM)
+- [ ] 🟢 Heimdall: vLLM backend — CUDA support for NVIDIA DGX Spark
+- [ ] 🟢 Heimdall: Intelligent Router — Auto-route by hardware (MLX vs vLLM)
 - [ ] 🧠 Mimir: Visual Workflow Builder (ReactFlow) — **moved from Enterprise**
 - [ ] 🧠 Mimir: A2A Server (Agent-to-Agent protocol)
 - [ ] ⚡ Bifrost: A2A Client
 - [ ] adk-guardrail integration (PII redaction — Healthcare)
 - [ ] Agent Template Marketplace
-- [ ] Plugin system สำหรับ custom tools
+- [ ] Plugin system for custom tools
 - [ ] Documentation site
 - [ ] Knowledge Graph (Neo4j — Mimir Sprint 11)
 - [ ] Multi-Agent System (Mimir Sprint 12)
 
 ### Phase 3: Enterprise Edition (v2.0) 💰
-> เป้าหมาย: **ขาย license ให้บริษัท**
+> Goal: **Sell licenses to companies**
 
 ```
 Enterprise-Only Features:
@@ -142,13 +142,13 @@ Enterprise-Only Features:
 
 ## 4. 📊 Licensing Strategy
 
-> ✅ **ตัดสินใจแล้ว: AGPL-3.0** — Dual License (AGPL Community + Commercial Enterprise)
+> ✅ **Decided: AGPL-3.0** — Dual License (AGPL Community + Commercial Enterprise)
 
-| Option | License | ข้อดี | ข้อเสีย | ตัวอย่าง |
+| Option | License | Pros | Cons | Examples |
 |:--|:--|:--|:--|:--|
-| **✅ เลือก** | AGPL-3.0 | Strong copyleft ป้องกัน cloud reselling | บาง SME กลัว GPL | GitLab, Mattermost |
-| B | BSL 1.1 | ปกป้อง commercial แต่ยังเปิดให้ใช้ฟรี | ไม่ถือเป็น "true OSS" | Sentry, CockroachDB |
-| C | Apache 2.0 + CLA | เปิดกว้างที่สุด | ป้องกัน competitor ยากกว่า | Kubernetes, TensorFlow |
+| **✅ Selected** | AGPL-3.0 | Strong copyleft prevents cloud reselling | Some SMEs wary of GPL | GitLab, Mattermost |
+| B | BSL 1.1 | Protects commercial use while allowing free use | Not considered "true OSS" | Sentry, CockroachDB |
+| C | Apache 2.0 + CLA | Most permissive | Harder to prevent competitors | Kubernetes, TensorFlow |
 
 ---
 
@@ -166,7 +166,7 @@ Enterprise-Only Features:
 | Enterprise Ready | 🚧 | ❌ | ⚠️ | ✅ |
 
 **USP (Unique Selling Point):**
-> "แพลตฟอร์ม AI ครบวงจร self-hosted สำหรับทั้ง Apple Silicon และ NVIDIA GPU — ตั้งแต่ LLM Gateway จนถึง Computer Use Agent ข้อมูลไม่เคยออกจากบริษัท"
+> "A full-stack, self-hosted AI platform for both Apple Silicon and NVIDIA GPU — from LLM Gateway to Computer Use Agent. Your data never leaves your premises."
 
 ---
 

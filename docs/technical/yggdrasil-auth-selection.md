@@ -1,25 +1,25 @@
 # 🌳 Yggdrasil — Auth Platform Selection
 
-> เปรียบเทียบ Open Source Auth Platform สำหรับใช้เป็น Yggdrasil (Centralized Auth Service) ใน Asgard
+> Comparison of Open Source Auth Platforms for use as Yggdrasil (Centralized Auth Service) in Asgard.
 
 ---
 
-## เกณฑ์การเลือก
+## Selection Criteria
 
-| # | เกณฑ์ | ทำไมสำคัญ |
+| # | Criterion | Why it matters |
 |:--|:--|:--|
-| 1 | Docker + ARM64 | ต้องรันบน Apple Silicon + DGX Spark |
-| 2 | Multi-Tenancy | Mimir มี multi-tenant อยู่แล้ว |
-| 3 | OIDC / OAuth2 | Standard protocol สำหรับทุก component |
+| 1 | Docker + ARM64 | Must run on Apple Silicon + DGX Spark |
+| 2 | Multi-Tenancy | Mimir already has multi-tenant |
+| 3 | OIDC / OAuth2 | Standard protocol for all components |
 | 4 | SAML / LDAP | Enterprise SSO |
-| 5 | Lightweight | SME ไม่มี DevOps team ใหญ่ |
-| 6 | API-First | Integrate กับ Rust + Python |
-| 7 | Self-Hosted License | OSS ที่ใช้ commercial ได้ |
-| 8 | UI Console | Admin จัดการ user/tenant |
+| 5 | Lightweight | SMEs don't have large DevOps teams |
+| 6 | API-First | Integrate with Rust + Python |
+| 7 | Self-Hosted License | OSS that allows commercial use |
+| 8 | UI Console | Admin manages users/tenants |
 
 ---
 
-## เปรียบเทียบ 6 ตัวเลือก
+## Comparison of 6 Options
 
 | Feature | 🏆 Zitadel | Authentik | Keycloak | Ory | Authelia | SuperTokens |
 |:--|:--|:--|:--|:--|:--|:--|
@@ -39,15 +39,15 @@
 
 ## 🏆 Decision: Zitadel
 
-| เหตุผล | รายละเอียด |
+| Reason | Details |
 |:--|:--|
-| **Multi-Tenancy Native** | สร้างมาเพื่อ B2B SaaS → match กับ Mimir |
-| **Go → เบา + เร็ว** | ~200MB RAM, startup เร็ว, binary เดียว |
-| **Event-Sourced Audit** | Enterprise compliance ได้เลย |
-| **gRPC + REST API** | Rust (Heimdall) เรียก gRPC, Python (Bifrost) ใช้ REST |
-| **OIDC + SAML + LDAP** | ครบ enterprise protocols |
-| **Apache 2.0** | ใช้ commercial ได้เลย |
-| **ARM64 Native** | Docker image สำหรับ Apple Silicon มีพร้อม |
+| **Native Multi-Tenancy** | Built for B2B SaaS → matches Mimir's architecture |
+| **Go → Lightweight + Fast** | ~200MB RAM, fast startup, single binary |
+| **Event-Sourced Audit** | Enterprise compliance out of the box |
+| **gRPC + REST API** | Rust (Heimdall) calls gRPC, Python (Bifrost) uses REST |
+| **OIDC + SAML + LDAP** | Complete enterprise protocol coverage |
+| **Apache 2.0** | Compatible with commercial use |
+| **ARM64 Native** | Docker image for Apple Silicon available |
 
 ---
 
@@ -73,17 +73,17 @@
      └───────────────┘ └──────────────┘ └──────────────┘
 ```
 
-### Migration Path จาก Mimir IAM
+### Migration Path from Mimir IAM
 
 | Step | Action | Impact |
 |:--|:--|:--|
-| 1 | Deploy Zitadel ใน Docker Compose | ไม่กระทบ Mimir |
-| 2 | สร้าง Organizations ตาม Mimir tenants | Parallel run |
+| 1 | Deploy Zitadel in Docker Compose | No impact on Mimir |
+| 2 | Create Organizations matching Mimir tenants | Parallel run |
 | 3 | Migrate users → Zitadel import API | Data migration |
-| 4 | Heimdall → validate Zitadel JWT | แทน static API key |
-| 5 | Mimir → delegate login (OIDC) | ลบ auth code |
-| 6 | Bifrost → validate Zitadel JWT | เพิ่ม middleware |
-| 7 | ลบ Mimir IAM code | Cleanup |
+| 4 | Heimdall → validate Zitadel JWT | Replace static API key |
+| 5 | Mimir → delegate login (OIDC) | Remove auth code |
+| 6 | Bifrost → validate Zitadel JWT | Add middleware |
+| 7 | Remove Mimir IAM code | Cleanup |
 
 ### Docker Compose
 
@@ -109,14 +109,14 @@ yggdrasil-db:
 
 ## 📊 Impact on Gap Mapping
 
-| Gap เดิม | เปลี่ยนไป |
+| Original Gap | Changes to |
 |:--|:--|
-| Heimdall JWT validation | → validate Zitadel JWT |
-| Mimir SSO support | → ❌ ไม่ต้องทำ — Zitadel มี |
-| Mimir Audit Log | → ❌ ไม่ต้องทำ — Zitadel มี event-sourced |
-| Mimir IAM code | → ลดลง — delegate ไป Zitadel |
+| Heimdall JWT validation | → Validate Zitadel JWT |
+| Mimir SSO support | → ❌ Not needed — Zitadel provides it |
+| Mimir Audit Log | → ❌ Not needed — Zitadel has event-sourced audit |
+| Mimir IAM code | → Reduced — delegated to Zitadel |
 
-> เลือก Zitadel → Mimir จะเบาลงมาก และ Enterprise features หลายตัวได้มาฟรี
+> Choosing Zitadel → Mimir becomes significantly lighter, and many Enterprise features come for free.
 
 ---
 

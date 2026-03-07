@@ -1,55 +1,55 @@
 # 🔧 ADK-Rust Evaluation & Workflow Builder Decision
 
-> ตัดสินใจ: Visual Workflow Builder + ADK-Rust integration strategy สำหรับ Asgard
+> Decisions: Visual Workflow Builder + ADK-Rust integration strategy for Asgard
 >
-> 📅 ตัดสินใจ: 7 มี.ค. 2026
+> 📅 Decided: March 7, 2026
 
 ---
 
 ## 1. ADK-Rust Evaluation
 
-[zavora-ai/adk-rust](https://github.com/zavora-ai/adk-rust) เป็น full-stack Rust agent framework (25+ crates) ที่ครอบคลุม Agent, RAG, Browser, Voice, MCP, UI Studio
+[zavora-ai/adk-rust](https://github.com/zavora-ai/adk-rust) is a full-stack Rust agent framework (25+ crates) covering Agent, RAG, Browser, Voice, MCP, UI Studio.
 
-### ✅ ตัดสินใจ: ไม่ใช้ ADK-Rust แทน Rig ใน Mimir
+### ✅ Decision: Do NOT replace Rig with ADK-Rust in Mimir
 
-| เหตุผล | รายละเอียด |
+| Reason | Details |
 |:--|:--|
-| **ทำลาย architecture** | Asgard = microservices, ADK-Rust = monolith framework |
-| **Mimir มี 8 sprints แล้ว** | Rewrite = เสียเวลามหาศาล |
-| **Dependency risk** | ขึ้นกับ Zavora AI ทั้งหมด |
-| **ไม่มี MLX/vLLM** | USP ของ Asgard หายไป |
-| **Full adopt = Asgard ซ้ำซ้อน** | ADK-Rust ทำทุกอย่าง → Asgard ไม่มีเหตุผลจะมี |
+| **Destroys architecture** | Asgard = microservices, ADK-Rust = monolith framework |
+| **Mimir has 8 sprints already** | Rewrite = massive time investment |
+| **Dependency risk** | Fully dependent on Zavora AI |
+| **No MLX/vLLM** | Asgard's USP would disappear |
+| **Full adopt = Asgard redundant** | ADK-Rust does everything → no reason for Asgard to exist |
 
-### ✅ ตัดสินใจ: Cherry-Pick + Reference
+### ✅ Decision: Cherry-Pick + Reference
 
-| Strategy | ใช้อะไร | ใช้ใน | วิธีใช้ |
+| Strategy | What | Use in | How |
 |:--|:--|:--|:--|
-| **Cherry-pick** | `adk-guardrail` | Mimir | PII redaction สำหรับ Healthcare |
+| **Cherry-pick** | `adk-guardrail` | Mimir | PII redaction for Healthcare |
 | **Reference** | `adk-graph` patterns | Bifrost | LangGraph-style workflow reference |
 | **Reference** | `adk-browser` patterns | Fenrir | WebDriver tools reference |
 | **Reference** | `adk-eval` patterns | Mimir | Agent evaluation patterns |
-| **Study** | Architecture | ทุก component | เรียนรู้ Graph Agent, A2A protocol |
+| **Study** | Architecture | All components | Learn Graph Agent, A2A protocol patterns |
 
 ---
 
 ## 2. Visual Workflow Builder Decision
 
-### ✅ ตัดสินใจ: Option A — ReactFlow + Mimir Dashboard
+### ✅ Decision: Option A — ReactFlow + Mimir Dashboard
 
-| ทำไมเลือก | |
+| Why this option | |
 |:--|:--|
-| **ไม่ต้องเพิ่ม service** | อยู่ใน Mimir Dashboard (Next.js 14) เลย |
-| **Full integration** | ต่อ Heimdall/Bifrost/Fenrir ได้ 100% |
-| **Competitive advantage** | Visual builder ตัวเดียวที่ต่อ local inference ได้ |
-| **Same stack** | Mimir ใช้ Next.js อยู่แล้ว → เพิ่ม ReactFlow component |
+| **No extra service needed** | Lives inside Mimir Dashboard (Next.js 14) |
+| **Full integration** | Connects to Heimdall/Bifrost/Fenrir 100% |
+| **Competitive advantage** | Only visual builder that connects to local inference |
+| **Same stack** | Mimir already uses Next.js → add ReactFlow component |
 
-### ทำไมไม่ใช้ ADK Studio
+### Why NOT ADK Studio
 
-| ปัญหา | |
+| Issue | |
 |:--|:--|
-| Tight coupling | สร้างมาเพื่อ generate ADK-Rust code เท่านั้น |
-| ต้อง adopt ADK ทั้งหมด | ไม่สามารถใช้กับ Rig/Mimir ได้ |
-| Rust-only output | Bifrost (Python) ใช้ไม่ได้ |
+| Tight coupling | Built exclusively to generate ADK-Rust code |
+| Must adopt all of ADK | Cannot work with Rig/Mimir |
+| Rust-only output | Bifrost (Python) incompatible |
 
 ### Architecture
 
@@ -83,15 +83,15 @@ Mimir Dashboard (Next.js 14)
 
 ## 3. A2A Protocol Decision
 
-### ✅ ตัดสินใจ: Support A2A ใน Mimir + Bifrost
+### ✅ Decision: Support A2A in Mimir + Bifrost
 
-[A2A (Agent-to-Agent)](https://github.com/google/A2A) คือ open standard จาก Google/Linux Foundation สำหรับ inter-agent communication
+[A2A (Agent-to-Agent)](https://github.com/google/A2A) is an open standard from Google/Linux Foundation for inter-agent communication.
 
 | | |
 |:--|:--|
 | **A2A** | Agent ↔ Agent (discovery, task delegation, collaboration) |
 | **MCP** | Agent ↔ Tools (function calling, data access) |
-| **ทั้งคู่** | Complementary — Asgard ต้อง support ทั้ง A2A + MCP |
+| **Both** | Complementary — Asgard must support both A2A + MCP |
 
 **Implementation plan:**
 
@@ -105,7 +105,7 @@ Mimir Dashboard (Next.js 14)
 
 ## 4. Impact on Roadmap
 
-เพิ่มใน **Phase 2: Community Growth (v1.x)**:
+Added to **Phase 2: Community Growth (v1.x)**:
 
 ```diff
 ### Phase 2: Community Growth (v1.x)
