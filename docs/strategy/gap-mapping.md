@@ -10,7 +10,7 @@
 
 | Repo | Tech | Status | What exists |
 |:--|:--|:--|:--|
-| 🧠 **Mimir** | Rust (Axum+Rig.rs), Next.js 14 | ✅ Sprint 1-8 | Multi-Tenant IAM, Dashboard, RAG Pipeline, Data Ingress |
+| 🧠 **Mimir** | Rust (Axum+Rig.rs), Next.js 14 | ✅ Sprint 1-23 | Multi-Tenant IAM, Dashboard, RAG Pipeline, Data Ingress, Agent Builder, Knowledge Graph, Code Refactoring |
 | 🛡️ **Heimdall** | Rust (Axum) | ✅ Production | Gateway proxy, SSE streaming, Prometheus |
 | ⚡ **Bifrost** | Python (FastAPI) | 🚧 Scaffolding | Project structure, Dockerfile |
 | 🐺 **Fenrir** | Rust (ZeroClaw) | 📋 Planned | README + design |

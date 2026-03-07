@@ -58,7 +58,7 @@ graph LR
 | Component | Description | Tech | Status |
 |:--|:--|:--|:--|
 | 🛡️ **Heimdall** | LLM Gateway | Rust (Axum) | ✅ Production |
-| 🧠 **Mimir** | RAG + Agent Builder | Rust (Axum) + Next.js 14 | ✅ Sprint 8 Done |
+| 🧠 **Mimir** | RAG + Agent Builder | Rust (Axum) + Next.js 14 | ✅ Sprint 23 Done |
 | ⚡ **Bifrost** | Agent Runtime | Python (FastAPI) | 🚧 Scaffolding |
 | 🐺 **Fenrir** | Computer Use | Rust (ZeroClaw) | 📋 Planned |
 | 🌳 **Yggdrasil** | Auth Service | Zitadel (Go) | 📋 Planned |

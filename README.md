@@ -40,7 +40,7 @@ graph LR
 
 | Component | Description | Tech Stack | Status |
 |:--|:--|:--|:--|
-| 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum + Rig.rs), Next.js 14, MariaDB, Qdrant | ✅ Sprint 8 |
+| 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum + Rig.rs), Next.js 14, MariaDB, Qdrant | ✅ Sprint 23 |
 | 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy with auth & metrics | Rust (Axum) | ✅ Production |
 | ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime Engine — ReAct loop, tool execution, A2A | Python (FastAPI) | 🚧 Scaffolding |
 | 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — browser, shell, screen control | Rust (ZeroClaw) | 📋 Planned |

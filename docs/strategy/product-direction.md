@@ -54,7 +54,7 @@ Asgard lets any organization deploy a full AI stack on Apple Silicon or NVIDIA G
 | **GitHub Stars (all repos)** | Leading | 500+ |
 | **Community Contributors** | Leading | 10+ |
 | **Design Partners** | Lagging | 3-5 orgs |
-| **Documentation Coverage** | Leading | All components documented |
+| **Documentation Coverage** | Leading | All 23 sprints documented (ISO 29110) |
 
 ---
 

@@ -13,7 +13,7 @@
 - **Multi-Backend Strategy** — MLX, llama.cpp, Ollama, vLLM cover all use cases
 - **Rust + Python hybrid** — Performance-critical parts (Gateway, RAG) use Rust; AI-ecosystem parts (Agent) use Python
 
-### Mimir Is Production-Ready (8 Sprints Done)
+### Mimir Is Production-Ready (23 Sprints Done)
 
 | Feature | Status | Details |
 |:--|:--|:--|
