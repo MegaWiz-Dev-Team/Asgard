@@ -6,7 +6,7 @@
 
 ## 📋 Table of Contents
 
-### Strategy & Business
+### Strategy & Planning
 
 | Document | Description |
 |:--|:--|
@@ -15,6 +15,15 @@
 | 🗺️ [Roadmap](strategy/roadmap.md) | Development roadmap with Gantt chart and milestones |
 | 🎯 [Competitor & Target Market Analysis](strategy/competitor-analysis.md) | 8 competitors analyzed, market gaps, positioning |
 | 🗺️ [Gap → Project Mapping](strategy/gap-mapping.md) | Maps every gap to a specific project for implementation |
+| 🚀 [MVP v1.0 Scope](strategy/mvp-v1.0.md) | MoSCoW prioritization, done criteria, launch checklist |
+
+### Business
+
+| Document | Description |
+|:--|:--|
+| 💰 [Pricing Strategy](business/pricing-strategy.md) | Community vs Enterprise tiers, competitive benchmark |
+| 📈 [Business Plan](business/business-plan.md) | Market sizing, financial projections, team, funding |
+| 🚀 [Go-to-Market](business/go-to-market.md) | Launch phases, adoption funnel, community & enterprise sales |
 
 ### Architecture & Technical
 
