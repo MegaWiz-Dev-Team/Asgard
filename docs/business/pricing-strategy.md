@@ -59,16 +59,16 @@
 ### Starter Enterprise
 | Item | Details |
 |:--|:--|
-| **Price** | $500/month per instance |
-| **Annual** | $5,000/year (2 months free) |
+| **Price** | $500/mo (฿17,500/mo) per instance |
+| **Annual** | $5,000/yr (฿175,000/yr) — 2 months free |
 | **Includes** | All Enterprise features, email support (48h SLA) |
 | **Best for** | Small teams, startups, single-server deployments |
 
 ### Professional Enterprise
 | Item | Details |
 |:--|:--|
-| **Price** | $2,000/month per instance |
-| **Annual** | $20,000/year (2 months free) |
+| **Price** | $2,000/mo (฿70,000/mo) per instance |
+| **Annual** | $20,000/yr (฿700,000/yr) — 2 months free |
 | **Includes** | HA clustering, priority support (4h SLA), dedicated Slack |
 | **Best for** | Mid-size orgs, multi-node, regulated industries |
 
@@ -112,28 +112,28 @@
 #### 🟢 Tier 1 — Asgard Mini (Entry-Level)
 | Item | Spec | Hardware Cost | Bundle Price | Margin |
 |:--|:--|:--|:--|:--|
-| **Mac Mini M4 Pro** | 12C CPU, 16C GPU, 24GB RAM, 512GB | ~$1,400 | **$2,500** | $1,100 (44%) |
+| **Mac Mini M4 Pro** | 12C CPU, 16C GPU, 24GB RAM, 512GB | ~$1,400 (฿49,000) | **$2,500 (฿87,500)** | $1,100 (44%) |
 | **Pre-installed** | Asgard Community, Heimdall, MLX, Qwen 9B model | | | |
 | **Best for** | Solo developer, prototyping, small RAG chatbot | | | |
 
 #### 🔵 Tier 2 — Asgard Pro (Production)
 | Item | Spec | Hardware Cost | Bundle Price | Margin |
 |:--|:--|:--|:--|:--|
-| **Mac Mini M4 Pro** | 14C CPU, 20C GPU, 48GB RAM, 1TB | ~$2,200 | **$3,800** | $1,600 (42%) |
+| **Mac Mini M4 Pro** | 14C CPU, 20C GPU, 48GB RAM, 1TB | ~$2,200 (฿77,000) | **$3,800 (฿133,000)** | $1,600 (42%) |
 | **Pre-installed** | Asgard + Enterprise License (1yr), Qwen 35B MoE | | | |
 | **Best for** | SMB production, multi-tenant, 5-10 users | | | |
 
 #### 🟣 Tier 3 — Asgard Studio (Power User)
 | Item | Spec | Hardware Cost | Bundle Price | Margin |
 |:--|:--|:--|:--|:--|
-| **Mac Studio M4 Max** | 16C CPU, 40C GPU, 128GB RAM, 1TB | ~$3,500 | **$5,900** | $2,400 (41%) |
+| **Mac Studio M4 Max** | 16C CPU, 40C GPU, 128GB RAM, 1TB | ~$3,500 (฿122,500) | **$5,900 (฿206,500)** | $2,400 (41%) |
 | **Pre-installed** | Asgard Enterprise, Qwen 35B + MedGemma, Neo4j, Vault | | | |
 | **Best for** | Healthcare/legal RAG, large knowledge base, 20+ users | | | |
 
 #### 🟠 Tier 4 — Asgard Ultra (Enterprise)
 | Item | Spec | Hardware Cost | Bundle Price | Margin |
 |:--|:--|:--|:--|:--|
-| **Mac Studio M4 Ultra** | 32C CPU, 80C GPU, 192GB RAM, 2TB | ~$5,500 | **$9,500** | $4,000 (42%) |
+| **Mac Studio M4 Ultra** | 32C CPU, 80C GPU, 192GB RAM, 2TB | ~$5,500 (฿192,500) | **$9,500 (฿332,500)** | $4,000 (42%) |
 | **Pre-installed** | Asgard Enterprise + Custom, multi-agent, full model suite | | | |
 | **Add-ons** | On-site setup, training (2 days), 1-year priority support | | | |
 | **Best for** | Hospital groups, financial institutions, 50+ users | | | |
@@ -141,27 +141,29 @@
 #### 🔴 Tier 5 — Asgard GPU Server (NVIDIA)
 | Item | Spec | Hardware Cost | Bundle Price | Margin |
 |:--|:--|:--|:--|:--|
-| **NVIDIA GPU Server** | RTX 4090 (24GB) or A6000 (48GB) | ~$3K-$8K | **$6K-$15K** | $3K-$7K (50%) |
+| **NVIDIA GPU Server** | RTX 4090 (24GB) or A6000 (48GB) | ~$3K-$8K (฿105K-280K) | **$6K-$15K (฿210K-525K)** | $3K-$7K (50%) |
 | **Pre-installed** | Asgard Enterprise, vLLM, CUDA optimized | | | |
 | **Add-ons** | On-site setup, rack mounting, 1-year support | | | |
 | **Best for** | High-throughput inference, training fine-tune, GPU clusters | | | |
 
 ### Pricing Summary
 
-| Tier | Hardware | Bundle Price | Includes |
-|:--|:--|:--|:--|
-| 🟢 **Mini** | Mac Mini M4 Pro 24GB | **$2,500** | Community + MLX + 9B model |
-| 🔵 **Pro** | Mac Mini M4 Pro 48GB | **$3,800** | Enterprise 1yr + 35B model |
-| 🟣 **Studio** | Mac Studio M4 Max 128GB | **$5,900** | Enterprise + Neo4j + Vault |
-| 🟠 **Ultra** | Mac Studio M4 Ultra 192GB | **$9,500** | Enterprise Custom + on-site |
-| 🔴 **GPU** | NVIDIA RTX/A6000 Server | **$6K-$15K** | Enterprise + vLLM + CUDA |
+| Tier | Hardware | Bundle Price (USD) | Bundle Price (THB) | Includes |
+|:--|:--|:--|:--|:--|
+| 🟢 **Mini** | Mac Mini M4 Pro 24GB | **$2,500** | **฿87,500** | Community + MLX + 9B model |
+| 🔵 **Pro** | Mac Mini M4 Pro 48GB | **$3,800** | **฿133,000** | Enterprise 1yr + 35B model |
+| 🟣 **Studio** | Mac Studio M4 Max 128GB | **$5,900** | **฿206,500** | Enterprise + Neo4j + Vault |
+| 🟠 **Ultra** | Mac Studio M4 Ultra 192GB | **$9,500** | **฿332,500** | Enterprise Custom + on-site |
+| 🔴 **GPU** | NVIDIA RTX/A6000 Server | **$6K-$15K** | **฿210K-525K** | Enterprise + vLLM + CUDA |
 
 ### Hardware Bundle Strategy
 1. **Apple ARM = primary** — Thailand has Apple reseller network; easy to source
 2. **NVIDIA = on-demand** — For customers needing GPU training/fine-tuning
 3. **Margin target** — 40-50% gross margin on hardware bundles
 4. **Upsell path** — Mini → Pro → Studio as customer grows
-5. **Service add-ons** — On-site setup ($500), Training ($1,000/day), Annual maintenance ($1,200/yr)
+5. **Service add-ons** — On-site setup ($500/฿17,500), Training ($1,000/day / ฿35,000/day), Annual maintenance ($1,200/yr / ฿42,000/yr)
+
+> *อัตราแลกเปลี่ยนอ้างอิง: 1 USD ≈ 35 THB (ปรับตามอัตราจริง ณ วันขาย)*
 
 ---
 
