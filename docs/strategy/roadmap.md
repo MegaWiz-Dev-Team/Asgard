@@ -15,16 +15,16 @@ gantt
     axisFormat  %b %Y
 
     section 🛡️ Heimdall
-    LLM Gateway (Production)          :done,    h1, 2025-06, 2025-12
+    LLM Gateway v0.4.0 (S0-6)        :done,    h1, 2026-03, 2026-03
+    Mimir Integration (S6)            :done,    h1b, 2026-03, 2026-03
     vLLM Backend (NVIDIA)             :active,  h2, 2026-04, 2026-06
     Intelligent Router                :         h3, 2026-06, 2026-08
     Zitadel JWT Validation            :         h4, 2026-05, 2026-06
 
     section 🧠 Mimir
-    Sprint 1-8 (Core Platform)        :done,    m1, 2025-06, 2026-03
+    Sprint 1-23 (Core Platform)       :done,    m1, 2025-06, 2026-03
     Visual Workflow Builder            :         m2, 2026-06, 2026-09
     A2A Server                        :         m3, 2026-07, 2026-09
-    Knowledge Graph (Neo4j)           :         m4, 2026-09, 2026-11
 
     section ⚡ Bifrost
     Agent Runtime MVP                 :active,  b1, 2026-04, 2026-07
@@ -37,6 +37,7 @@ gantt
     section 🌳 Yggdrasil
     Zitadel Deployment                :         y1, 2026-05, 2026-06
     Mimir OIDC Migration              :         y2, 2026-06, 2026-07
+    Enterprise Auth (SAML/LDAP)       :         y3, 2027-01, 2027-06
 
     section 🏰 Asgard
     Unified Docker Compose            :active,  a1, 2026-04, 2026-05
@@ -72,10 +73,11 @@ gantt
 
 | Milestone | Component |
 |:--|:--|
-| Knowledge Graph (Neo4j) | 🧠 Mimir |
 | Plugin System | ⚡ Bifrost |
 | Agent Marketplace | 🧠 Mimir |
 | Community v1.0 Launch | 🏰 All |
+
+> ℹ️ Knowledge Graph (Neo4j) already done in Mimir Sprint 17 (Mar 2026)
 
 ### 🔮 Future (2027+)
 

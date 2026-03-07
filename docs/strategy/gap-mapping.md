@@ -15,6 +15,7 @@
 | ⚡ **Bifrost** | Python (FastAPI) | 🚧 Scaffolding | Project structure, Dockerfile |
 | 🐺 **Fenrir** | Rust (ZeroClaw) | 📋 Planned | README + design |
 | 🏰 **Asgard** | — | 📄 Docs | README, architecture.md |
+| 🌳 **Yggdrasil** | Zitadel (Go) | 📋 Planned | README + ISO PM-01 |
 
 ---
 

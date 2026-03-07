@@ -50,7 +50,13 @@ The Enterprise Edition includes all Community features plus:
 
 ### Pricing
 
-Commercial licensing is available on a per-organization basis. Contact us for pricing:
+| Tier | Annual Price |
+|:--|:--|
+| **Starter Enterprise** | $5,000/yr (฿175,000/yr) |
+| **Professional Enterprise** | $20,000/yr (฿700,000/yr) |
+| **Custom Enterprise** | Contact us |
+
+We also offer **Hardware Bundles** (Asgard pre-installed on Mac Mini / Mac Studio / DGX Spark / NVIDIA GPU). See [pricing-strategy.md](docs/business/pricing-strategy.md) for details.
 
 - 📧 **Email:** paripol@megawiz.co
 - 🌐 **Website:** asgardai.dev (coming soon)
@@ -68,6 +74,7 @@ All components of the Asgard AI Platform are covered under the same licensing te
 | 🧠 **Mimir** | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) | RAG + Agent Builder (Rust/Next.js) |
 | ⚡ **Bifrost** | [megacare-dev/Bifrost](https://github.com/megacare-dev/Bifrost) | Agent Runtime (Python) |
 | 🐺 **Fenrir** | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Computer Use (Rust) |
+| 🌳 **Yggdrasil** | [megacare-dev/Yggdrasil](https://github.com/megacare-dev/Yggdrasil) | Auth Service (Zitadel) |
 
 ---
 
