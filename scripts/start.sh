@@ -17,7 +17,7 @@ set -euo pipefail
 #   ./scripts/start.sh --status     # Check status
 # ============================================
 
-# ── Configuration ─────────────────────────────────────────────────────────
+# ── Configuration ─────────────────────────────────────────────────
 BASE_DIR="${ASGARD_BASE:-$HOME/Documents}"
 MIMIR_DIR="$BASE_DIR/Mimir"
 HEIMDALL_DIR="$BASE_DIR/Heimdall"
@@ -29,7 +29,7 @@ HEIMDALL_PORT=8080
 EMBEDDING_PORT=8001
 VAULT_PORT=8201
 
-# ── Colors ────────────────────────────────────────────────────────────────
+# ── Colors ────────────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -42,7 +42,7 @@ ok()    { echo -e "${GREEN}✅ $1${NC}"; }
 warn()  { echo -e "${YELLOW}⚠️  $1${NC}"; }
 err()   { echo -e "${RED}❌ $1${NC}"; }
 
-# ── Status Check ──────────────────────────────────────────────────────────
+# ── Status Check ──────────────────────────────────────────────────
 check_status() {
     echo ""
     echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
@@ -91,7 +91,7 @@ check_status() {
     echo ""
 }
 
-# ── Phase 1: Infrastructure ───────────────────────────────────────────────
+# ── Phase 1: Infrastructure ───────────────────────────────────────
 start_infra() {
     echo ""
     echo -e "${CYAN}━━━ Phase 1: Infrastructure ━━━${NC}"
@@ -130,7 +130,7 @@ start_infra() {
     ok "Infrastructure ready"
 }
 
-# ── Phase 2: Heimdall ─────────────────────────────────────────────────────
+# ── Phase 2: Heimdall ─────────────────────────────────────────────
 start_heimdall() {
     echo ""
     echo -e "${CYAN}━━━ Phase 2: LLM Backends (Heimdall) ━━━${NC}"
@@ -153,10 +153,12 @@ start_heimdall() {
     ok "Heimdall ready on :$HEIMDALL_PORT"
 }
 
-# ── Phase 3: Mimir ────────────────────────────────────────────────────────
+# ── Phase 3: Mimir ────────────────────────────────────────────────
 start_mimir() {
     echo ""
     echo -e "${CYAN}━━━ Phase 3: Application (Mimir) ━━━${NC}"
+
+    mkdir -p "$MIMIR_DIR/logs" "$MIMIR_DIR/.pids"
 
     # Backend
     if curl -sf http://localhost:$MIMIR_API_PORT/health >/dev/null 2>&1; then
@@ -169,14 +171,15 @@ start_mimir() {
         fi
 
         info "Starting Mimir API on :$MIMIR_API_PORT..."
-        mkdir -p "$MIMIR_DIR/logs"
-        (cd "$MIMIR_DIR/ro-ai-bridge" && nohup "$backend_bin" > "$MIMIR_DIR/logs/backend.log" 2>&1 &)
-        echo $! > "$MIMIR_DIR/.pids/backend.pid" 2>/dev/null || true
+        cd "$MIMIR_DIR/ro-ai-bridge"
+        nohup "$backend_bin" > "$MIMIR_DIR/logs/backend.log" 2>&1 &
+        local backend_pid=$!
+        echo "$backend_pid" > "$MIMIR_DIR/.pids/backend.pid"
 
         # Wait for API
         for i in $(seq 1 15); do
             if curl -sf http://localhost:$MIMIR_API_PORT/health >/dev/null 2>&1; then
-                ok "Mimir API ready"
+                ok "Mimir API ready (PID $backend_pid)"
                 break
             fi
             [ "$i" -eq 15 ] && warn "API not ready after 15s — check logs/backend.log"
@@ -189,13 +192,14 @@ start_mimir() {
         ok "Dashboard already running on :$DASHBOARD_PORT"
     else
         info "Starting Dashboard on :$DASHBOARD_PORT..."
-        mkdir -p "$MIMIR_DIR/logs" "$MIMIR_DIR/.pids"
-        (cd "$MIMIR_DIR/ro-ai-dashboard" && nohup npm start > "$MIMIR_DIR/logs/dashboard.log" 2>&1 &)
-        echo $! > "$MIMIR_DIR/.pids/dashboard.pid" 2>/dev/null || true
+        cd "$MIMIR_DIR/ro-ai-dashboard"
+        nohup npm start > "$MIMIR_DIR/logs/dashboard.log" 2>&1 &
+        local dash_pid=$!
+        echo "$dash_pid" > "$MIMIR_DIR/.pids/dashboard.pid"
 
         for i in $(seq 1 15); do
             if curl -sf http://localhost:$DASHBOARD_PORT >/dev/null 2>&1; then
-                ok "Dashboard ready"
+                ok "Dashboard ready (PID $dash_pid)"
                 break
             fi
             [ "$i" -eq 15 ] && warn "Dashboard not ready after 15s — check logs/dashboard.log"
@@ -204,7 +208,7 @@ start_mimir() {
     fi
 }
 
-# ── Main ──────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║   🏰 Asgard AI Platform — Start          ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
