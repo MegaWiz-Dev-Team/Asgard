@@ -16,12 +16,12 @@ set -euo pipefail
 #   ./scripts/stop.sh infra        # Infrastructure only
 # ============================================
 
-# ── Configuration ─────────────────────────────────────────────────────────
-BASE_DIR="${ASGARD_BASE:-$HOME/Documents}"
+# ── Configuration ─────────────────────────────────────────────────
+BASE_DIR="${ASGARD_BASE:-$HOME/Developer}"
 MIMIR_DIR="$BASE_DIR/Mimir"
 HEIMDALL_DIR="$BASE_DIR/Heimdall"
 
-# ── Colors ────────────────────────────────────────────────────────────────
+# ── Colors ────────────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -32,7 +32,7 @@ info()  { echo -e "${CYAN}ℹ️  $1${NC}"; }
 ok()    { echo -e "${GREEN}✅ $1${NC}"; }
 warn()  { echo -e "${YELLOW}⚠️  $1${NC}"; }
 
-# ── Phase 3: Stop Mimir ───────────────────────────────────────────────────
+# ── Phase 3: Stop Mimir ──────────────────────────────────────────
 stop_mimir() {
     echo ""
     echo -e "${CYAN}━━━ Stopping Mimir ━━━${NC}"
@@ -46,7 +46,6 @@ stop_mimir() {
         fi
         rm -f "$MIMIR_DIR/.pids/dashboard.pid"
     else
-        # Try to find by port
         local pid=$(lsof -ti:3001 2>/dev/null | head -1)
         if [ -n "$pid" ]; then
             kill "$pid" 2>/dev/null || true
@@ -75,7 +74,7 @@ stop_mimir() {
     fi
 }
 
-# ── Phase 2: Stop Heimdall ────────────────────────────────────────────────
+# ── Phase 2: Stop Heimdall ────────────────────────────────────────
 stop_heimdall() {
     echo ""
     echo -e "${CYAN}━━━ Stopping Heimdall ━━━${NC}"
@@ -85,7 +84,6 @@ stop_heimdall() {
         ok "Heimdall stopped"
     else
         warn "Heimdall stop script not found"
-        # Fallback: kill by port
         local pid=$(lsof -ti:8080 2>/dev/null | head -1)
         if [ -n "$pid" ]; then
             kill "$pid" 2>/dev/null || true
@@ -94,7 +92,7 @@ stop_heimdall() {
     fi
 }
 
-# ── Phase 1: Stop Infrastructure ──────────────────────────────────────────
+# ── Phase 1: Stop Infrastructure ─────────────────────────────────
 stop_infra() {
     echo ""
     echo -e "${CYAN}━━━ Stopping Infrastructure ━━━${NC}"
@@ -107,9 +105,10 @@ stop_infra() {
     fi
 }
 
-# ── Main ──────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║   🏰 Asgard AI Platform — Stop           ║${NC}"
+echo -e "${CYAN}║   Base: $BASE_DIR${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
 
 case "${1:-all}" in
