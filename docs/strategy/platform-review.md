@@ -111,6 +111,10 @@
 - [ ] Bifrost MVP (Agent Runtime — ReAct loop, tool execution)
 - [ ] 🟢 Heimdall: vLLM backend — CUDA support สำหรับ NVIDIA DGX Spark
 - [ ] 🟢 Heimdall: Intelligent Router — Auto-route ตาม hardware (MLX vs vLLM)
+- [ ] 🧠 Mimir: Visual Workflow Builder (ReactFlow) — **moved from Enterprise**
+- [ ] 🧠 Mimir: A2A Server (Agent-to-Agent protocol)
+- [ ] ⚡ Bifrost: A2A Client
+- [ ] adk-guardrail integration (PII redaction — Healthcare)
 - [ ] Agent Template Marketplace
 - [ ] Plugin system สำหรับ custom tools
 - [ ] Documentation site
@@ -131,7 +135,6 @@ Enterprise-Only Features:
 ├── 🏷️ White-Label / Custom Branding
 └── 🤖 Advanced Agent Features
     ├── Agent Collaboration (multi-agent)
-    ├── Workflow Builder (visual)
     └── Enterprise RAG (advanced chunking, PII redaction)
 ```
 
