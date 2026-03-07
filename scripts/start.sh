@@ -67,7 +67,7 @@ check_status() {
 
     echo ""
     echo -e "${BLUE}── Phase 2: LLM Backends ──${NC}"
-    if curl -sf http://localhost:$HEIMDALL_PORT/health >/dev/null 2>&1; then
+    if curl -s http://localhost:$HEIMDALL_PORT/health 2>/dev/null | grep -q '"gateway":"healthy"'; then
         ok "Heimdall Gateway (:$HEIMDALL_PORT)"
     else
         err "Heimdall Gateway (:$HEIMDALL_PORT)"
