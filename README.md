@@ -10,35 +10,23 @@ Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved in
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    🏰 Asgard AI Platform                     │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  🧠 Mimir     │  │  ⚡ Bifrost   │  │  🛡️ Heimdall  │       │
-│  │              │  │              │  │              │       │
-│  │  RAG Pipeline │  │ Agent Runtime│  │ LLM Gateway  │       │
-│  │  Agent Builder│  │ Tool Executor│  │ Multi-backend│       │
-│  │  Dashboard    │  │ MCP Client   │  │ Auth/Metrics │       │
-│  │              │  │              │  │              │       │
-│  │  Rust/Axum   │  │ Python/Fast  │  │ Rust/Axum    │       │
-│  │  Next.js     │  │ API          │  │              │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-│         │                 │                  │               │
-│         │          ┌──────┴───────┐          │               │
-│         │          │ MCP Protocol │          │               │
-│         │          └──────┬───────┘          │               │
-│         │                 │                  │               │
-│  ┌──────┴───────┐  ┌──────┴───────┐          │               │
-│  │  mimir-mcp   │  │  🐺 Fenrir    │          │               │
-│  │  RAG Tools   │  │  Computer Use│          │               │
-│  │              │  │  Browser Ctrl│          │               │
-│  │              │  │  Shell/File  │          │               │
-│  └──────────────┘  └──────────────┘          │               │
-│                                              │               │
-│                    MLX · llama.cpp · Ollama ──┘               │
-│                    (Apple Silicon optimized)                  │
-└─────────────────────────────────────────────────────────────┘
+> 📐 **[Full Architecture Documentation →](docs/architecture.md)** — Detailed system diagrams, data flow, component specs
+
+```mermaid
+graph LR
+    User["👤 User"] --> Mimir["🧠 Mimir<br/>RAG + Agent Builder"]
+    User --> Bifrost["⚡ Bifrost<br/>Agent Runtime"]
+
+    Bifrost --> |"LLM"| Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
+    Bifrost --> |"MCP"| Mimir
+    Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
+
+    Heimdall --> LLM["🍎 MLX · llama.cpp · Ollama"]
+
+    style Mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
+    style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
+    style Heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
+    style Fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
 ```
 
 ---
@@ -49,9 +37,9 @@ Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved in
 |:--|:--|:--|:--|
 | 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js, SQLite | Private |
 | 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy with auth & metrics | Rust (Axum) | Private |
-| ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime Engine — ReAct loop, tool execution, session mgmt | Python (FastAPI) | Private |
-| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — browser control, shell, screen capture | Rust (ZeroClaw-based) | Private |
-| 🏰 **Asgard** *(this repo)* | Ecosystem docs, architecture, docker-compose, roadmap | — | **Public** |
+| ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime Engine — ReAct loop, tool execution, sessions | Python (FastAPI) | Private |
+| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — browser, shell, screen control | Rust (ZeroClaw-based) | Private |
+| 🏰 **Asgard** *(this repo)* | Ecosystem docs, architecture, roadmap | — | **Public** |
 
 ---
 
@@ -59,24 +47,24 @@ Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved in
 
 Build a **self-hosted AI platform** that enables:
 
-1. **Knowledge Management** — Ingest, chunk, embed, and search documents with RAG
-2. **Autonomous Agents** — Create and deploy agents that can reason, use tools, and take actions
-3. **Computer Control** — Agents that can browse the web, fill forms, extract data, and automate workflows
-4. **AI NPCs** — Intelligent non-player characters for Ragnarok Online with memory and personality
-5. **Healthcare AI** — Medical knowledge assistants with domain-specific models (MedGemma)
+1. 📚 **Knowledge Management** — Ingest, chunk, embed, and search documents with RAG
+2. 🤖 **Autonomous Agents** — Create and deploy agents that reason, use tools, and take actions
+3. 🌐 **Computer Control** — Agents that browse the web, fill forms, extract data
+4. 🎮 **AI NPCs** — Intelligent characters for Ragnarok Online with memory and personality
+5. 🏥 **Healthcare AI** — Medical knowledge assistants with domain-specific models
 
 ---
 
-## 🔧 Hardware Requirements
+## 🔧 Hardware
 
 | Component | Spec |
 |:--|:--|
 | **Machine** | Mac Mini M4 Pro (or any Apple Silicon) |
-| **Memory** | 64GB Unified Memory (recommended) |
+| **Memory** | 64GB Unified Memory |
 | **Storage** | 1TB+ SSD |
 | **OS** | macOS 15+ (Sequoia) |
 
-> All LLM inference runs locally via MLX, llama.cpp, or Ollama — no cloud APIs required.
+> All LLM inference runs locally via MLX, llama.cpp, or Ollama — zero cloud dependency.
 
 ---
 
@@ -86,46 +74,33 @@ Build a **self-hosted AI platform** that enables:
 - [x] Heimdall — LLM Gateway with multi-backend support
 - [x] Mimir — RAG Pipeline with document ingestion
 - [x] Mimir — Agent Builder (CRUD, templates, chat)
-- [x] Mimir — Dashboard (Next.js admin UI)
+- [x] Dashboard — Next.js admin UI
 - [x] Multi-model benchmarking (Qwen, Gemma, MedGemma)
 
 ### Phase 2: Agent Runtime 🚧
 - [ ] Bifrost — Agent Executor (ReAct loop)
-- [ ] Bifrost — MCP tool integration
-- [ ] Bifrost — Session management (short-term + long-term memory)
-- [ ] Built-in tools: RAG search, HTTP, calculator
+- [ ] MCP tool integration
+- [ ] Session management + memory bank
 
 ### Phase 3: Computer Use
-- [ ] Fenrir — ZeroClaw fork with Heimdall integration
-- [ ] Browser automation (Playwright)
-- [ ] Form filling & data extraction
-- [ ] Screen capture & keyboard/mouse control
+- [ ] Fenrir — ZeroClaw fork + Heimdall integration
+- [ ] Browser automation · Form filling · Data extraction
 
-### Phase 4: AI NPCs for Ragnarok Online
-- [ ] NPC personality system
-- [ ] Quest generation
-- [ ] Dynamic dialogue with memory
-- [ ] Game event integration via rAthena
+### Phase 4: AI NPCs for Ragnarok Online 🎮
+- [ ] NPC personality system + dynamic dialogue
+- [ ] Quest generation + game event integration
 
 ---
 
-## 🏛️ Naming Convention
+## 🏛️ Norse Naming
 
-All components are named after entities from **Norse mythology**, inspired by the Ragnarok Online universe:
-
-| Name | Norse Origin | Role in Asgard |
+| Name | Origin | Role |
 |:--|:--|:--|
-| **Asgard** | Realm of the gods | The platform / ecosystem |
-| **Mimir** | God of wisdom, keeper of knowledge | Knowledge & RAG |
-| **Heimdall** | Guardian of the Bifrost bridge | LLM Gateway |
-| **Bifrost** | The burning rainbow bridge | Agent Runtime bridge |
-| **Fenrir** | The great wolf | Computer-use power |
-
----
-
-## 📄 License
-
-Individual components have their own licenses. See each repo for details.
+| **Asgard** | Realm of the gods | The platform |
+| **Mimir** | God of wisdom | Knowledge & RAG |
+| **Heimdall** | Guardian of Bifrost | LLM Gateway |
+| **Bifrost** | Rainbow bridge | Agent Runtime |
+| **Fenrir** | The great wolf | Computer use |
 
 ---
 
