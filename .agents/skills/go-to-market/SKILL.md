@@ -1,0 +1,83 @@
+---
+name: go-to-market
+description: "Plan go-to-market strategy including launch timeline, community building, developer adoption funnel, and enterprise sales process."
+---
+
+# Go-to-Market Strategy
+
+> "The best product doesn't win. The best-distributed product wins."
+
+## Purpose
+
+Plan how Asgard reaches its target customers — from open source community launch to enterprise sales pipeline.
+
+---
+
+## Prerequisites — Read First
+
+| File | Why |
+|------|-----|
+| `docs/strategy/competitor-analysis.md` | Target segments and positioning |
+| `docs/strategy/platform-review.md` | Roadmap phases |
+| `COMMERCIAL.md` | Enterprise vs Community features |
+
+---
+
+## Process
+
+### 1️⃣ Define Launch Phases
+```
+Phase 1: Stealth → Build core product (CURRENT)
+Phase 2: Developer Preview → GitHub + docs + early adopters
+Phase 3: Community Launch → v1.0, Product Hunt, HackerNews
+Phase 4: Enterprise Pilot → Design partners in target segments
+Phase 5: Enterprise GA → Sales team, pricing, support
+```
+
+### 2️⃣ Developer Adoption Funnel
+```
+Discover → Try → Use → Love → Advocate → Pay
+   ↓        ↓     ↓      ↓       ↓         ↓
+  HN/PH   Docker  Daily  Contrib  Blog    Enterprise
+```
+For each stage, define:
+- Actions to drive conversion
+- Content needed
+- Metrics to track
+
+### 3️⃣ Community Building
+- GitHub: README quality, CONTRIBUTING.md, issue templates
+- Documentation site at asgardai.dev
+- Content: blog posts, tutorials, comparison guides, videos
+- Social: Twitter/X, LinkedIn, Reddit, HackerNews
+- Events: meetups, conference talks
+
+### 4️⃣ Enterprise Sales
+- Identify design partners in Tier 1 segments
+- Define sales process: Free → POC → Enterprise License
+- Build case studies from design partners
+- Partner channel strategy
+
+### 5️⃣ Output
+Write to `docs/business/go-to-market.md`:
+```
+# Go-to-Market Strategy
+## 1. Launch Timeline & Phases
+## 2. Developer Adoption Funnel
+## 3. Community Building Plan
+## 4. Enterprise Sales Process
+## 5. Content & Marketing Calendar
+## 6. Metrics & KPIs
+## 7. Budget Allocation
+```
+
+---
+
+## Key Principles
+- Community-led growth first, enterprise sales second
+- Great docs = best marketing for developer tools
+- "Make it easy to start, hard to leave"
+- SEA market first, then expand globally
+
+## When to Use
+Before Community Edition launch, when planning enterprise launch, entering a new market, or quarterly GTM review.
