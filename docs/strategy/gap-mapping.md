@@ -42,6 +42,25 @@
 
 ### 6. Heimdall vLLM Backend → 🛡️ Heimdall
 
+### 7. A2A Protocol (Agent-to-Agent) → 🧠 Mimir + ⚡ Bifrost
+
+> ✅ **ตัดสินใจแล้ว:** Support A2A ใน Mimir
+
+[A2A](https://github.com/google/A2A) คือ open standard จาก Google (อยู่ใน Linux Foundation) สำหรับให้ agent คุยกันข้าม platform ได้
+
+| | |
+|:--|:--|
+| **มาตรฐาน** | HTTP + JSON-RPC + SSE (เหมือน web stack ปกติ) |
+| **เสริมกับ MCP** | MCP = agent ↔ tools, **A2A = agent ↔ agent** |
+| **Agent Card** | JSON ที่อธิบาย capabilities ของ agent → ใช้สำหรับ discovery |
+| **Task lifecycle** | submitted → working → completed/failed |
+
+| Implement ที่ไหน | Action |
+|:--|:--|
+| 🧠 **Mimir** | A2A Server — expose agents as A2A endpoints + Agent Card registry |
+| ⚡ **Bifrost** | A2A Client — ให้ agent เรียก external A2A agents ได้ |
+| 🛡️ **Heimdall** | A2A proxy/auth — route + validate A2A requests |
+
 ---
 
 ## 🟡 Important Gaps (Enterprise Track)
@@ -75,19 +94,22 @@ graph LR
         H4["Intelligent Router"]
     end
 
-    subgraph mimir["🧠 Mimir — 6 items"]
+    subgraph mimir["🧠 Mimir — 8 items"]
         M1["SSO Support"]
         M2["Audit Log"]
         M3["Usage Analytics"]
         M4["Model Mgmt UI"]
         M5["Agent Marketplace"]
         M6["Setup Wizard UI"]
+        M7["A2A Server"]
+        M8["Workflow Builder"]
     end
 
-    subgraph bifrost["⚡ Bifrost — 3 items"]
+    subgraph bifrost["⚡ Bifrost — 4 items"]
         B1["Agent Runtime"]
         B2["Plugin System"]
         B3["Webhook / Events"]
+        B4["A2A Client"]
     end
 ```
 

@@ -81,7 +81,29 @@ Mimir Dashboard (Next.js 14)
 
 ---
 
-## 3. Impact on Roadmap
+## 3. A2A Protocol Decision
+
+### ✅ ตัดสินใจ: Support A2A ใน Mimir + Bifrost
+
+[A2A (Agent-to-Agent)](https://github.com/google/A2A) คือ open standard จาก Google/Linux Foundation สำหรับ inter-agent communication
+
+| | |
+|:--|:--|
+| **A2A** | Agent ↔ Agent (discovery, task delegation, collaboration) |
+| **MCP** | Agent ↔ Tools (function calling, data access) |
+| **ทั้งคู่** | Complementary — Asgard ต้อง support ทั้ง A2A + MCP |
+
+**Implementation plan:**
+
+| Component | Role | Priority |
+|:--|:--|:--|
+| 🧠 Mimir | A2A Server — expose agents + Agent Card registry | Phase 2 |
+| ⚡ Bifrost | A2A Client — call external agents | Phase 2 |
+| 🛡️ Heimdall | A2A proxy + auth | Phase 2 |
+
+---
+
+## 4. Impact on Roadmap
 
 เพิ่มใน **Phase 2: Community Growth (v1.x)**:
 
@@ -90,6 +112,8 @@ Mimir Dashboard (Next.js 14)
   - [ ] Bifrost MVP (Agent Runtime)
   - [ ] Heimdall vLLM backend
 + - [ ] Mimir Visual Workflow Builder (ReactFlow)
++ - [ ] Mimir A2A Server (Agent-to-Agent protocol)
++ - [ ] Bifrost A2A Client
 + - [ ] adk-guardrail integration (PII redaction)
   - [ ] Agent Template Marketplace
 ```
