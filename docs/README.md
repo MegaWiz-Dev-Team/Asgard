@@ -10,7 +10,9 @@
 
 | Document | Description |
 |:--|:--|
-| 📊 [Platform Review](strategy/platform-review.md) | Platform overview, strengths, gap analysis, roadmap, licensing |
+| 🎯 [Product Direction](strategy/product-direction.md) | Vision, design principles, anti-goals, strategic priorities |
+| 📊 [Platform Review](strategy/platform-review.md) | Platform overview, strengths, gap analysis, licensing |
+| 🗺️ [Roadmap](strategy/roadmap.md) | Development roadmap with Gantt chart and milestones |
 | 🎯 [Competitor & Target Market Analysis](strategy/competitor-analysis.md) | 8 competitors analyzed, market gaps, positioning |
 | 🗺️ [Gap → Project Mapping](strategy/gap-mapping.md) | Maps every gap to a specific project for implementation |
 
@@ -22,7 +24,7 @@
 | 🌳 [Yggdrasil Auth Selection](technical/yggdrasil-auth-selection.md) | Auth platform comparison — Zitadel selected |
 | 🔧 [ADK-Rust Evaluation](technical/adk-rust-evaluation.md) | ADK-Rust analysis, workflow builder decision, A2A protocol |
 
-### Legal & Licensing
+### Legal & Community
 
 | Document | Description |
 |:--|:--|
@@ -30,6 +32,8 @@
 | 🏢 [COMMERCIAL.md](../COMMERCIAL.md) | Enterprise licensing information |
 | 📝 [CLA.md](../CLA.md) | Contributor License Agreement |
 | 👥 [CONTRIBUTORS.md](../CONTRIBUTORS.md) | Contributor list |
+| 🤝 [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
+| 📜 [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | Community standards |
 
 ---
 

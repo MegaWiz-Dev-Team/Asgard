@@ -2,7 +2,7 @@
 
 ## Asgard AI Platform — Individual Contributor License Agreement
 
-Thank you for your interest in contributing to the Asgard AI Platform ("Project"), maintained by MegaCare Dev ("Company"). This Contributor License Agreement ("Agreement") documents the rights granted by contributors to the Company.
+Thank you for your interest in contributing to the Asgard AI Platform ("Project"), maintained by MegaWiz ("Company"). This Contributor License Agreement ("Agreement") documents the rights granted by contributors to the Company.
 
 ---
 
@@ -63,4 +63,4 @@ Alternatively, you may explicitly sign by adding your name to the `CONTRIBUTORS.
 
 ## Contact
 
-For questions about this CLA, please open an issue or contact: **legal@megacare.dev**
+For questions about this CLA, please open an issue or contact: **paripol@megawiz.co**

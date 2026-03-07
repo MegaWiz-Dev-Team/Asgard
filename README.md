@@ -85,6 +85,8 @@ Build a **self-hosted AI platform** that enables:
 
 ## 🗺️ Roadmap
 
+> **[Full Roadmap with Gantt Chart →](docs/strategy/roadmap.md)**
+
 ### Phase 1: Foundation ✅
 - [x] Heimdall — LLM Gateway with multi-backend support
 - [x] Mimir — RAG Pipeline with document ingestion
@@ -107,8 +109,9 @@ Build a **self-hosted AI platform** that enables:
 - [ ] Bifrost — A2A Client for external agents
 - [ ] Agent Template Marketplace
 - [ ] Knowledge Graph (Neo4j — Mimir Sprint 11)
+- [ ] Community v1.0 Launch
 
-### Phase 4: Enterprise Edition 💰
+### Enterprise Edition 💰
 - [ ] SSO (SAML, OIDC, LDAP) via Zitadel
 - [ ] Usage Analytics + Cost Dashboard
 - [ ] HA Clustering (multi-node)

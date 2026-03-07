@@ -34,7 +34,7 @@ graph TB
 
         subgraph heimdall["🛡️ Heimdall — LLM Gateway"]
             Proxy["🔄 Proxy Layer<br/>(Rust/Axum)"]
-            Auth["🔐 Auth<br/>API Key Validation"]
+            Auth["🔐 Auth<br/>JWT / OIDC (Zitadel)"]
             Metrics["📊 Metrics<br/>(Prometheus)"]
             Proxy --> Auth
             Proxy --> Metrics
@@ -45,6 +45,11 @@ graph TB
             Shell["💻 Shell Executor<br/>Commands · Scripts"]
             Screen["🖥️ Screen Control<br/>Capture · Click · Type"]
             Files["📁 File Manager<br/>Read · Write · Search"]
+        end
+
+        subgraph yggdrasil["🌳 Yggdrasil — Auth"]
+            Zitadel["🔐 Zitadel<br/>OIDC · SAML · LDAP"]
+            AuditLog["📋 Audit Trail<br/>Event-sourced"]
         end
     end
 
@@ -68,11 +73,16 @@ graph TB
     heimdall --> Ollama
     heimdall --> VLLM
 
+    yggdrasil -.-> |"JWT"| heimdall
+    yggdrasil -.-> |"OIDC"| mimir
+    yggdrasil -.-> |"JWT"| bifrost
+
     style asgard fill:transparent,stroke:#6366f1,stroke-width:3px
     style mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
     style bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
+    style yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
     style backends fill:#0c0a09,stroke:#78716c
     style client fill:transparent,stroke:#94a3b8
 ```
@@ -185,11 +195,13 @@ graph LR
     Router --> VLM["👁️ mlx_vlm<br/>:8082"]
     Router --> LC["🦙 llama.cpp<br/>:8083"]
     Router --> OL["🐫 Ollama<br/>:11434"]
+    Router --> VL["🟢 vLLM<br/>:8084"]
 
     MLX --> Response["📤 Response<br/>(SSE Stream)"]
     VLM --> Response
     LC --> Response
     OL --> Response
+    VL --> Response
 
     Response --> Metrics["📊 Prometheus<br/>Metrics"]
 
@@ -278,6 +290,7 @@ graph LR
         P3000["Mimir API<br/>:3000"]
         P3001["Dashboard<br/>:3001"]
         P8080["Heimdall<br/>:8080"]
+        P8085["Yggdrasil<br/>:8085"]
         P8100["Bifrost<br/>:8100"]
     end
 
@@ -285,6 +298,7 @@ graph LR
         P8081["mlx_lm<br/>:8081"]
         P8082["mlx_vlm<br/>:8082"]
         P8083["llama.cpp<br/>:8083"]
+        P8084["vLLM<br/>:8084"]
         P11434["Ollama<br/>:11434"]
         P8200["Fenrir<br/>:8200"]
     end
@@ -292,6 +306,7 @@ graph LR
     P8080 --> P8081
     P8080 --> P8082
     P8080 --> P8083
+    P8080 --> P8084
     P8080 --> P11434
     P8100 --> P8200
 
@@ -305,7 +320,7 @@ graph LR
 
 | Layer | Technology | Why |
 |:--|:--|:--|
-| **LLM Inference** | MLX, llama.cpp, Ollama | Apple Silicon optimized |
+| **LLM Inference** | MLX, llama.cpp, Ollama, vLLM | Apple Silicon + NVIDIA optimized |
 | **Gateway** | Rust (Axum + Tokio) | Zero-cost abstractions, async |
 | **RAG Backend** | Rust (Axum) + MariaDB + Qdrant | Type-safe, fast, scalable |
 | **Dashboard** | Next.js + React | Modern, SSR, component-based |

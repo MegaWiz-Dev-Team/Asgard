@@ -45,15 +45,15 @@ The Enterprise Edition includes all Community features plus:
 | 📋 **Audit Logging** | Full event trail for compliance (SOC 2, HIPAA) |
 | 🔄 **HA Clustering** | Multi-node high availability deployment |
 | 🏷️ **White-Label** | Custom branding for your organization |
-| 🤖 **Advanced Agents** | Multi-agent collaboration, visual workflow builder |
+| 🤖 **Advanced Agents** | Multi-agent collaboration, advanced orchestration |
 | 🆘 **Priority Support** | SLA-backed support with guaranteed response times |
 
 ### Pricing
 
 Commercial licensing is available on a per-organization basis. Contact us for pricing:
 
-- 📧 **Email:** enterprise@megacare.dev
-- 🌐 **Website:** Coming soon
+- 📧 **Email:** paripol@megawiz.co
+- 🌐 **Website:** asgardai.dev (coming soon)
 
 ---
 
@@ -87,4 +87,4 @@ No. The commercial license is per-organization, not per-server. Deploy on as man
 
 ---
 
-© 2026 MegaCare Dev. All rights reserved.
+© 2026 MegaWiz. All rights reserved.

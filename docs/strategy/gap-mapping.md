@@ -34,11 +34,37 @@
 
 ### 2. Unified Docker Compose → 🏰 Asgard
 
+| What | Details |
+|:--|:--|
+| **Goal** | Single `docker compose up` starts entire Asgard stack |
+| **Services** | Heimdall, Mimir (API + Dashboard), Bifrost, Qdrant, MariaDB, Yggdrasil (Zitadel + Postgres) |
+| **File** | `docker-compose.yml` + `.env.example` |
+| **Health checks** | All services must pass before marking healthy |
+
 ### 3. Backup/Restore → 🏰 Asgard `scripts/backup.sh`
+
+| What | Details |
+|:--|:--|
+| **Scope** | MariaDB dump + Qdrant snapshots + Zitadel export + config files |
+| **Restore** | `scripts/restore.sh <backup-dir>` — full restore from backup |
+| **Automation** | Cron-compatible, optional S3/MinIO upload |
 
 ### 4. Bifrost Agent Runtime → ⚡ Bifrost
 
+| What | Details |
+|:--|:--|
+| **MVP scope** | ReAct loop, tool calling via MCP, session management |
+| **APIs** | `POST /v1/agents/{id}/run` — execute agent with streaming |
+| **Integration** | Calls Heimdall for LLM, Mimir for RAG, Fenrir for computer use |
+| **Dependencies** | Heimdall must be running, Mimir optional |
+
 ### 5. Setup Wizard → 🏰 Asgard `scripts/setup.sh` + 🧠 Mimir Web UI
+
+| What | Details |
+|:--|:--|
+| **CLI** | Interactive setup: detect hardware, choose backends, generate `.env` |
+| **Web UI** | First-run wizard in Mimir Dashboard: configure LLM, create admin user |
+| **Auto-detect** | Detect Apple Silicon vs NVIDIA → suggest MLX or vLLM |
 
 ### 6. Heimdall vLLM Backend → 🛡️ Heimdall
 
