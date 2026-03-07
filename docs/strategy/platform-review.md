@@ -15,17 +15,45 @@
 
 ### Mimir Is Production-Ready (23 Sprints Done)
 
-| Feature | Status | Details |
-|:--|:--|:--|
-| **Multi-Tenant IAM** | ✅ Done | JWT auth, Argon2id password, role-based access |
-| **Admin Dashboard** | ✅ Done | Tenant switcher, user management, settings |
-| **Unified Data Ingress** | ✅ Done | File upload (PDF/CSV/XLSX/HTML), web scraper, MCP connector |
-| **Quality Control** | ✅ Done | LLM data clustering, conflict resolution Kanban |
-| **Agent Evaluations** | ✅ Done | LLM-as-a-judge, heatmap scoring, human override |
-| **Pipeline Traceability** | ✅ Done | Source → Vector → Answer end-to-end tracking |
-| **NPC Playground** | ✅ Done | Tier 1 (simple chat) & Tier 2 (RAG) with streaming |
-| **Real-time Monitoring** | ✅ Done | WebSocket/SSE streaming logs |
-| **Docker Compose** | ✅ Done | MariaDB + Qdrant + rAthena |
+| Feature | Sprint | Status | Details |
+|:--|:--|:--|:--|
+| **Multi-Tenant IAM** | S1-7 | ✅ | JWT auth, Argon2id, tenant middleware |
+| **Admin Dashboard** | S1-7 | ✅ | Tenant switcher, user CRUD, settings |
+| **Unified Data Ingress** | S1-7 | ✅ | PDF/CSV/XLSX/HTML upload, web scraper, MCP |
+| **Quality Control** | S1-7 | ✅ | LLM clustering, conflict Kanban |
+| **Agent Evaluations** | S1-7 | ✅ | LLM-as-judge, heatmap, human override |
+| **Pipeline Traceability** | S1-7 | ✅ | Source → Vector → Answer tracking |
+| **NPC Playground** | S1-7 | ✅ | Tier 1 (chat) & Tier 2 (RAG) streaming |
+| **Content Pipeline** | S9 | ✅ | Chunking (auto/fixed/recursive), dedup (SHA-256+SimHash), link discovery |
+| **Dashboard Redesign** | S10 | ✅ | KPI cards, source health donut, pipeline table, quick actions |
+| **Knowledge Base** | S10 | ✅ | Chunk browser with search, filter, pagination, detail modal |
+| **LLM Fallback Extraction** | S11 | ✅ | AI-powered doc reading, model selection, legacy .doc/.xls/.ppt |
+| **Web Hierarchy Loader** | S12 | ✅ | BFS crawl, checkbox tree, selective import, sitemap discovery |
+| **LLM Analytics** | S12 | ✅ | Usage logging, daily limits, KPI cards, model comparison, date filter |
+| **Search Settings** | S12 | ✅ | Embedding model, top-K, similarity threshold, persistence |
+| **Agent Studio** | S13 | ✅ | CRUD, 5-tab builder, template gallery, test chat, publish (API key) |
+| **Conversation History** | S13 | ✅ | Session list, transcript viewer, thumbs up/down feedback |
+| **Model Performance** | S13 | ✅ | A/B model comparison, feedback summary, benchmark reports |
+| **Budget & Alerts** | S13 | ✅ | Budget CRUD, alert banners, cost tracking |
+| **Vault Secrets** | S14 | ✅ | HashiCorp Vault KV v2, env fallback, rotation, masking |
+| **Cron Scheduler** | S14 | ✅ | Background re-sync, schedule selector (15m/hourly/daily/weekly) |
+| **External DB Connectors** | S14 | ✅ | MySQL/PostgreSQL/SQLite, query sandboxing, schema discovery |
+| **MCP Server** | S14 | ✅ | Tool registry (5 tools), validation, dispatch |
+| **OCR (Gemini Vision)** | S14 | ✅ | Scanned PDF via Gemini 2.5 Flash, MIME detection |
+| **Performance Cache** | S14 | ✅ | InMemoryCache (TTL), env-based pool config, request tracing |
+| **Structured Logging** | S14 | ✅ | JSON tracing, request_id middleware, X-Request-Id header |
+| **Backup & DR** | S14b | ✅ | backup.sh/restore.sh, update.sh/rollback.sh, retention policy |
+| **Docker Prod Deploy** | S14b | ✅ | docker-compose.prod.yml, .env.example, setup.sh, deploy-test.sh |
+| **API Documentation** | S14b | ✅ | OpenAPI 3.0.3 spec, Swagger UI at /api/docs |
+| **Heimdall LLM Provider** | S15 | ✅ | Self-hosted gateway as provider, 5 models, auto-detect |
+| **Knowledge Graph** | S17 | ✅ | Neo4j wrapper, LLM entity extraction, 8 graph API endpoints |
+| **Graph Visualization** | S17 | ✅ | Canvas force-directed layout, entity search, path finding |
+| **Coverage Analytics** | S18 | ✅ | KPI cards, pipeline flow, gap analysis, blind-spot detection |
+| **Agent Templates Migration** | S19 | ✅ | Playground → DB-driven agents, deep-link, tier badges |
+| **Custom Roles + ACL** | S20 | ✅ | Dynamic role CRUD, editable ACL matrix, built-in role lock |
+| **QA Status Tracking** | S21 | ✅ | QA status badges, auto-refresh polling |
+| **Antigravity Skills** | S22 | ✅ | 8 dev skills, E2E flow analysis (12 steps), product backlog |
+| **Code Refactoring** | S23 | ✅ | sources.rs → 6 modules, agents.rs → 4 modules, settings → 8 components |
 
 **Mimir Tech Stack:**
 
@@ -35,9 +63,9 @@
 | Frontend | Next.js 14 + TailwindCSS + shadcn/ui |
 | Database | MariaDB (relational) |
 | Vector DB | Qdrant (semantic search) |
-| Graph DB | Neo4j Community (Sprint 11) |
-| Graph Viz | Sigma.js + graphology (WebGL) |
-| LLM Providers | Ollama (local), Google Gemini, Qwen API |
+| Graph DB | Neo4j Community (Knowledge Graph) |
+| Secrets | HashiCorp Vault (KV v2) |
+| LLM Providers | Heimdall (self-hosted), Ollama, Google Gemini, Qwen |
 | Embedding | nomic-embed-text, text-embedding-004, bge-m3 |
 | Infrastructure | Docker Compose |
 
