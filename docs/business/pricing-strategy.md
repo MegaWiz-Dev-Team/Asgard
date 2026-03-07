@@ -138,13 +138,28 @@
 | **Add-ons** | On-site setup, training (2 days), 1-year priority support | | | |
 | **Best for** | Hospital groups, financial institutions, 50+ users | | | |
 
-#### 🔴 Tier 5 — Asgard GPU Server (NVIDIA)
+#### 🟡 Tier 5 — Asgard Spark (NVIDIA DGX Spark)
+| Item | Spec | Hardware Cost | Bundle Price | Margin |
+|:--|:--|:--|:--|:--|
+| **NVIDIA DGX Spark** | GB10 Blackwell, 128GB unified, 4TB NVMe, 1 PFLOP FP4 | ~$4,700 (฿164,500) | **$7,500 (฿262,500)** | $2,800 (37%) |
+| **Pre-installed** | Asgard Enterprise, DGX OS (Ubuntu), vLLM, models up to 200B inference | | | |
+| **Best for** | AI-first orgs, fine-tune up to 70B, inference 200B, compact desktop | | | |
+
+#### 🟡 Tier 6 — Asgard Spark Duo (2x DGX Spark linked)
+| Item | Spec | Hardware Cost | Bundle Price | Margin |
+|:--|:--|:--|:--|:--|
+| **2x DGX Spark** | 256GB unified, 8TB NVMe, 2 PFLOP FP4, 100GbE link | ~$9,400 (฿329,000) | **$14,000 (฿490,000)** | $4,600 (33%) |
+| **Pre-installed** | Asgard Enterprise Custom, models up to **405B** (Llama 3.1 405B) | | | |
+| **Add-ons** | On-site setup, networking config, 1-year priority support | | | |
+| **Best for** | Research labs, hospitals needing largest models, R&D teams | | | |
+
+#### 🔴 Tier 7 — Asgard GPU Server (NVIDIA Discrete GPU)
 | Item | Spec | Hardware Cost | Bundle Price | Margin |
 |:--|:--|:--|:--|:--|
 | **NVIDIA GPU Server** | RTX 4090 (24GB) or A6000 (48GB) | ~$3K-$8K (฿105K-280K) | **$6K-$15K (฿210K-525K)** | $3K-$7K (50%) |
 | **Pre-installed** | Asgard Enterprise, vLLM, CUDA optimized | | | |
 | **Add-ons** | On-site setup, rack mounting, 1-year support | | | |
-| **Best for** | High-throughput inference, training fine-tune, GPU clusters | | | |
+| **Best for** | High-throughput inference, training fine-tune, multi-GPU clusters | | | |
 
 ### Pricing Summary
 
@@ -154,14 +169,17 @@
 | 🔵 **Pro** | Mac Mini M4 Pro 48GB | **$3,800** | **฿133,000** | Enterprise 1yr + 35B model |
 | 🟣 **Studio** | Mac Studio M4 Max 128GB | **$5,900** | **฿206,500** | Enterprise + Neo4j + Vault |
 | 🟠 **Ultra** | Mac Studio M4 Ultra 192GB | **$9,500** | **฿332,500** | Enterprise Custom + on-site |
-| 🔴 **GPU** | NVIDIA RTX/A6000 Server | **$6K-$15K** | **฿210K-525K** | Enterprise + vLLM + CUDA |
+| 🟡 **Spark** | NVIDIA DGX Spark 128GB | **$7,500** | **฿262,500** | Enterprise + DGX OS + 200B inference |
+| 🟡 **Spark Duo** | 2x DGX Spark 256GB | **$14,000** | **฿490,000** | Enterprise Custom + 405B models |
+| 🔴 **GPU Server** | NVIDIA RTX/A6000 | **$6K-$15K** | **฿210K-525K** | Enterprise + vLLM + CUDA |
 
 ### Hardware Bundle Strategy
 1. **Apple ARM = primary** — Thailand has Apple reseller network; easy to source
-2. **NVIDIA = on-demand** — For customers needing GPU training/fine-tuning
-3. **Margin target** — 40-50% gross margin on hardware bundles
-4. **Upsell path** — Mini → Pro → Studio as customer grows
-5. **Service add-ons** — On-site setup ($500/฿17,500), Training ($1,000/day / ฿35,000/day), Annual maintenance ($1,200/yr / ฿42,000/yr)
+2. **DGX Spark = AI-first** — 128GB unified memory, Blackwell GPU, compact desktop form factor
+3. **NVIDIA discrete GPU = on-demand** — For customers needing multi-GPU training/fine-tuning
+4. **Margin target** — 35-50% gross margin on hardware bundles
+5. **Upsell path** — Mini → Pro → Studio/Spark → Ultra/Spark Duo as customer grows
+6. **Service add-ons** — On-site setup ($500/฿17,500), Training ($1,000/day / ฿35,000/day), Annual maintenance ($1,200/yr / ฿42,000/yr)
 
 > *อัตราแลกเปลี่ยนอ้างอิง: 1 USD ≈ 35 THB (ปรับตามอัตราจริง ณ วันขาย)*
 
