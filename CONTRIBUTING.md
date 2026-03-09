@@ -55,7 +55,7 @@ docker compose up -d
 | 🛡️ Heimdall | [megacare-dev/Heimdall](https://github.com/megacare-dev/Heimdall) | Rust |
 | 🧠 Mimir | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) | Rust + Next.js |
 | ⚡ Bifrost | [megacare-dev/Bifrost](https://github.com/megacare-dev/Bifrost) | Python |
-| 🐺 Fenrir | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Rust |
+| 🐺 Fenrir | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Python |
 
 ## Contributor License Agreement (CLA)
 

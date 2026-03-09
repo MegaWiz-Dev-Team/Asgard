@@ -31,6 +31,7 @@
 |------|---------|-----------|----------|
 | `8001` | Embedding Server | 🧮 MLX bge-m3 | REST |
 | `8200` | Fenrir (Computer Use) | 🐺 Fenrir | MCP | *reserved* |
+| `80` | Eir (OpenEMR) | 🏥 Eir | HTTP/FHIR | *reserved* |
 
 ### 💾 Infrastructure
 

@@ -73,7 +73,8 @@ All components of the Asgard AI Platform are covered under the same licensing te
 | 🛡️ **Heimdall** | [megacare-dev/Heimdall](https://github.com/megacare-dev/Heimdall) | LLM Gateway (Rust) |
 | 🧠 **Mimir** | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) | RAG + Agent Builder (Rust/Next.js) |
 | ⚡ **Bifrost** | [megacare-dev/Bifrost](https://github.com/megacare-dev/Bifrost) | Agent Runtime (Python) |
-| 🐺 **Fenrir** | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Computer Use (Rust) |
+| 🐺 **Fenrir** | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Computer Use (Python) |
+| 🏥 **Eir** | OpenEMR | Clinic Management (PHP, GPL v3) |
 | 🌳 **Yggdrasil** | [megacare-dev/Yggdrasil](https://github.com/megacare-dev/Yggdrasil) | Auth Service (Zitadel) |
 
 ---
