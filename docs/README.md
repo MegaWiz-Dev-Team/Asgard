@@ -69,7 +69,8 @@ graph LR
 | 🛡️ **Heimdall** | LLM Gateway | Rust (Axum) | ✅ Production |
 | 🧠 **Mimir** | RAG + Agent Builder | Rust (Axum) + Next.js 14 | ✅ Sprint 23 Done |
 | ⚡ **Bifrost** | Agent Runtime | Python (FastAPI) | 🚧 Scaffolding |
-| 🐺 **Fenrir** | Computer Use | Rust (ZeroClaw) | 📋 Planned |
+| 🐺 **Fenrir** | Computer Use | Python (Browser Use + FHIR) | 📋 Planned |
+| 🏥 **Eir** | Clinic Management | OpenEMR (PHP, GPL v3) | 📋 Planned |
 | 🌳 **Yggdrasil** | Auth Service | Zitadel (Go) | 📋 Planned |
 
 ---

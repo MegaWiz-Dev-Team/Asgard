@@ -13,7 +13,7 @@
 | 🧠 **Mimir** | Rust (Axum+Rig.rs), Next.js 14 | ✅ Sprint 1-23 | Multi-Tenant IAM, Dashboard, RAG Pipeline, Data Ingress, Agent Builder, Knowledge Graph, Code Refactoring |
 | 🛡️ **Heimdall** | Rust (Axum) | ✅ Production | Gateway proxy, SSE streaming, Prometheus |
 | ⚡ **Bifrost** | Python (FastAPI) | 🚧 Scaffolding | Project structure, Dockerfile |
-| 🐺 **Fenrir** | Rust (ZeroClaw) | 📋 Planned | README + design |
+| 🐺 **Fenrir** | Python (Browser Use + FHIR) | 📋 Planned | README + design |
 | 🏰 **Asgard** | — | 📄 Docs | README, architecture.md |
 | 🌳 **Yggdrasil** | Zitadel (Go) | 📋 Planned | README + ISO PM-01 |
 
