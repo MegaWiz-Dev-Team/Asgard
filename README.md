@@ -21,6 +21,8 @@ graph LR
     Bifrost --> |"MCP"| Mimir
     Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
 
+    Fenrir --> |"FHIR / Browser"| Eir["🏥 Eir<br/>Clinic (OpenEMR)"]
+
     Heimdall --> LLM["🍎 MLX · llama.cpp · Ollama · vLLM"]
 
     Yggdrasil["🌳 Yggdrasil<br/>Auth (Zitadel)"] -.-> Heimdall
@@ -31,6 +33,7 @@ graph LR
     style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style Heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style Fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
+    style Eir fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style Yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
 ```
 
@@ -43,7 +46,8 @@ graph LR
 | 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum + Rig.rs), Next.js 14, MariaDB, Qdrant | ✅ Sprint 23 |
 | 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy with auth & metrics | Rust (Axum) | ✅ Production |
 | ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime Engine — ReAct loop, tool execution, A2A | Python (FastAPI) | 🚧 Scaffolding |
-| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — browser, shell, screen control | Rust (ZeroClaw) | 📋 Planned |
+| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — browser automation, form filling, data extraction | Python (Browser Use + FHIR) | 📋 Planned |
+| 🏥 **Eir** | Clinic Management System — patient records, scheduling, billing | OpenEMR (PHP, GPL v3) | 📋 Planned |
 | 🌳 **Yggdrasil** | Centralized Auth — SSO, RBAC, audit | Zitadel (Go) | 📋 Planned |
 | 🏰 **Asgard** *(this repo)* | Ecosystem docs, architecture, Docker Compose | — | **Public** |
 
@@ -105,7 +109,8 @@ Build a **self-hosted AI platform** that enables:
 - [ ] Unified Docker Compose (all components)
 
 ### Phase 3: Computer Use & Growth
-- [ ] Fenrir — Browser automation, form filling, data extraction
+- [ ] Eir — Deploy OpenEMR, configure FHIR R4 API
+- [ ] Fenrir — Browser automation (Browser Use), Eir integration (FHIR R4 API)
 - [ ] Bifrost — A2A Client for external agents
 - [ ] Agent Template Marketplace
 - [ ] Knowledge Graph (Neo4j — Mimir Sprint 11)
@@ -128,6 +133,7 @@ Build a **self-hosted AI platform** that enables:
 | **Heimdall** | Guardian of Bifrost | LLM Gateway |
 | **Bifrost** | Rainbow bridge | Agent Runtime |
 | **Fenrir** | The great wolf | Computer use |
+| **Eir** | Goddess of healing | Clinic management |
 | **Yggdrasil** | The world tree | Auth service |
 
 ---
