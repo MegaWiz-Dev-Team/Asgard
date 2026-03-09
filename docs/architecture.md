@@ -41,10 +41,16 @@ graph TB
         end
 
         subgraph fenrir["🐺 Fenrir — Computer Use"]
-            Browser["🌐 Browser Control<br/>Navigate · Extract · Fill"]
+            Browser["🌐 Browser Use<br/>Navigate · Extract · Fill"]
+            FHIRClient["🏥 FHIR Client<br/>API-first"]
             Shell["💻 Shell Executor<br/>Commands · Scripts"]
-            Screen["🖥️ Screen Control<br/>Capture · Click · Type"]
             Files["📁 File Manager<br/>Read · Write · Search"]
+        end
+
+        subgraph eir["🏥 Eir — Clinic Management"]
+            OpenEMR["📋 OpenEMR<br/>Patient · Encounter · Rx"]
+            FHIRAPI["🔗 FHIR R4 API<br/>REST + OAuth2"]
+            OpenEMR --> FHIRAPI
         end
 
         subgraph yggdrasil["🌳 Yggdrasil — Auth"]
@@ -67,6 +73,8 @@ graph TB
     bifrost --> |"LLM calls"| heimdall
     bifrost --> |"RAG search<br/>(MCP)"| mimir
     bifrost --> |"Computer use<br/>(MCP)"| fenrir
+    FHIRClient --> |"FHIR R4"| FHIRAPI
+    Browser --> |"Browser"| OpenEMR
 
     heimdall --> MLX
     heimdall --> Llama
@@ -82,6 +90,7 @@ graph TB
     style bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
+    style eir fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
     style backends fill:#0c0a09,stroke:#78716c
     style client fill:transparent,stroke:#94a3b8
@@ -255,29 +264,31 @@ graph TB
 
 ```mermaid
 graph LR
-    MCP["📡 MCP Server<br/>(Rust)"] --> Browser["🌐 Browser<br/>Playwright"]
+    MCP["📡 MCP Server<br/>(Python)"] --> Browser["🌐 Browser Use<br/>Playwright"]
+    MCP --> FHIR["🏥 FHIR R4<br/>OpenEMR API"]
     MCP --> Shell["💻 Shell<br/>Sandboxed"]
     MCP --> FileOps["📁 Files<br/>Scoped"]
-    MCP --> Screen["🖥️ Screen<br/>macOS APIs"]
 
     Browser --> Web["Navigate · Extract · Fill · Screenshot"]
+    FHIR --> EMR["Patient · Encounter · Observation"]
     Shell --> Cmd["Run commands · Execute scripts"]
     FileOps --> FS["Read · Write · Search"]
-    Screen --> IO["Capture · Click · Type"]
 
     style MCP fill:#1c1917,stroke:#a8a29e
     style Browser fill:#292524,stroke:#78716c
+    style FHIR fill:#292524,stroke:#78716c
     style Shell fill:#292524,stroke:#78716c
     style FileOps fill:#292524,stroke:#78716c
-    style Screen fill:#292524,stroke:#78716c
 ```
 
 | Feature | Description |
 |:--|:--|
-| **Stack** | Rust (ZeroClaw fork) |
+| **Stack** | Python (Browser Use + FHIR Client) |
 | **Port** | `8200` (localhost only) |
 | **Protocol** | MCP Server |
-| **Security** | Sandbox, allowlists, workspace scoping |
+| **Browser** | Browser Use (Playwright-based, natural language) |
+| **API** | FHIR R4 Client for OpenEMR (API-first approach) |
+| **Security** | Sandbox, localhost-only, no external LLM for patient data |
 | **Repo** | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) |
 
 ---
@@ -301,6 +312,7 @@ graph LR
         P8084["vLLM<br/>:8084"]
         P11434["Ollama<br/>:11434"]
         P8200["Fenrir<br/>:8200"]
+        P80["Eir (OpenEMR)<br/>:80"]
     end
 
     P8080 --> P8081
@@ -325,6 +337,6 @@ graph LR
 | **RAG Backend** | Rust (Axum) + MariaDB + Qdrant | Type-safe, fast, scalable |
 | **Dashboard** | Next.js + React | Modern, SSR, component-based |
 | **Agent Runtime** | Python (FastAPI) | Rich AI ecosystem (MCP, LangGraph) |
-| **Computer Use** | Rust (ZeroClaw) | Lightweight, secure, < 5MB RAM |
+| **Computer Use** | Python (Browser Use + FHIR) | Natural language browser control, OpenEMR integration |
 | **Protocol** | MCP (Model Context Protocol) | Standard tool interface |
 | **Hardware** | Mac Mini M4 Pro, 64GB | Unified memory, 273 GB/s bandwidth |
