@@ -19,7 +19,7 @@
 | ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime Engine — ReAct + A2A + PSO | ✅ MVP Complete (99 tests) |
 | 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR | 📋 Planned (Tech decided) |
 | 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel-based SSO | 📋 Planned (Tech decided) |
-| 🏥 Eir | (OpenEMR) | Clinic Management — FHIR R4 integration | 📋 Planned |
+| 🏥 Eir | megacare-dev/openemr | Rust API Gateway + OpenEMR (FHIR R4) | ✅ Gateway Sprint 1 (Rust) |
 | 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | 📄 Active |
 
 ### Deliverables
