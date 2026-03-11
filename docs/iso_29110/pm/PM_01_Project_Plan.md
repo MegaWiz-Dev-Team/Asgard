@@ -1,7 +1,7 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
 **Document Version:** 1.0
-**Date:** 2026-03-07
+**Date:** 2026-03-11 (updated)
 **Standard:** ISO/IEC 29110 — PM Process
 
 ---
@@ -14,12 +14,13 @@
 ### ขอบเขต
 | Component | Repository | Description | Status |
 |:--|:--|:--|:--|
-| 🛡️ Heimdall | megacare-dev/Heimdall | LLM Gateway — multi-backend proxy | ✅ Production |
-| 🧠 Mimir | megacare-dev/Mimir | RAG Pipeline + Agent Builder + Dashboard | ✅ Sprint 23 |
-| ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime Engine — ReAct loop | 🚧 Scaffolding |
-| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — browser/shell | 📋 Planned |
-| 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel-based SSO | 📋 Planned |
-| 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | 📋 Active |
+| 🛡️ Heimdall | megacare-dev/Heimdall | LLM Gateway — multi-backend proxy | ✅ Production (v0.4.0) |
+| 🧠 Mimir | megacare-dev/Mimir | RAG Pipeline + Agent Builder + Dashboard | ✅ Sprint 28 (37 features, 255+ tests) |
+| ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime Engine — ReAct loop | ✅ Sprint 1 (27 tests) |
+| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR | 📋 Planned (Tech decided) |
+| 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel-based SSO | 📋 Planned (Tech decided) |
+| 🏥 Eir | (OpenEMR) | Clinic Management — FHIR R4 integration | 📋 Planned |
+| 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | 📄 Active |
 
 ### Deliverables
 - Unified `docker-compose.yml` ที่ start ทุก service ด้วยคำสั่งเดียว
@@ -44,12 +45,16 @@
 ### Phase 1: Foundation (Q1-Q2 2026) — CURRENT
 | Milestone | Target | Status |
 |:--|:--|:--|
-| Mimir Sprint 23 complete | 2026-03-06 | ✅ Done |
-| Heimdall Production | 2026-03-04 | ✅ Done |
+| Mimir Sprint 28 complete (Auto-Pipeline, E2E Scorecard) | 2026-03-11 | ✅ Done |
+| Heimdall Production (v0.4.0) | 2026-03-04 | ✅ Done |
+| Heimdall Benchmark (Qwen3.5-9B/27B on Apple Silicon) | 2026-03-08 | ✅ Done |
 | Asgard docs & strategy | 2026-03-07 | ✅ Done |
+| Fenrir tech decision (Browser Use) + Eir codename | 2026-03-09 | ✅ Done |
+| Yggdrasil tech decision (Zitadel) | 2026-03-07 | ✅ Done |
+| Bifrost Sprint 1 (Foundation & Tools, 27 tests) | 2026-03-11 | ✅ Done |
 | Unified Docker Compose | 2026-04 | 📋 Planned |
 | Bifrost MVP (ReAct loop) | 2026-05 | 📋 Planned |
-| Yggdrasil Setup (Zitadel) | 2026-05 | 📋 Planned |
+| Yggdrasil Deploy (Zitadel) | 2026-05 | 📋 Planned |
 
 ### Phase 2: Growth (Q3 2026)
 | Milestone | Target | Status |
