@@ -16,7 +16,7 @@
 |:--|:--|:--|:--|
 | 🛡️ Heimdall | megacare-dev/Heimdall | LLM Gateway — multi-backend proxy | ✅ Production (v0.4.0) |
 | 🧠 Mimir | megacare-dev/Mimir | RAG Pipeline + Agent Builder + Dashboard | ✅ Sprint 28 (37 features, 255+ tests) |
-| ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime Engine — ReAct loop | ✅ Sprint 2 (52 tests) |
+| ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime Engine — ReAct loop + A2A | ✅ Sprint 3 (77 tests) |
 | 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR | 📋 Planned (Tech decided) |
 | 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel-based SSO | 📋 Planned (Tech decided) |
 | 🏥 Eir | (OpenEMR) | Clinic Management — FHIR R4 integration | 📋 Planned |
