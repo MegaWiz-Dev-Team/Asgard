@@ -128,15 +128,19 @@ Build a **self-hosted AI platform** that enables:
 
 ## 🏛️ Norse Naming
 
-| Name | Origin | Role |
-|:--|:--|:--|
-| **Asgard** | Realm of the gods | The platform |
-| **Mimir** | God of wisdom | Knowledge & RAG |
-| **Heimdall** | Guardian of Bifrost | LLM Gateway |
-| **Bifrost** | Rainbow bridge | Agent Runtime |
-| **Fenrir** | The great wolf | Computer use |
-| **Eir** | Goddess of healing | Clinic management |
-| **Yggdrasil** | The world tree | Auth service |
+| Name | Origin | Role | Edition |
+|:--|:--|:--|:--|
+| **Asgard** | Realm of the gods | The platform | Community |
+| **Mimir** | God of wisdom | Knowledge & RAG | Community |
+| **Heimdall** | Guardian of Bifrost | LLM Gateway | Community |
+| **Bifrost** | Rainbow bridge | Agent Runtime | Community |
+| **Fenrir** | The great wolf | Computer use | Community |
+| **Eir** | Goddess of healing | Clinic management | Community |
+| **Yggdrasil** | The world tree | Auth service | Community |
+| **Huginn** | Odin's raven (Thought) | Security Scanner | Enterprise |
+| **Muninn** | Odin's raven (Memory) | Auto-Fixer (LLM) | Enterprise |
+
+> **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
 ---
 
