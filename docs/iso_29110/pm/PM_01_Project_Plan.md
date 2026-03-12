@@ -1,6 +1,6 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
-**Document Version:** 1.1
+**Document Version:** 1.2
 **Date:** 2026-03-12 (updated)
 **Standard:** ISO/IEC 29110 — PM Process
 
@@ -17,7 +17,7 @@
 | 🛡️ Heimdall | megacare-dev/Heimdall | LLM Gateway — multi-backend proxy | ✅ Production (v0.4.0) |
 | 🧠 Mimir | megacare-dev/Mimir | RAG Pipeline + Agent Builder + Dashboard | ✅ Sprint 28 (37 features, 255+ tests) |
 | ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime Engine — ReAct + A2A + PSO | ✅ MVP Complete (99 tests) |
-| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR | 📋 Planned (Tech decided) |
+| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR | ✅ Sprint 1 (MCP Server + FHIR + Browser, 35 tests) |
 | 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel-based SSO | 📋 Planned (Tech decided) |
 | 🏥 Eir | megacare-dev/openemr | Rust API Gateway + OpenEMR (FHIR R4) | ✅ Gateway Sprint 3 (Asgard Integration, 47 tests) |
 | 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | 📄 Active |
@@ -53,6 +53,7 @@
 | Yggdrasil tech decision (Zitadel) | 2026-03-07 | ✅ Done |
 | Bifrost Sprint 1 (Foundation & Tools, 27 tests) | 2026-03-11 | ✅ Done |
 | Eir Gateway Sprint 3 (Asgard Integration, A2A, 47 tests) | 2026-03-12 | ✅ Done |
+| Fenrir Sprint 1 (MCP Server + FHIR + Browser, 35 tests) | 2026-03-12 | ✅ Done |
 | Unified Docker Compose | 2026-04 | 📋 Planned |
 | Bifrost MVP (ReAct loop) | 2026-05 | 📋 Planned |
 | Yggdrasil Deploy (Zitadel) | 2026-05 | 📋 Planned |
