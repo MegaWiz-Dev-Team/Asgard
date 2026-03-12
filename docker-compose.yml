@@ -159,16 +159,17 @@ services:
     container_name: asgard_mimir_api
     restart: unless-stopped
     ports:
-      - "${MIMIR_API_PORT:-3000}:3000"
+      - "${MIMIR_API_PORT:-3000}:8080"
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER:-mimir}:${MYSQL_PASSWORD:-mimir_password}@mariadb:3306/${MYSQL_DATABASE:-mimir}
+      PORT: 8080
+      MARIADB_URL: mysql://${MYSQL_USER:-mimir}:${MYSQL_PASSWORD:-mimir_password}@mariadb:3306/${MYSQL_DATABASE:-mimir}
       QDRANT_URL: http://qdrant:6333
       REDIS_URL: redis://redis:6379
       NEO4J_URI: bolt://neo4j:7687
       NEO4J_USER: neo4j
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:-asgard_neo4j_password}
-      HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
-      EMBEDDING_URL: http://host.docker.internal:${EMBEDDING_PORT:-8001}
+      OLLAMA_API_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}/v1
+      OLLAMA_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
       RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       mariadb:
@@ -189,7 +190,7 @@ services:
     ports:
       - "${MIMIR_DASHBOARD_PORT:-3001}:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://mimir-api:3000
+      NEXT_PUBLIC_API_URL: http://mimir-api:8080
       NEXT_PUBLIC_ZITADEL_URL: http://yggdrasil:8080
     depends_on:
       - mimir-api
@@ -212,7 +213,7 @@ services:
       BIFROST_HOST: 0.0.0.0
       BIFROST_PORT: 8100
       HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
-      MIMIR_URL: http://mimir-api:3000
+      MIMIR_URL: http://mimir-api:8080
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       - mimir-api
