@@ -1,5 +1,7 @@
 # 🏰 Asgard AI Platform
 
+> **Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.**
+
 > *The realm of the gods — a self-hosted AI agent platform built on Apple Silicon & NVIDIA GPU*
 
 **Asgard** is an open ecosystem of AI services designed to run entirely on local hardware. From LLM inference to autonomous agent execution and computer control — everything runs on-premises with zero cloud dependency.
@@ -41,15 +43,17 @@ graph LR
 
 ## 📦 Components
 
-| Component | Description | Tech Stack | Status |
-|:--|:--|:--|:--|
-| 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum + Rig.rs), Next.js 14, MariaDB, Qdrant | ✅ Sprint 23 |
-| 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy with auth & metrics | Rust (Axum) | ✅ Production |
-| ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime Engine — ReAct loop, tool execution, A2A | Python (FastAPI) | 🚧 Scaffolding |
-| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — browser automation, form filling, data extraction | Python (Browser Use + FHIR) | 📋 Planned |
-| 🏥 **Eir** | Clinic Management System — patient records, scheduling, billing | OpenEMR (PHP, GPL v3) | 📋 Planned |
-| 🌳 **Yggdrasil** | Centralized Auth — SSO, RBAC, audit | Zitadel (Go) | 📋 Planned |
-| 🏰 **Asgard** *(this repo)* | Ecosystem docs, architecture, Docker Compose | — | **Public** |
+| Component | Description | Tech Stack | Tests | Status |
+|:--|:--|:--|:--|:--|
+| 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
+| 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
+| ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime — ReAct loop, MCP, A2A, PSO | Python (FastAPI) | 99 | ✅ Sprint 4 |
+| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 | Python (FastAPI) | 35 | ✅ Sprint 1 |
+| 🏥 **[Eir](https://github.com/megacare-dev/openemr)** | Rust API Gateway + OpenEMR (FHIR R4) | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
+| 🌳 **[Yggdrasil](https://github.com/megacare-dev/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT SDK | Zitadel (Go) + Python | 19 | ✅ Sprint 1 |
+| 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
+
+> **455+ tests** across the entire platform
 
 ---
 
@@ -92,29 +96,27 @@ Build a **self-hosted AI platform** that enables:
 > **[Full Roadmap with Gantt Chart →](docs/strategy/roadmap.md)**
 
 ### Phase 1: Foundation ✅
-- [x] Heimdall — LLM Gateway with multi-backend support
-- [x] Mimir — RAG Pipeline with document ingestion
-- [x] Mimir — Agent Builder (CRUD, templates, chat)
-- [x] Dashboard — Next.js admin UI
-- [x] Multi-model benchmarking (Qwen, Gemma, MedGemma)
+- [x] Heimdall — LLM Gateway (v0.4.0, multi-backend, benchmarked)
+- [x] Mimir — RAG Pipeline + Agent Builder + Dashboard (Sprint 28, 255+ tests)
+- [x] Bifrost — Agent Runtime (Sprint 4, ReAct + MCP + PSO, 99 tests)
+- [x] Eir — Rust API Gateway + OpenEMR (Sprint 3, 47 tests)
+- [x] Fenrir — Computer-Use Agent scaffold (Sprint 1, MCP + FHIR + Browser, 35 tests)
+- [x] Yggdrasil — Auth Service (Sprint 1, Zitadel + JWT SDK, 19 tests)
+- [x] Unified Docker Compose — 10 services, one command
 - [x] AGPL-3.0 licensing + CLA
 
-### Phase 2: Agent Runtime & Integrations 🚧
-- [ ] Bifrost — Agent Executor (ReAct loop, tool execution)
-- [ ] MCP tool integration + session management
-- [ ] Yggdrasil — Centralized Auth (Zitadel)
-- [ ] Heimdall — vLLM backend for NVIDIA GPU
-- [ ] Mimir — Visual Workflow Builder (ReactFlow)
-- [ ] Mimir — A2A Server (Agent-to-Agent protocol)
-- [ ] Unified Docker Compose (all components)
+### Phase 2: Integration & Growth 🚧
+- [ ] Bifrost ↔ Eir E2E integration
+- [ ] Mimir → Bifrost agent deployment
+- [ ] Fenrir MVP — OpenEMR form automation
+- [ ] Visual Workflow Builder (ReactFlow)
+- [ ] Documentation site (asgardai.dev)
+- [ ] Developer Preview (GitHub public)
 
-### Phase 3: Computer Use & Growth
-- [ ] Eir — Deploy OpenEMR, configure FHIR R4 API
-- [ ] Fenrir — Browser automation (Browser Use), Eir integration (FHIR R4 API)
-- [ ] Bifrost — A2A Client for external agents
-- [ ] Agent Template Marketplace
-- [ ] Knowledge Graph (Neo4j — Mimir Sprint 11)
-- [ ] Community v1.0 Launch
+### Phase 3: Community Launch
+- [ ] v1.0 Community Edition
+- [ ] Product Hunt / HackerNews launch
+- [ ] 3-5 Design Partners
 
 ### Enterprise Edition 💰
 - [ ] SSO (SAML, OIDC, LDAP) via Zitadel
@@ -147,12 +149,14 @@ Build a **self-hosted AI platform** that enables:
 ---
 
 <p align="center">
-  <strong>🏰 Asgard AI Platform</strong>
+  <strong>🏰 Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.</strong>
   <br/>
   <em>Self-hosted AI. Norse-inspired. Built on Apple Silicon & NVIDIA GPU.</em>
   <br/><br/>
   <a href="https://github.com/megacare-dev/Mimir">Mimir</a> ·
   <a href="https://github.com/megacare-dev/Heimdall">Heimdall</a> ·
   <a href="https://github.com/megacare-dev/Bifrost">Bifrost</a> ·
-  <a href="https://github.com/megacare-dev/Fenrir">Fenrir</a>
+  <a href="https://github.com/megacare-dev/Fenrir">Fenrir</a> ·
+  <a href="https://github.com/megacare-dev/Yggdrasil">Yggdrasil</a> ·
+  <a href="https://github.com/megacare-dev/openemr">Eir</a>
 </p>
