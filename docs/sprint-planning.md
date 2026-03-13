@@ -80,4 +80,30 @@
 
 ---
 
+## 🗄️ Database Consolidation (Phase 3 — Q4 2026)
+
+> ลด MariaDB + PostgreSQL → **PostgreSQL ตัวเดียว** ก่อน v1.0 Release
+
+| Step | Task | Risk |
+|:--|:--|:--|
+| 1 | เขียน migration script (MariaDB → Postgres) | 🟡 |
+| 2 | ทดสอบบน staging (copy data + verify) | 🟡 |
+| 3 | Update Mimir connection string `mysql://` → `postgresql://` | 🟢 |
+| 4 | ลบ MariaDB จาก compose | 🟢 |
+
+> `sqlx` ของ Mimir support ทั้ง MySQL และ Postgres อยู่แล้ว — code แทบไม่ต้องแก้
+
+---
+
+## 🐦‍⬛ Enterprise: Huginn & Muninn (Q3 2026+)
+
+> **[Full Roadmap →](roadmap/huginn-muninn.md)**
+
+| Service | Role | Start |
+|:--|:--|:--|
+| 🐦‍⬛ Huginn | Security Scanner (Semgrep + Trivy + auto GitHub Issue) | Q3 2026 |
+| 🐦 Muninn | Auto-Fixer (LLM code fix + PR + auto-merge) | Q4 2026 |
+
+---
+
 *Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.*
