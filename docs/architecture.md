@@ -1,6 +1,8 @@
 # 🏰 Asgard — System Architecture
 
 > A self-hosted AI platform running entirely on Apple Silicon & NVIDIA GPU.
+>
+> *Updated: 2026-03-13 — Várðr monitoring dashboard added (7 components)*
 
 ## High-Level Overview
 
@@ -57,6 +59,12 @@ graph TB
             Zitadel["🔐 Zitadel<br/>OIDC · SAML · LDAP"]
             AuditLog["📋 Audit Trail<br/>Event-sourced"]
         end
+
+        subgraph vardr["🛡️ Várðr — Monitoring"]
+            Health["📊 Service Health<br/>Docker status"]
+            Logs["📜 Log Viewer<br/>SSE streaming"]
+            MetricsV["📈 Metrics<br/>CPU · RAM · Net"]
+        end
     end
 
     subgraph backends["⚙️ LLM Backends"]
@@ -85,6 +93,11 @@ graph TB
     yggdrasil -.-> |"OIDC"| mimir
     yggdrasil -.-> |"JWT"| bifrost
 
+    vardr -.-> |"docker CLI"| mimir
+    vardr -.-> |"docker CLI"| bifrost
+    vardr -.-> |"docker CLI"| heimdall
+    vardr -.-> |"docker CLI"| fenrir
+    vardr -.-> |"docker CLI"| yggdrasil
     style asgard fill:transparent,stroke:#6366f1,stroke-width:3px
     style mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
     style bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
@@ -293,6 +306,38 @@ graph LR
 
 ---
 
+### 🛡️ Várðr — Monitoring Dashboard
+
+```mermaid
+graph LR
+    subgraph vardr["🛡️ Várðr Dashboard"]
+        Services["📊 Services Tab<br/>Health · Ports · Uptime"]
+        LogViewer["📜 Logs Tab<br/>Filter · Search · SSE"]
+        MetricsView["📈 Metrics Tab<br/>CPU · RAM · Net · PIDs"]
+    end
+
+    Docker["🐳 Docker Engine"] --> |"docker ps"| Services
+    Docker --> |"docker logs"| LogViewer
+    Docker --> |"docker stats"| MetricsView
+
+    Browser["🌐 Browser"] --> |":9090"| vardr
+
+    style vardr fill:#172554,stroke:#3b82f6
+    style Docker fill:#0c4a6e,stroke:#38bdf8
+    style Browser fill:#1e293b,stroke:#94a3b8
+```
+
+| Feature | Description |
+|:--|:--|
+| **Stack** | Rust (Axum + Tokio) |
+| **Port** | `9090` |
+| **Data** | Docker CLI (`docker ps`, `docker stats`, `docker logs`) |
+| **Streaming** | Server-Sent Events (SSE) for real-time logs |
+| **UI** | Embedded HTML/CSS/JS (no npm) |
+| **Repo** | [megacare-dev/Vardr](https://github.com/megacare-dev/Vardr) |
+
+---
+
 ## Network Map
 
 ```mermaid
@@ -302,6 +347,7 @@ graph LR
         P3001["Dashboard<br/>:3001"]
         P8080["Heimdall<br/>:8080"]
         P8085["Yggdrasil<br/>:8085"]
+        P9090["Várðr<br/>:9090"]
         P8100["Bifrost<br/>:8100"]
     end
 
@@ -338,5 +384,6 @@ graph LR
 | **Dashboard** | Next.js + React | Modern, SSR, component-based |
 | **Agent Runtime** | Python (FastAPI) | Rich AI ecosystem (MCP, LangGraph) |
 | **Computer Use** | Python (Browser Use + FHIR) | Natural language browser control, OpenEMR integration |
+| **Monitoring** | Rust (Axum) + Docker CLI | Real-time service health, logs, and metrics |
 | **Protocol** | MCP (Model Context Protocol) | Standard tool interface |
 | **Hardware** | Mac Mini M4 Pro, 64GB | Unified memory, 273 GB/s bandwidth |
