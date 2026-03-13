@@ -115,7 +115,7 @@ services:
     platform: linux/arm64
     container_name: asgard_yggdrasil
     restart: unless-stopped
-    command: start-from-init
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
     ports:
       - "${ZITADEL_PORT:-8085}:8080"
     environment:
@@ -134,7 +134,7 @@ services:
       ZITADEL_FIRSTINSTANCE_ORG_NAME: Asgard
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ZITADEL_ADMIN_EMAIL:-admin@asgardai.dev}
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD:-REDACTED-PW}
-      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:-yggdrasil-masterkey-change-me-32c}
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:-yggdrasil-masterkey-change-me-ok}
       ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER: "false"
     depends_on:
       postgres:
@@ -154,15 +154,15 @@ services:
 
   mimir-api:
     build:
-      context: ../Mimir/ro-ai-bridge
-      dockerfile: Dockerfile
+      context: ../Mimir
+      dockerfile: ro-ai-bridge/Dockerfile
     container_name: asgard_mimir_api
     restart: unless-stopped
     ports:
       - "${MIMIR_API_PORT:-3000}:8080"
     environment:
       PORT: 8080
-      MARIADB_URL: mysql://${MYSQL_USER:-mimir}:${MYSQL_PASSWORD:-REDACTED-PW}@mariadb:3306/${MYSQL_DATABASE:-mimir}
+      DATABASE_URL: mysql://${MYSQL_USER:-mimir}:${MYSQL_PASSWORD:-REDACTED-PW}@mariadb:3306/${MYSQL_DATABASE:-mimir}
       QDRANT_URL: http://qdrant:6333
       REDIS_URL: redis://redis:6379
       NEO4J_URI: bolt://neo4j:7687
