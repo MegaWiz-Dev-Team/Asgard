@@ -170,6 +170,25 @@ services:
       NEO4J_PASSWORD: ${NEO4J_PASSWORD:-asgard_neo4j_password}
       OLLAMA_API_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}/v1
       OLLAMA_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
+      # ── Shared Secrets (from Asgard/.env) ──
+      HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
+      HEIMDALL_API_URL: http://host.docker.internal:${EMBEDDING_PORT:-8001}/v1
+      HEIMDALL_MODEL: ${HEIMDALL_MODEL:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_BASE_URL: ${GEMINI_BASE_URL:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_REGION: ${S3_REGION:-}
+      VAULT_ADDR: ${VAULT_ADDR:-}
+      VAULT_TOKEN: ${VAULT_TOKEN:-}
+      VAULT_MOUNT: ${VAULT_MOUNT:-}
+      VAULT_PATH: ${VAULT_PATH:-}
+      EMBED_MODEL: ${MIMIR_EMBED_MODEL:-nomic-embed-text}
+      CRON_TICK_SECONDS: ${MIMIR_CRON_TICK_SECONDS:-60}
       RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       mariadb:
@@ -214,6 +233,12 @@ services:
       BIFROST_PORT: 8100
       HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
       MIMIR_URL: http://mimir-api:8080
+      # ── Shared Secrets (from Asgard/.env) ──
+      HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
+      MIMIR_API_KEY: ${HEIMDALL_API_KEY:-}
+      DEFAULT_MODEL: ${BIFROST_DEFAULT_MODEL:-qwen3.5}
+      MAX_ITERATIONS: ${BIFROST_MAX_ITERATIONS:-10}
+      MAX_EXECUTION_TIME: ${BIFROST_MAX_EXECUTION_TIME:-120}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       - mimir-api
@@ -238,6 +263,10 @@ services:
       HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
       OPENEMR_URL: http://eir:80
       OPENEMR_FHIR_URL: http://eir:80/apis/default/fhir
+      # ── Shared Secrets (from Asgard/.env) ──
+      HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
+      OPENEMR_AUTH_TOKEN: ${OPENEMR_AUTH_TOKEN:-}
+      BROWSER_HEADLESS: ${FENRIR_BROWSER_HEADLESS:-true}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       - bifrost
