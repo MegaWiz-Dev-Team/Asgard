@@ -1,7 +1,7 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
-**Document Version:** 1.5
-**Date:** 2026-03-13 (updated — Docker Compose 10/10 services verified)
+**Document Version:** 1.6
+**Date:** 2026-03-13 (updated — Várðr monitoring dashboard added)
 **Standard:** ISO/IEC 29110 — PM Process
 
 ---
@@ -9,7 +9,7 @@
 ## 1. Project Scope & Objectives (ขอบเขตและวัตถุประสงค์)
 
 ### เป้าหมาย
-พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย 6 components ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
+พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย 7 components ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
 
 ### Component Status (as of 2026-03-12)
 | Component | Repository | Description | Version | Tests | Status |
@@ -20,6 +20,7 @@
 | 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 (Python) | v0.1.0 | 35 tests | ✅ Sprint 1 Complete |
 | 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel OIDC + JWT SDK (Python) | v0.1.0 | 19 tests | ✅ Sprint 1 Complete |
 | 🏥 Eir | megacare-dev/openemr | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.3.0 | 47 tests | ✅ Sprint 3 Complete |
+| 🛡️ Várðr | megacare-dev/Vardr | Monitoring Dashboard — service health, logs, metrics (Rust) | v0.1.0 | 5 tests | ✅ Sprint 1 Complete |
 | 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
 
 ### Test Summary
@@ -30,7 +31,8 @@
 | Eir Gateway | 47 | Rust (#[cfg(test)]) | All modules |
 | Fenrir | 35 | pytest + pytest-asyncio | MCP + FHIR + Browser + Router |
 | Yggdrasil | 19 | pytest + pytest-asyncio | JWT + Client + Models |
-| **Total** | **455+** | | |
+| Várðr | 5 | Rust (#[cfg(test)]) | Docker CLI parsers |
+| **Total** | **460+** | | |
 
 ### Deliverables
 - Unified `docker-compose.yml` ที่ start ทุก service ด้วยคำสั่งเดียว
@@ -131,6 +133,7 @@
 | Fenrir Sprint 1 (MCP + FHIR + Browser, 35 tests) | 2026-03-12 | ✅ Done |
 | Yggdrasil Sprint 1 (Zitadel + Auth SDK, 19 tests) | 2026-03-12 | ✅ Done |
 | Unified Docker Compose (10/10 services) | 2026-03-13 | ✅ Done |
+| Várðr Monitoring Dashboard (Sprint 1, 5 tests) | 2026-03-13 | ✅ Done |
 
 ### Phase 2: Growth (Q3 2026)
 | Milestone | Target | Status |
@@ -171,4 +174,4 @@
 ---
 
 *บันทึกโดย: AI Assistant (ตามมาตรฐาน ISO/IEC 29110 หมวด PM-01)*
-*Last updated: 2026-03-13 by Antigravity — Docker Compose 10/10 verified, 455+ total tests*
+*Last updated: 2026-03-13 by Antigravity — Várðr added, Docker Compose 11 services, 460+ total tests*

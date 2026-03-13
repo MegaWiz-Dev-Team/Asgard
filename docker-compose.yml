@@ -271,6 +271,28 @@ services:
     networks:
       - asgard
 
+  # ═══════════════════════════════════════
+  # 🛡️ VÁRÐR — Monitoring Dashboard
+  # ═══════════════════════════════════════
+
+  vardr:
+    build:
+      context: ../Vardr
+      dockerfile: Dockerfile
+    container_name: asgard_vardr
+    restart: unless-stopped
+    ports:
+      - "${VARDR_PORT:-9090}:9090"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - asgard
+
 # ═══════════════════════════════════════
 # 📦 VOLUMES
 # ═══════════════════════════════════════
