@@ -13,7 +13,7 @@
 | ⚡ Bifrost | v0.7.0 | Sprint 7 | 133 | ✅ | ✅ Dockerfile | ✅ Mimir Sync |
 | 🏥 Eir | v0.4.0 | Sprint 4 | 57 | ✅ | ⚠️ OpenEMR image | ✅ JWKS Auth |
 | 🐺 Fenrir | v0.3.0 | Sprint 3 | 63 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
-| 🌳 Yggdrasil | v0.4.0 | Sprint 4 | 39 | ✅ | ✅ Compose | ✅ M2M Auth |
+| 🌳 Yggdrasil | v0.5.0 | Sprint 5 | 45 | ✅ | ✅ Compose | ✅ Zitadel Setup |
 | 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
 
 > **537+ tests** across the entire platform
