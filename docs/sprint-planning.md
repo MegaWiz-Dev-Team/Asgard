@@ -9,7 +9,7 @@
 | Component | Version | Sprint | Tests | ISO Docs | Docker | Status |
 |:--|:--|:--|:--|:--|:--|:--|
 | 🛡️ Heimdall | v0.4.0 | — | Benchmarked | ✅ | ⚠️ Host only | ✅ Production |
-| 🧠 Mimir | — | Sprint 28 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
+| 🧠 Mimir | v0.29.0 | Sprint 29 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
 | ⚡ Bifrost | v0.7.0 | Sprint 7 | 133 | ✅ | ✅ Dockerfile | ✅ Mimir Sync |
 | 🏥 Eir | v0.3.0 | Sprint 3 | 47 | ✅ | ⚠️ OpenEMR image | ✅ Done |
 | 🐺 Fenrir | v0.3.0 | Sprint 3 | 63 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
