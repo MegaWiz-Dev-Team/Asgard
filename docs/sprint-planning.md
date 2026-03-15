@@ -10,13 +10,13 @@
 |:--|:--|:--|:--|:--|:--|:--|
 | 🛡️ Heimdall | v0.4.0 | — | Benchmarked | ✅ | ⚠️ Host only | ✅ Production |
 | 🧠 Mimir | — | Sprint 28 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
-| ⚡ Bifrost | v0.4.0 | Sprint 4 | 99 | ✅ | ✅ Dockerfile | ✅ MVP |
+| ⚡ Bifrost | v0.5.0 | Sprint 5 | 113 | ✅ | ✅ Dockerfile | ✅ E2E |
 | 🏥 Eir | v0.3.0 | Sprint 3 | 47 | ✅ | ⚠️ OpenEMR image | ✅ Done |
 | 🐺 Fenrir | v0.2.0 | Sprint 2 | 55 | ✅ | ✅ Dockerfile | ✅ Done |
 | 🌳 Yggdrasil | v0.3.0 | Sprint 3 | 31 | ✅ | ✅ Compose | ✅ Done |
 | 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
 
-> **487+ tests** across the entire platform
+> **501+ tests** across the entire platform
 
 ---
 
@@ -54,7 +54,8 @@
 - [ ] A2A Server endpoints
 
 ### ⚡ Bifrost — Sprint 5: Integration
-- [ ] Eir agent tools E2E test
+- [x] Eir agent tools (patient_search, fhir_query, clinical_summary)
+- [x] Fenrir MCP connection (SSE transport, auto-discovery)
 - [ ] Mimir agent config sync
 - [ ] Yggdrasil JWT auth middleware
 
