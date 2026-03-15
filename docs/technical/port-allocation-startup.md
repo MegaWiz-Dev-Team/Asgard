@@ -9,9 +9,9 @@
 
 | Port | Service | Component | Stack | Repo |
 |------|---------|-----------|-------|------|
-| `3000` | Mimir API (Backend) | 🧠 Mimir | Rust/Axum | [Mimir](https://github.com/megacare-dev/Mimir) |
-| `3001` | Mimir Dashboard | 🧠 Mimir | Next.js | [Mimir](https://github.com/megacare-dev/Mimir) |
-| `8080` | Heimdall Gateway | 🛡️ Heimdall | Rust/Axum | [Heimdall](https://github.com/megacare-dev/mega-llm-server) |
+| `3000` | Mimir API (Backend) | 🧠 Mimir | Rust/Axum | [Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) |
+| `3001` | Mimir Dashboard | 🧠 Mimir | Next.js | [Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) |
+| `8080` | Heimdall Gateway | 🛡️ Heimdall | Rust/Axum | [Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall) |
 | `8085` | Yggdrasil (Auth) | 🌳 Yggdrasil | Yggdrasil (Zitadel) | *reserved* |
 | `8100` | Bifrost (Agent Runtime) | ⚡ Bifrost | Python/FastAPI | *reserved* |
 

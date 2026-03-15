@@ -14,14 +14,14 @@
 ### Component Status (as of 2026-03-14)
 | Component | Repository | Description | Version | Tests | Status |
 |:--|:--|:--|:--|:--|:--|
-| 🛡️ Heimdall | megacare-dev/Heimdall | LLM Gateway — multi-backend proxy (Ollama/MLX/Gemini/OpenAI) | v0.4.0 | Benchmarked | ✅ Production |
-| 🧠 Mimir | megacare-dev/Mimir | RAG Pipeline + Agent Builder + Dashboard (Rust + Next.js) | Sprint 28 | 255+ tests | ✅ Active Development |
-| ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime — ReAct + MCP + Multi-Agent + PSO (Python) | Sprint 4 | 99 tests | ✅ MVP Complete |
-| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 + OpenEMR Messaging | v0.1.0 | 47 tests | ✅ Sprint 1.5 Complete |
-| 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | v0.2.0 | 31 tests | ✅ Sprint 2 Complete |
-| 🏥 Eir | megacare-dev/openemr | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.3.0 | 47 tests | ✅ Sprint 3 Complete |
-| 🛡️ Várðr | megacare-dev/Vardr | Monitoring Dashboard — service health, logs, metrics (Rust) | v0.1.0 | 5 tests | ✅ Sprint 1 Complete |
-| 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
+| 🛡️ Heimdall | MegaWiz-Dev-Team/Heimdall | LLM Gateway — multi-backend proxy (Ollama/MLX/Gemini/OpenAI) | v0.4.0 | Benchmarked | ✅ Production |
+| 🧠 Mimir | MegaWiz-Dev-Team/Mimir | RAG Pipeline + Agent Builder + Dashboard (Rust + Next.js) | Sprint 28 | 255+ tests | ✅ Active Development |
+| ⚡ Bifrost | MegaWiz-Dev-Team/Bifrost | Agent Runtime — ReAct + MCP + Multi-Agent + PSO (Python) | Sprint 4 | 99 tests | ✅ MVP Complete |
+| 🐺 Fenrir | MegaWiz-Dev-Team/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 + OpenEMR Messaging | v0.1.0 | 47 tests | ✅ Sprint 1.5 Complete |
+| 🌳 Yggdrasil | MegaWiz-Dev-Team/Yggdrasil | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | v0.2.0 | 31 tests | ✅ Sprint 2 Complete |
+| 🏥 Eir | MegaWiz-Dev-Team/Eir | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.3.0 | 47 tests | ✅ Sprint 3 Complete |
+| 🛡️ Várðr | MegaWiz-Dev-Team/Vardr | Monitoring Dashboard — service health, logs, metrics (Rust) | v0.1.0 | 5 tests | ✅ Sprint 1 Complete |
+| 🏰 Asgard | MegaWiz-Dev-Team/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
 
 ### Test Summary
 | Component | Tests | Framework | Coverage |

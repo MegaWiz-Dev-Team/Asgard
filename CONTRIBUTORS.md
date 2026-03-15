@@ -8,7 +8,7 @@ By contributing, you agree to the terms of our [Contributor License Agreement (C
 
 | Name | GitHub | Role | CLA Signed |
 |:--|:--|:--|:--|
-| MegaCare Dev | @megacare-dev | Maintainer | ✅ |
+| MegaCare Dev | @MegaWiz-Dev-Team | Maintainer | ✅ |
 
 ## Contributors
 

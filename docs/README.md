@@ -88,7 +88,7 @@ Recommended reading order:
 ## 📞 Contact
 
 - 📧 Email: paripol@megawiz.co
-- 🏢 Organization: [MegaWiz](https://github.com/megacare-dev)
+- 🏢 Organization: [MegaWiz](https://github.com/MegaWiz-Dev-Team)
 
 ---
 

@@ -252,7 +252,7 @@ graph LR
 |:--|:--|
 | **Stack** | Rust (Axum + Rig.rs) + Next.js 14 + MariaDB + Qdrant |
 | **Port** | `3000` (API) / `3001` (Dashboard) |
-| **Repo** | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) |
+| **Repo** | [MegaWiz-Dev-Team/Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) |
 
 ---
 
@@ -287,7 +287,7 @@ graph LR
 | **Port** | `8080` |
 | **Protocol** | OpenAI-compatible API |
 | **Backends** | MLX, mlx_vlm, llama.cpp, Ollama, vLLM |
-| **Repo** | [megacare-dev/Heimdall](https://github.com/megacare-dev/Heimdall) |
+| **Repo** | [MegaWiz-Dev-Team/Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall) |
 
 ---
 
@@ -318,7 +318,7 @@ graph TB
 | **Stack** | Python (FastAPI + Uvicorn) |
 | **Port** | `8100` |
 | **Protocol** | REST + SSE + MCP Client |
-| **Repo** | [megacare-dev/Bifrost](https://github.com/megacare-dev/Bifrost) |
+| **Repo** | [MegaWiz-Dev-Team/Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost) |
 
 ---
 
@@ -351,7 +351,7 @@ graph LR
 | **Browser** | Browser Use (Playwright-based, natural language) |
 | **API** | FHIR R4 Client for OpenEMR (API-first approach) |
 | **Security** | Sandbox, localhost-only, no external LLM for patient data |
-| **Repo** | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) |
+| **Repo** | [MegaWiz-Dev-Team/Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir) |
 
 ---
 
@@ -384,7 +384,7 @@ graph LR
 | **Protocol** | MCP Server + A2A + REST Proxy |
 | **Features** | Chat UI widget, FHIR proxy, rate limiting, caching, audit log |
 | **Chat** | `GET /chat` (standalone) + 🐺 embedded widget on OpenEMR |
-| **Repo** | [megacare-dev/Eir](https://github.com/megacare-dev/openemr) |
+| **Repo** | [MegaWiz-Dev-Team/Eir](https://github.com/MegaWiz-Dev-Team/Eir) |
 
 ---
 
@@ -416,7 +416,7 @@ graph LR
 | **Data** | Docker CLI (`docker ps`, `docker stats`, `docker logs`) |
 | **Streaming** | Server-Sent Events (SSE) for real-time logs |
 | **UI** | Embedded HTML/CSS/JS (no npm) |
-| **Repo** | [megacare-dev/Vardr](https://github.com/megacare-dev/Vardr) |
+| **Repo** | [MegaWiz-Dev-Team/Vardr](https://github.com/MegaWiz-Dev-Team/Vardr) |
 
 ---
 

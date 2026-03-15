@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Asgard! 🏰
 
 ### 🐛 Bug Reports
 
-Please [open an issue](https://github.com/megacare-dev/Asgard/issues/new) with:
+Please [open an issue](https://github.com/MegaWiz-Dev-Team/Asgard/issues/new) with:
 - Clear description of the bug
 - Steps to reproduce
 - Expected vs actual behavior
@@ -14,7 +14,7 @@ Please [open an issue](https://github.com/megacare-dev/Asgard/issues/new) with:
 
 ### 💡 Feature Requests
 
-[Open an issue](https://github.com/megacare-dev/Asgard/issues/new) with:
+[Open an issue](https://github.com/MegaWiz-Dev-Team/Asgard/issues/new) with:
 - Description of the feature
 - Use case / why it's needed
 - Which component it affects (Heimdall, Mimir, Bifrost, Fenrir, Yggdrasil)
@@ -36,26 +36,26 @@ Documentation improvements are always welcome! See `docs/` for existing docs.
 
 ```bash
 # Clone the repo
-git clone https://github.com/megacare-dev/Asgard.git
+git clone https://github.com/MegaWiz-Dev-Team/Asgard.git
 cd Asgard
 
 # Start infrastructure
 docker compose up -d
 
 # See individual component READMEs for setup:
-# - Heimdall: https://github.com/megacare-dev/Heimdall
-# - Mimir: https://github.com/megacare-dev/Mimir
-# - Bifrost: https://github.com/megacare-dev/Bifrost
+# - Heimdall: https://github.com/MegaWiz-Dev-Team/Heimdall
+# - Mimir: https://github.com/MegaWiz-Dev-Team/Mimir
+# - Bifrost: https://github.com/MegaWiz-Dev-Team/Bifrost
 ```
 
 ## Component Repositories
 
 | Component | Repo | Language |
 |:--|:--|:--|
-| 🛡️ Heimdall | [megacare-dev/Heimdall](https://github.com/megacare-dev/Heimdall) | Rust |
-| 🧠 Mimir | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) | Rust + Next.js |
-| ⚡ Bifrost | [megacare-dev/Bifrost](https://github.com/megacare-dev/Bifrost) | Python |
-| 🐺 Fenrir | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Python |
+| 🛡️ Heimdall | [MegaWiz-Dev-Team/Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall) | Rust |
+| 🧠 Mimir | [MegaWiz-Dev-Team/Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) | Rust + Next.js |
+| ⚡ Bifrost | [MegaWiz-Dev-Team/Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost) | Python |
+| 🐺 Fenrir | [MegaWiz-Dev-Team/Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir) | Python |
 
 ## Contributor License Agreement (CLA)
 
@@ -67,7 +67,7 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/megacare-dev/Asgard/discussions)
+- Open a [GitHub Discussion](https://github.com/MegaWiz-Dev-Team/Asgard/discussions)
 - Email: paripol@megawiz.co
 
 ---

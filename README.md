@@ -53,13 +53,13 @@ graph LR
 
 | Component | Description | Tech Stack | Tests | Status |
 |:--|:--|:--|:--|:--|
-| 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
-| 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
-| ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime — ReAct loop, MCP, A2A, PSO | Python (FastAPI) | 99 | ✅ Sprint 4 |
-| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 + Messaging | Python (FastAPI) | 47 | ✅ Sprint 1.5 |
-| 🏥 **[Eir](https://github.com/megacare-dev/openemr)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
-| 🌳 **[Yggdrasil](https://github.com/megacare-dev/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
-| 🛡️ **[Várðr](https://github.com/megacare-dev/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
+| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
+| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
+| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Agent Runtime — ReAct loop, MCP, A2A, PSO | Python (FastAPI) | 99 | ✅ Sprint 4 |
+| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 + Messaging | Python (FastAPI) | 47 | ✅ Sprint 1.5 |
+| 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
+| 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
+| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
 | 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
 
 > **484+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation
@@ -168,11 +168,11 @@ Build a **self-hosted AI platform** that enables:
   <br/>
   <em>Self-hosted AI. Norse-inspired. Built on Apple Silicon & NVIDIA GPU.</em>
   <br/><br/>
-  <a href="https://github.com/megacare-dev/Mimir">Mimir</a> ·
-  <a href="https://github.com/megacare-dev/Heimdall">Heimdall</a> ·
-  <a href="https://github.com/megacare-dev/Bifrost">Bifrost</a> ·
-  <a href="https://github.com/megacare-dev/Fenrir">Fenrir</a> ·
-  <a href="https://github.com/megacare-dev/Yggdrasil">Yggdrasil</a> ·
-  <a href="https://github.com/megacare-dev/openemr">Eir</a> ·
-  <a href="https://github.com/megacare-dev/Vardr">Várðr</a>
+  <a href="https://github.com/MegaWiz-Dev-Team/Mimir">Mimir</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Heimdall">Heimdall</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Bifrost">Bifrost</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Fenrir">Fenrir</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Yggdrasil">Yggdrasil</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Eir">Eir</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Vardr">Várðr</a>
 </p>

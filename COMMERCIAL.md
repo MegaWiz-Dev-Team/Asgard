@@ -69,13 +69,13 @@ All components of the Asgard AI Platform are covered under the same licensing te
 
 | Component | Repository | Description |
 |:--|:--|:--|
-| 🏰 **Asgard** | [megacare-dev/Asgard](https://github.com/megacare-dev/Asgard) | Platform orchestration |
-| 🛡️ **Heimdall** | [megacare-dev/Heimdall](https://github.com/megacare-dev/Heimdall) | LLM Gateway (Rust) |
-| 🧠 **Mimir** | [megacare-dev/Mimir](https://github.com/megacare-dev/Mimir) | RAG + Agent Builder (Rust/Next.js) |
-| ⚡ **Bifrost** | [megacare-dev/Bifrost](https://github.com/megacare-dev/Bifrost) | Agent Runtime (Python) |
-| 🐺 **Fenrir** | [megacare-dev/Fenrir](https://github.com/megacare-dev/Fenrir) | Computer Use (Python) |
+| 🏰 **Asgard** | [MegaWiz-Dev-Team/Asgard](https://github.com/MegaWiz-Dev-Team/Asgard) | Platform orchestration |
+| 🛡️ **Heimdall** | [MegaWiz-Dev-Team/Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall) | LLM Gateway (Rust) |
+| 🧠 **Mimir** | [MegaWiz-Dev-Team/Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) | RAG + Agent Builder (Rust/Next.js) |
+| ⚡ **Bifrost** | [MegaWiz-Dev-Team/Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost) | Agent Runtime (Python) |
+| 🐺 **Fenrir** | [MegaWiz-Dev-Team/Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir) | Computer Use (Python) |
 | 🏥 **Eir** | OpenEMR | Clinic Management (PHP, GPL v3) |
-| 🌳 **Yggdrasil** | [megacare-dev/Yggdrasil](https://github.com/megacare-dev/Yggdrasil) | Auth Service (Zitadel) |
+| 🌳 **Yggdrasil** | [MegaWiz-Dev-Team/Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil) | Auth Service (Zitadel) |
 
 ---
 
