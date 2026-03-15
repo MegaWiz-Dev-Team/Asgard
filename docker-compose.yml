@@ -111,7 +111,7 @@ services:
   # ═══════════════════════════════════════
 
   yggdrasil:
-    image: ghcr.io/zitadel/zitadel:v3.3.1
+    image: ghcr.io/zitadel/zitadel:v2.71.6
     platform: linux/arm64
     container_name: asgard_yggdrasil
     restart: unless-stopped
