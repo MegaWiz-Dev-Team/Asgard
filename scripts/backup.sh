@@ -40,7 +40,7 @@ if [ -f "${PROJECT_DIR}/.env" ]; then
 fi
 MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root}"
 MYSQL_DATABASE="${MYSQL_DATABASE:-mimir}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-REDACTED-PW}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-yggdrasil-secret}"
 NEO4J_AUTH="${NEO4J_AUTH:-neo4j/REDACTED-PW}"
 
 # ── Parse Arguments ──
@@ -107,11 +107,11 @@ fi
 
 # ── 2. PostgreSQL ──
 if container_running "$POSTGRES_CONTAINER"; then
-    log "🐘 Backing up PostgreSQL (zitadel)..."
+    log "🐘 Backing up PostgreSQL (yggdrasil)..."
     docker exec "$POSTGRES_CONTAINER" \
         pg_dump -U postgres -d zitadel \
-        > "${BACKUP_DIR}/postgres_zitadel.sql"
-    ok "PostgreSQL → postgres_zitadel.sql ($(wc -c < "${BACKUP_DIR}/postgres_zitadel.sql" | tr -d ' ') bytes)"
+        > "${BACKUP_DIR}/postgres_yggdrasil.sql"
+    ok "PostgreSQL → postgres_yggdrasil.sql ($(wc -c < "${BACKUP_DIR}/postgres_yggdrasil.sql" | tr -d ' ') bytes)"
 else
     skip "PostgreSQL container not running — skipped"
 fi
@@ -169,7 +169,7 @@ cat > "${BACKUP_DIR}/MANIFEST.json" <<EOF
     "hostname": "$(hostname)",
     "stores": {
         "mariadb": $([ -f "${BACKUP_DIR}/mariadb_${MYSQL_DATABASE}.sql" ] && echo "true" || echo "false"),
-        "postgres": $([ -f "${BACKUP_DIR}/postgres_zitadel.sql" ] && echo "true" || echo "false"),
+        "postgres": $([ -f "${BACKUP_DIR}/postgres_yggdrasil.sql" ] && echo "true" || echo "false"),
         "qdrant": $([ -d "${BACKUP_DIR}/qdrant" ] && echo "true" || echo "false"),
         "neo4j": $([ -f "${BACKUP_DIR}/neo4j.dump" ] && echo "true" || echo "false")
     }

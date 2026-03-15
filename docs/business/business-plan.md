@@ -40,7 +40,7 @@ Asgard is a **complete, modular, self-hosted AI platform**:
 | 🧠 Mimir | RAG + Agent Builder | Full pipeline: ingest → chunk → embed → retrieve → generate |
 | ⚡ Bifrost | Agent Runtime | ReAct loop, MCP tools, A2A protocol |
 | 🐺 Fenrir | Computer Use | Browser/shell automation for agents |
-| 🌳 Yggdrasil | Auth | Centralized SSO (Zitadel) |
+| 🌳 Yggdrasil | Auth | Centralized SSO (Yggdrasil) |
 
 **Key differentiator:** Only platform that natively supports Apple Silicon (MLX) AND NVIDIA (vLLM) for local inference, with a complete RAG + Agent pipeline built in Rust for performance.
 

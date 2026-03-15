@@ -82,7 +82,7 @@
 
 | Gap | Problem | Solution |
 |:--|:--|:--|
-| **Centralized Auth** | Each component uses separate auth | ✅ Decided: Zitadel (Yggdrasil) |
+| **Centralized Auth** | Each component uses separate auth | ✅ Decided: Yggdrasil (powered by Zitadel) |
 | **All-in-One Docker Compose** | Stacks for Heimdall/Bifrost still separate | Create unified `docker-compose.yml` |
 | **Backup/Restore** | No automated backup system | Add backup CLI + cron |
 | **Bifrost not ready** | Agent Runtime is a core value | Prioritize MVP |
@@ -108,7 +108,7 @@
 ```
 ✅ Already built (from Mimir)              🆕 To be added
 ├── Multi-Tenant IAM (JWT+RBAC)       ├── Unified docker-compose (all components)
-├── Admin Dashboard (Next.js)          ├── Shared Auth (Zitadel)
+├── Admin Dashboard (Next.js)          ├── Shared Auth (Yggdrasil)
 ├── Docker Compose (partial)           ├── One-command install script
 ├── RAG Pipeline + Ingestion           ├── Backup/Restore CLI
 ├── Agent Eval + QC System             ├── License selection + NOTICE
@@ -154,7 +154,7 @@
 
 ```
 Enterprise-Only Features:
-├── 🔐 SSO (SAML, OIDC, LDAP) via Zitadel
+├── 🔐 SSO (SAML, OIDC, LDAP) via Yggdrasil
 ├── 👥 Advanced RBAC (org → team → project)
 ├── 📊 Usage Analytics + Cost Dashboard
 ├── 📋 Audit Log + Compliance Reports

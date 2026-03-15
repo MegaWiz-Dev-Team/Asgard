@@ -2,7 +2,7 @@
 
 > A self-hosted AI platform running entirely on Apple Silicon & NVIDIA GPU.
 >
-> *Updated: 2026-03-13 — Várðr monitoring dashboard added (7 components)*
+> *Updated: 2026-03-14 — Eir Gateway Chat UI, MCP/A2A integration protocol (8 components)*
 
 ## High-Level Overview
 
@@ -36,7 +36,7 @@ graph TB
 
         subgraph heimdall["🛡️ Heimdall — LLM Gateway"]
             Proxy["🔄 Proxy Layer<br/>(Rust/Axum)"]
-            Auth["🔐 Auth<br/>JWT / OIDC (Zitadel)"]
+            Auth["🔐 Auth<br/>JWT / OIDC (Yggdrasil)"]
             Metrics["📊 Metrics<br/>(Prometheus)"]
             Proxy --> Auth
             Proxy --> Metrics
@@ -50,13 +50,15 @@ graph TB
         end
 
         subgraph eir["🏥 Eir — Clinic Management"]
+            EirGW["💊 API Gateway<br/>Axum · MCP Server · Chat"]
             OpenEMR["📋 OpenEMR<br/>Patient · Encounter · Rx"]
             FHIRAPI["🔗 FHIR R4 API<br/>REST + OAuth2"]
+            EirGW --> OpenEMR
             OpenEMR --> FHIRAPI
         end
 
         subgraph yggdrasil["🌳 Yggdrasil — Auth"]
-            Zitadel["🔐 Zitadel<br/>OIDC · SAML · LDAP"]
+            Zitadel["🔐 Yggdrasil<br/>OIDC · SAML · LDAP"]
             AuditLog["📋 Audit Trail<br/>Event-sourced"]
         end
 
@@ -76,11 +78,12 @@ graph TB
 
     Dashboard --> mimir
     API --> bifrost
-    Chat --> bifrost
-
+    Chat --> |"via Eir Chat"| EirGW
+    EirGW --> |"proxy /v1/chat"| bifrost
     bifrost --> |"LLM calls"| heimdall
     bifrost --> |"RAG search<br/>(MCP)"| mimir
     bifrost --> |"Computer use<br/>(MCP)"| fenrir
+    bifrost --> |"FHIR data<br/>(MCP)"| EirGW
     FHIRClient --> |"FHIR R4"| FHIRAPI
     Browser --> |"Browser"| OpenEMR
 
@@ -105,9 +108,55 @@ graph TB
     style fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
     style eir fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
+    style vardr fill:#172554,stroke:#3b82f6,color:#bfdbfe
     style backends fill:#0c0a09,stroke:#78716c
     style client fill:transparent,stroke:#94a3b8
 ```
+
+---
+
+## Integration Protocols: MCP vs A2A
+
+Asgard uses **two** agent communication protocols:
+
+| Protocol | Level | When to use | Standard |
+|:--|:--|:--|:--|
+| **MCP** (Model Context Protocol) | Tool-level | Single action, sync, fast | Anthropic/Google spec |
+| **A2A** (Agent-to-Agent) | Agent-level | Complex task, async, multi-step | Google spec |
+
+### MCP — Tool Calls
+```
+Bifrost (MCP Client) ──call──> Eir (MCP Server)
+                                  └─ patient_search("สมชาย")
+                                  └─ fhir_query("Condition?patient=1")
+
+Bifrost (MCP Client) ──call──> Fenrir (MCP Server)
+                                  └─ browser_navigate(url)
+                                  └─ browser_fill_form(data)
+
+Bifrost (MCP Client) ──call──> Mimir (MCP Server)
+                                  └─ knowledge_search("query")
+```
+
+### A2A — Task Delegation
+```
+Bifrost ──A2A task──> Eir Agent
+    "ลงทะเบียนคนไข้ สมชาย + insurance + นัดแพทย์"
+     └─ Eir Agent คิดเอง: step1 → step2 → step3
+     └─ Status updates: submitted → working → completed
+     └─ Result: "ลงทะเบียนเสร็จ HN-0042"
+```
+
+### Decision Table
+| Use Case | Protocol | Example |
+|:--|:--|:--|
+| ค้นหาคนไข้ | MCP | `eir.patient_search()` |
+| ดึง Lab | MCP | `eir.fhir_query()` |
+| กดปุ่มใน OpenEMR | MCP | `fenrir.browser_click()` |
+| ค้นหา knowledge | MCP | `mimir.knowledge_search()` |
+| ลงทะเบียน + insurance ทั้ง flow | A2A | `eir_agent.task_send()` |
+| สร้าง Encounter + Vitals + Rx | A2A | `eir_agent.task_send()` |
+| วิเคราะห์ + สรุปรักษา | A2A | `bifrost.delegate()` |
 
 ---
 
@@ -306,6 +355,39 @@ graph LR
 
 ---
 
+### 🏥 Eir — API Gateway + Clinic Management
+
+```mermaid
+graph LR
+    subgraph eirgw["💊 Eir Gateway (:8300)"]
+        Proxy["🔄 Reverse Proxy<br/>→ OpenEMR :80"]
+        ChatUI["💬 Chat UI<br/>Embedded Widget"]
+        MCPSrv["📡 MCP Server<br/>FHIR Tools"]
+        A2ASrv["🤖 A2A Protocol<br/>Task delegation"]
+        RateLimit["⏱️ Rate Limiter<br/>Governor"]
+        Cache["📦 Cache<br/>Moka (in-memory)"]
+    end
+
+    Bifrost["⚡ Bifrost"] --> |"MCP"| MCPSrv
+    Bifrost --> |"A2A"| A2ASrv
+    ChatUI --> |"POST /v1/chat"| Bifrost
+    MCPSrv --> FHIR["🏥 OpenEMR<br/>FHIR R4"]
+    Proxy --> FHIR
+
+    style eirgw fill:#4a1942,stroke:#e879f9
+```
+
+| Feature | Description |
+|:--|:--|
+| **Stack** | Rust (Axum + Tokio) |
+| **Port** | `8300` (Gateway) / `80` (OpenEMR) |
+| **Protocol** | MCP Server + A2A + REST Proxy |
+| **Features** | Chat UI widget, FHIR proxy, rate limiting, caching, audit log |
+| **Chat** | `GET /chat` (standalone) + 🐺 embedded widget on OpenEMR |
+| **Repo** | [megacare-dev/Eir](https://github.com/megacare-dev/openemr) |
+
+---
+
 ### 🛡️ Várðr — Monitoring Dashboard
 
 ```mermaid
@@ -358,9 +440,11 @@ graph LR
         P8084["vLLM<br/>:8084"]
         P11434["Ollama<br/>:11434"]
         P8200["Fenrir<br/>:8200"]
-        P80["Eir (OpenEMR)<br/>:80"]
+        P80["OpenEMR<br/>:80"]
+        P8300["Eir GW<br/>:8300"]
     end
 
+    P8300 --> P80
     P8080 --> P8081
     P8080 --> P8082
     P8080 --> P8083
@@ -384,6 +468,7 @@ graph LR
 | **Dashboard** | Next.js + React | Modern, SSR, component-based |
 | **Agent Runtime** | Python (FastAPI) | Rich AI ecosystem (MCP, LangGraph) |
 | **Computer Use** | Python (Browser Use + FHIR) | Natural language browser control, OpenEMR integration |
+| **Clinic Gateway** | Rust (Axum) + OpenEMR | FHIR R4, MCP Server, Chat UI, rate limiting |
 | **Monitoring** | Rust (Axum) + Docker CLI | Real-time service health, logs, and metrics |
-| **Protocol** | MCP (Model Context Protocol) | Standard tool interface |
+| **Protocol** | MCP + A2A | MCP for tool calls, A2A for task delegation |
 | **Hardware** | Mac Mini M4 Pro, 64GB | Unified memory, 273 GB/s bandwidth |

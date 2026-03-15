@@ -58,7 +58,50 @@ For each stage, define:
 - Build case studies from design partners
 - Partner channel strategy
 
-### 5️⃣ Output
+### 5️⃣ GTM Metrics Dashboard
+
+Track these metrics weekly/monthly:
+
+| Category | Metric | Target |
+|----------|--------|--------|
+| **Awareness** | GitHub stars growth | +200/month |
+| **Awareness** | Docker Hub pulls | +500/month |
+| **Acquisition** | Website → GitHub click rate | > 15% |
+| **Activation** | docker compose up success rate | > 90% |
+| **Retention** | Monthly active deployments | Track |
+| **Revenue** | MRR (Enterprise) | Track |
+| **Revenue** | CAC (Customer Acquisition Cost) | < $500 |
+| **Revenue** | LTV/CAC ratio | > 3x |
+
+### 6️⃣ Solo/Small-Team GTM Playbook
+
+Weekly cadence for resource-constrained teams:
+
+| Day | Activity | Time |
+|-----|----------|------|
+| Mon | Write 1 technical blog post | 2h |
+| Tue | Engage on Reddit/HN/Twitter | 1h |
+| Wed | Respond to issues + community | 1h |
+| Thu | Record demo or tutorial | 2h |
+| Fri | Outreach to 3 potential design partners | 1h |
+
+**Budget-constrained approach:**
+- $0: Open source + content + community
+- GitHub Sponsors for sustainable funding
+- Design partners for enterprise validation (free tier)
+
+### 7️⃣ Content-Led Growth
+
+Link content to pipeline stages:
+```
+Blog post → GitHub star → docker compose up → Active user → Enterprise lead
+    ↑            ↑              ↑                  ↑             ↑
+  SEO/Social   README        Quick Start        Features      Case study
+```
+
+See `content-marketing` skill for detailed content creation workflows.
+
+### 8️⃣ Output
 Write to `docs/business/go-to-market.md`:
 ```
 # Go-to-Market Strategy
@@ -66,9 +109,10 @@ Write to `docs/business/go-to-market.md`:
 ## 2. Developer Adoption Funnel
 ## 3. Community Building Plan
 ## 4. Enterprise Sales Process
-## 5. Content & Marketing Calendar
-## 6. Metrics & KPIs
-## 7. Budget Allocation
+## 5. GTM Metrics Dashboard
+## 6. Solo/Small-Team Playbook
+## 7. Content-Led Growth
+## 8. Budget Allocation
 ```
 
 ---
@@ -78,6 +122,7 @@ Write to `docs/business/go-to-market.md`:
 - Great docs = best marketing for developer tools
 - "Make it easy to start, hard to leave"
 - SEA market first, then expand globally
+- Measure everything — what you can't measure, you can't improve
 
 ## When to Use
 Before Community Edition launch, when planning enterprise launch, entering a new market, or quarterly GTM review.

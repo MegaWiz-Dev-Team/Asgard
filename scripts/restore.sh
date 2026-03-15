@@ -32,7 +32,7 @@ if [ -f "${PROJECT_DIR}/.env" ]; then
 fi
 MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root}"
 MYSQL_DATABASE="${MYSQL_DATABASE:-mimir}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-REDACTED-PW}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-yggdrasil-secret}"
 
 # ── Parse Arguments ──
 while [[ $# -gt 0 ]]; do
@@ -92,7 +92,7 @@ echo ""
 if $DRY_RUN; then
     log "=== DRY RUN — No changes will be made ==="
     [ -f "${BACKUP_DIR}/mariadb_${MYSQL_DATABASE}.sql" ] && ok "Would restore MariaDB" || skip "No MariaDB backup"
-    [ -f "${BACKUP_DIR}/postgres_zitadel.sql" ] && ok "Would restore PostgreSQL" || skip "No PostgreSQL backup"
+    [ -f "${BACKUP_DIR}/postgres_yggdrasil.sql" ] && ok "Would restore PostgreSQL" || skip "No PostgreSQL backup"
     [ -d "${BACKUP_DIR}/qdrant" ] && ok "Would restore Qdrant snapshots" || skip "No Qdrant backup"
     [ -f "${BACKUP_DIR}/neo4j.dump" ] && ok "Would restore Neo4j" || skip "No Neo4j backup"
     log "=== DRY RUN complete ==="
@@ -123,9 +123,9 @@ else
 fi
 
 # ── 2. PostgreSQL ──
-POSTGRES_FILE="${BACKUP_DIR}/postgres_zitadel.sql"
+POSTGRES_FILE="${BACKUP_DIR}/postgres_yggdrasil.sql"
 if [ -f "$POSTGRES_FILE" ] && container_running "$POSTGRES_CONTAINER"; then
-    log "🐘 Restoring PostgreSQL (zitadel)..."
+    log "🐘 Restoring PostgreSQL (yggdrasil)..."
     docker exec -i "$POSTGRES_CONTAINER" \
         psql -U postgres -d zitadel < "$POSTGRES_FILE"
     ok "PostgreSQL restored from $(basename "$POSTGRES_FILE")"

@@ -1,7 +1,7 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
-**Document Version:** 1.6
-**Date:** 2026-03-13 (updated — Várðr monitoring dashboard added)
+**Document Version:** 1.9
+**Date:** 2026-03-14 (updated — Yggdrasil Sprint 2: FastAPI auth deps)
 **Standard:** ISO/IEC 29110 — PM Process
 
 ---
@@ -11,14 +11,14 @@
 ### เป้าหมาย
 พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย 7 components ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
 
-### Component Status (as of 2026-03-12)
+### Component Status (as of 2026-03-14)
 | Component | Repository | Description | Version | Tests | Status |
 |:--|:--|:--|:--|:--|:--|
 | 🛡️ Heimdall | megacare-dev/Heimdall | LLM Gateway — multi-backend proxy (Ollama/MLX/Gemini/OpenAI) | v0.4.0 | Benchmarked | ✅ Production |
 | 🧠 Mimir | megacare-dev/Mimir | RAG Pipeline + Agent Builder + Dashboard (Rust + Next.js) | Sprint 28 | 255+ tests | ✅ Active Development |
 | ⚡ Bifrost | megacare-dev/Bifrost | Agent Runtime — ReAct + MCP + Multi-Agent + PSO (Python) | Sprint 4 | 99 tests | ✅ MVP Complete |
-| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 (Python) | v0.1.0 | 35 tests | ✅ Sprint 1 Complete |
-| 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel OIDC + JWT SDK (Python) | v0.1.0 | 19 tests | ✅ Sprint 1 Complete |
+| 🐺 Fenrir | megacare-dev/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 + OpenEMR Messaging | v0.1.0 | 47 tests | ✅ Sprint 1.5 Complete |
+| 🌳 Yggdrasil | megacare-dev/Yggdrasil | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | v0.2.0 | 31 tests | ✅ Sprint 2 Complete |
 | 🏥 Eir | megacare-dev/openemr | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.3.0 | 47 tests | ✅ Sprint 3 Complete |
 | 🛡️ Várðr | megacare-dev/Vardr | Monitoring Dashboard — service health, logs, metrics (Rust) | v0.1.0 | 5 tests | ✅ Sprint 1 Complete |
 | 🏰 Asgard | megacare-dev/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
@@ -29,10 +29,10 @@
 | Mimir | 255+ | Rust (#[cfg(test)]) + Vitest | Core + API + Frontend |
 | Bifrost | 99 | pytest + pytest-asyncio | ReAct + MCP + A2A + PSO |
 | Eir Gateway | 47 | Rust (#[cfg(test)]) | All modules |
-| Fenrir | 35 | pytest + pytest-asyncio | MCP + FHIR + Browser + Router |
-| Yggdrasil | 19 | pytest + pytest-asyncio | JWT + Client + Models |
+| Fenrir | 47 | pytest + pytest-asyncio | MCP + FHIR + Browser + Router + Messaging |
+| Yggdrasil | 31 | pytest + pytest-asyncio | JWT + Client + Models + FastAPI Auth |
 | Várðr | 5 | Rust (#[cfg(test)]) | Docker CLI parsers |
-| **Total** | **460+** | | |
+| **Total** | **484+** | | |
 
 ### Deliverables
 - Unified `docker-compose.yml` ที่ start ทุก service ด้วยคำสั่งเดียว
@@ -96,6 +96,7 @@
 | Sprint 2 | MCP client (stdio+SSE), Mimir RAG tools, Webhook tools | 52 | ✅ Done |
 | Sprint 3 | Agent Router, Delegate tool, Execution tracing, A2A protocol | 77 | ✅ Done |
 | Sprint 4 | Plan-and-Execute, Self-Reflection, PSO Auto-Generate | 99 | ✅ Done (2026-03-11) |
+| Sprint 5 | MCP Integration: Eir MCP client, Fenrir MCP client, Eir Chat proxy | — | 📋 Planned |
 
 ### Eir (🏥 API Gateway)
 | Sprint | Deliverable | Tests | Status |
@@ -103,17 +104,20 @@
 | Sprint 1 | Axum server, reverse proxy, auth, audit, health | 10 | ✅ Done |
 | Sprint 2 | FHIR R4 proxy, moka cache, governor rate limit, OpenAPI | 22 | ✅ Done |
 | Sprint 3 | Bifrost Agent Tools, Mimir Knowledge Sync, A2A Protocol | 47 | ✅ Done (2026-03-12) |
+| Sprint 4 | MCP Server (FHIR tools), Embedded Chat UI + Widget | — | 📋 Planned |
 
 ### Fenrir (🐺 Computer-Use Agent)
 | Sprint | Deliverable | Tests | Status |
 |:--|:--|:--|:--|
 | Sprint 1 | MCP Server, FHIR Client, Browser Use Agent, Task Router | 35 | ✅ Done (2026-03-12) |
+| Sprint 1.5 | OpenEMR Messaging Integration (Poller + Bifrost relay) | 47 | ✅ Done (2026-03-14) |
+| Sprint 2 | Docker Build + Compose Integration | 47 | ✅ Done (2026-03-14) |
 
 ### Yggdrasil (🌳 Auth Service)
 | Sprint | Deliverable | Tests | Status |
 |:--|:--|:--|:--|
-| Tech Decision | Zitadel (self-hosted OIDC + RBAC) | — | ✅ Decided (2026-03-07) |
 | Sprint 1 | Zitadel Docker + Auth SDK (JWT + Client + Models) | 19 | ✅ Done (2026-03-12) |
+| Sprint 2 | FastAPI `require_auth`, roles/scopes, dev bypass | 31 | ✅ Done (2026-03-14) |
 
 ---
 
@@ -134,6 +138,12 @@
 | Yggdrasil Sprint 1 (Zitadel + Auth SDK, 19 tests) | 2026-03-12 | ✅ Done |
 | Unified Docker Compose (10/10 services) | 2026-03-13 | ✅ Done |
 | Várðr Monitoring Dashboard (Sprint 1, 5 tests) | 2026-03-13 | ✅ Done |
+| Fenrir Sprint 1.5 (OpenEMR Messaging) | 2026-03-14 | ✅ Done |
+| Docker Compose Build Verification (6/6 passed) | 2026-03-14 | ✅ Done |
+| Eir Chat Widget (mint green floating chat) | 2026-03-14 | ✅ Done |
+| Yggdrasil Sprint 2 (FastAPI require_auth, 31 tests) | 2026-03-14 | ✅ Done |
+| Eir Sprint 4 (MCP Server + Chat UI) | 2026-03-15 | 📋 Planned |
+| Bifrost Sprint 5 (MCP: Eir + Fenrir clients) | 2026-03-16 | 📋 Planned |
 
 ### Phase 2: Growth (Q3 2026)
 | Milestone | Target | Status |
@@ -174,4 +184,4 @@
 ---
 
 *บันทึกโดย: AI Assistant (ตามมาตรฐาน ISO/IEC 29110 หมวด PM-01)*
-*Last updated: 2026-03-13 by Antigravity — Várðr added, Docker Compose 11 services, 460+ total tests*
+*Last updated: 2026-03-14 by Antigravity — Yggdrasil Sprint 2 (FastAPI auth deps, 31 tests)*

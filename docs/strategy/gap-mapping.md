@@ -28,10 +28,10 @@
 
 | Where to implement | Action |
 |:--|:--|
-| 🏰 **Asgard** docker-compose | Deploy Zitadel + Postgres |
-| 🛡️ **Heimdall** | Validate Zitadel JWT |
-| 🧠 **Mimir** | Delegate login → Zitadel (OIDC) |
-| ⚡ **Bifrost** | Validate Zitadel JWT middleware |
+| 🏰 **Asgard** docker-compose | Deploy Yggdrasil + Postgres |
+| 🛡️ **Heimdall** | Validate Yggdrasil JWT |
+| 🧠 **Mimir** | Delegate login → Yggdrasil (OIDC) |
+| ⚡ **Bifrost** | Validate Yggdrasil JWT middleware |
 
 ### 2. Unified Docker Compose → 🏰 Asgard
 
@@ -46,7 +46,7 @@
 
 | What | Details |
 |:--|:--|
-| **Scope** | MariaDB dump + Qdrant snapshots + Zitadel export + config files |
+| **Scope** | MariaDB dump + Qdrant snapshots + Yggdrasil export + config files |
 | **Restore** | `scripts/restore.sh <backup-dir>` — full restore from backup |
 | **Automation** | Cron-compatible, optional S3/MinIO upload |
 

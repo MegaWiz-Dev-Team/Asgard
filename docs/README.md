@@ -30,7 +30,7 @@
 | Document | Description |
 |:--|:--|
 | 🏗️ [Architecture Overview](architecture.md) | System architecture, data flow, component specs |
-| 🌳 [Yggdrasil Auth Selection](technical/yggdrasil-auth-selection.md) | Auth platform comparison — Zitadel selected |
+| 🌳 [Yggdrasil Auth Selection](technical/yggdrasil-auth-selection.md) | Auth platform comparison — Yggdrasil selected |
 | 🔧 [ADK-Rust Evaluation](technical/adk-rust-evaluation.md) | ADK-Rust analysis, workflow builder decision, A2A protocol |
 
 ### Legal & Community
@@ -59,7 +59,7 @@ graph LR
 
     Heimdall --> LLM["🍎 MLX · llama.cpp · Ollama · vLLM"]
 
-    Yggdrasil["🌳 Yggdrasil<br/>Auth (Zitadel)"] -.-> Heimdall
+    Yggdrasil["🌳 Yggdrasil<br/>Auth (Yggdrasil)"] -.-> Heimdall
     Yggdrasil -.-> Mimir
     Yggdrasil -.-> Bifrost
 ```

@@ -19,7 +19,7 @@ gantt
     Mimir Integration (S6)            :done,    h1b, 2026-03, 2026-03
     vLLM Backend (NVIDIA)             :active,  h2, 2026-04, 2026-06
     Intelligent Router                :         h3, 2026-06, 2026-08
-    Zitadel JWT Validation            :         h4, 2026-05, 2026-06
+    Yggdrasil JWT Validation            :         h4, 2026-05, 2026-06
 
     section 🧠 Mimir
     Sprint 1-23 (Core Platform)       :done,    m1, 2025-06, 2026-03
@@ -35,7 +35,7 @@ gantt
     Computer Use MVP                  :         f1, 2026-08, 2026-11
 
     section 🌳 Yggdrasil
-    Zitadel Deployment                :         y1, 2026-05, 2026-06
+    Yggdrasil Deployment                :         y1, 2026-05, 2026-06
     Mimir OIDC Migration              :         y2, 2026-06, 2026-07
     Enterprise Auth (SAML/LDAP)       :         y3, 2027-01, 2027-06
 
@@ -56,7 +56,7 @@ gantt
 | Bifrost MVP | ⚡ Bifrost | 🚧 | ReAct loop works, calls tools via MCP |
 | Unified Docker Compose | 🏰 Asgard | 📋 | Single `docker compose up` starts all services |
 | Heimdall vLLM | 🛡️ Heimdall | 📋 | Routes to vLLM backend on NVIDIA |
-| Zitadel Deploy | 🌳 Yggdrasil | 📋 | Zitadel running, Mimir delegating login |
+| Yggdrasil Deploy | 🌳 Yggdrasil | 📋 | Yggdrasil running, Mimir delegating login |
 | Backup CLI | 🏰 Asgard | 📋 | `scripts/backup.sh` backs up MariaDB + Qdrant |
 
 ### 🔵 Next (Q3 2026 — July-September)

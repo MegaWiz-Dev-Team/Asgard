@@ -16,7 +16,7 @@
 | M2 | **Mimir Core (Sprint 1-23)** | 🧠 Mimir | ✅ Done | 37 features, 23 sprints, 255+ backend tests passing |
 | M3 | **Heimdall Gateway** | 🛡️ Heimdall | ✅ Production | Multi-backend routing, SSE streaming, Prometheus metrics |
 | M4 | **Bifrost Agent Runtime** | ⚡ Bifrost | 🚧 MVP | ReAct loop works, tool calling via MCP, streaming response |
-| M5 | **Yggdrasil Auth** | 🌳 Yggdrasil | 📋 Planned | Zitadel running in Docker, Mimir delegates login via OIDC |
+| M5 | **Yggdrasil Auth** | 🌳 Yggdrasil | 📋 Planned | Yggdrasil running in Docker, Mimir delegates login via OIDC |
 | M6 | **Quick Start Guide** | 📖 Docs | 📋 Planned | Tested on clean Mac + Ubuntu; < 15 min to first chat |
 | M7 | **Visual Workflow Builder** | 🧠 Mimir | 📋 Planned | ReactFlow canvas, drag-drop nodes, save/load workflows |
 
@@ -44,7 +44,7 @@
 | # | Feature | Why Not v1.0 |
 |:--|:--|:--|
 | W1 | **HA Clustering** | Enterprise feature; single-node is fine for Community |
-| W2 | **SSO (SAML/LDAP)** | Enterprise; Zitadel OIDC is sufficient for Community |
+| W2 | **SSO (SAML/LDAP)** | Enterprise; Yggdrasil OIDC is sufficient for Community |
 | W3 | **White-Label** | Enterprise branding; not needed for Community launch |
 | W4 | **Usage Analytics Dashboard** | Enterprise; basic Prometheus metrics are enough |
 | W5 | **Windows Support** | Community-contributed; focus on macOS + Linux |
@@ -55,7 +55,7 @@
 ## Done Criteria for Must-Haves
 
 ### M1: Unified Docker Compose
-- [ ] Single `docker-compose.yml` starts: Heimdall, Mimir (API + Dashboard), Bifrost, MariaDB, Qdrant, Zitadel
+- [ ] Single `docker-compose.yml` starts: Heimdall, Mimir (API + Dashboard), Bifrost, MariaDB, Qdrant, Yggdrasil
 - [ ] `.env.example` documents all required variables
 - [ ] `docker compose up` from zero → all services healthy in < 5 min
 - [ ] Quick Start tested on clean macOS 15 (Apple Silicon) and Ubuntu 24.04
@@ -68,8 +68,8 @@
 - [ ] Supports 3+ MCP tools (search, calculate, web_fetch)
 
 ### M5: Yggdrasil Auth
-- [ ] Zitadel container in Docker Compose
-- [ ] Mimir delegates login to Zitadel via OIDC
+- [ ] Yggdrasil container in Docker Compose
+- [ ] Mimir delegates login to Yggdrasil via OIDC
 - [ ] JWT validation in Heimdall
 - [ ] First-run creates default admin user
 

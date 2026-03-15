@@ -17,13 +17,16 @@ Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved in
 ```mermaid
 graph LR
     User["👤 User"] --> Mimir["🧠 Mimir<br/>RAG + Agent Builder"]
-    User --> Bifrost["⚡ Bifrost<br/>Agent Runtime"]
+    User --> |"Chat"| EirGW["🏥 Eir GW<br/>Chat UI"]
 
+    EirGW --> |"proxy"| Bifrost["⚡ Bifrost<br/>Agent Runtime"]
     Bifrost --> |"LLM"| Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
     Bifrost --> |"MCP"| Mimir
     Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
+    Bifrost --> |"MCP"| EirGW
 
-    Fenrir --> |"FHIR / Browser"| Eir["🏥 Eir<br/>Clinic (OpenEMR)"]
+    EirGW --> |"proxy"| Eir["📋 OpenEMR<br/>FHIR R4"]
+    Fenrir --> |"Browser"| Eir
 
     Heimdall --> LLM["🍎 MLX · llama.cpp · Ollama · vLLM"]
 
@@ -31,12 +34,17 @@ graph LR
     Yggdrasil -.-> Mimir
     Yggdrasil -.-> Bifrost
 
+    Vardr["🛡️ Várðr<br/>Monitoring"] -.-> |"docker"| Mimir
+    Vardr -.-> |"docker"| Bifrost
+
     style Mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
     style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style Heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style Fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
     style Eir fill:#4a1942,stroke:#e879f9,color:#fae8ff
+    style EirGW fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style Yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
+    style Vardr fill:#172554,stroke:#3b82f6,color:#bfdbfe
 ```
 
 ---
@@ -48,12 +56,13 @@ graph LR
 | 🧠 **[Mimir](https://github.com/megacare-dev/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
 | 🛡️ **[Heimdall](https://github.com/megacare-dev/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
 | ⚡ **[Bifrost](https://github.com/megacare-dev/Bifrost)** | Agent Runtime — ReAct loop, MCP, A2A, PSO | Python (FastAPI) | 99 | ✅ Sprint 4 |
-| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 | Python (FastAPI) | 35 | ✅ Sprint 1 |
-| 🏥 **[Eir](https://github.com/megacare-dev/openemr)** | Rust API Gateway + OpenEMR (FHIR R4) | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
-| 🌳 **[Yggdrasil](https://github.com/megacare-dev/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT SDK | Zitadel (Go) + Python | 19 | ✅ Sprint 1 |
+| 🐺 **[Fenrir](https://github.com/megacare-dev/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 + Messaging | Python (FastAPI) | 47 | ✅ Sprint 1.5 |
+| 🏥 **[Eir](https://github.com/megacare-dev/openemr)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
+| 🌳 **[Yggdrasil](https://github.com/megacare-dev/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
+| 🛡️ **[Várðr](https://github.com/megacare-dev/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
 | 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
 
-> **455+ tests** across the entire platform
+> **484+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation
 
 ---
 
@@ -100,14 +109,15 @@ Build a **self-hosted AI platform** that enables:
 - [x] Mimir — RAG Pipeline + Agent Builder + Dashboard (Sprint 28, 255+ tests)
 - [x] Bifrost — Agent Runtime (Sprint 4, ReAct + MCP + PSO, 99 tests)
 - [x] Eir — Rust API Gateway + OpenEMR (Sprint 3, 47 tests)
-- [x] Fenrir — Computer-Use Agent scaffold (Sprint 1, MCP + FHIR + Browser, 35 tests)
-- [x] Yggdrasil — Auth Service (Sprint 1, Zitadel + JWT SDK, 19 tests)
+- [x] Fenrir — Computer-Use Agent scaffold + OpenEMR Messaging (Sprint 1.5, 47 tests)
+- [x] Yggdrasil — Auth Service (Sprint 2, Zitadel + JWT + FastAPI Auth, 31 tests)
 - [x] Unified Docker Compose — 10 services, one command
 - [x] AGPL-3.0 licensing + CLA
 
 ### Phase 2: Integration & Growth 🚧
-- [ ] Bifrost ↔ Eir E2E integration
-- [ ] Mimir → Bifrost agent deployment
+- [ ] Eir Sprint 4 — MCP Server (FHIR tools) + Chat UI widget
+- [ ] Bifrost Sprint 5 — MCP Integration (Eir + Fenrir clients)
+- [ ] Mimir → Bifrost agent deployment via MCP
 - [ ] Fenrir MVP — OpenEMR form automation
 - [ ] Visual Workflow Builder (ReactFlow)
 - [ ] Documentation site (asgardai.dev)
@@ -135,8 +145,9 @@ Build a **self-hosted AI platform** that enables:
 | **Heimdall** | Guardian of Bifrost | LLM Gateway | Community |
 | **Bifrost** | Rainbow bridge | Agent Runtime | Community |
 | **Fenrir** | The great wolf | Computer use | Community |
-| **Eir** | Goddess of healing | Clinic management | Community |
+| **Eir** | Goddess of healing | Clinic management (Gateway + OpenEMR) | Community |
 | **Yggdrasil** | The world tree | Auth service | Community |
+| **Várðr** | The guardian | Monitoring dashboard | Community |
 | **Huginn** | Odin's raven (Thought) | Security Scanner | Enterprise |
 | **Muninn** | Odin's raven (Memory) | Auto-Fixer (LLM) | Enterprise |
 
@@ -162,5 +173,6 @@ Build a **self-hosted AI platform** that enables:
   <a href="https://github.com/megacare-dev/Bifrost">Bifrost</a> ·
   <a href="https://github.com/megacare-dev/Fenrir">Fenrir</a> ·
   <a href="https://github.com/megacare-dev/Yggdrasil">Yggdrasil</a> ·
-  <a href="https://github.com/megacare-dev/openemr">Eir</a>
+  <a href="https://github.com/megacare-dev/openemr">Eir</a> ·
+  <a href="https://github.com/megacare-dev/Vardr">Várðr</a>
 </p>
