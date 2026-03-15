@@ -10,13 +10,13 @@
 |:--|:--|:--|:--|:--|:--|:--|
 | 🛡️ Heimdall | v0.4.0 | — | Benchmarked | ✅ | ⚠️ Host only | ✅ Production |
 | 🧠 Mimir | — | Sprint 28 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
-| ⚡ Bifrost | v0.6.0 | Sprint 6 | 127 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
+| ⚡ Bifrost | v0.7.0 | Sprint 7 | 133 | ✅ | ✅ Dockerfile | ✅ Mimir Sync |
 | 🏥 Eir | v0.3.0 | Sprint 3 | 47 | ✅ | ⚠️ OpenEMR image | ✅ Done |
 | 🐺 Fenrir | v0.3.0 | Sprint 3 | 63 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
-| 🌳 Yggdrasil | v0.3.0 | Sprint 3 | 31 | ✅ | ✅ Compose | ✅ Done |
+| 🌳 Yggdrasil | v0.4.0 | Sprint 4 | 39 | ✅ | ✅ Compose | ✅ M2M Auth |
 | 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
 
-> **523+ tests** across the entire platform
+> **537+ tests** across the entire platform
 
 ---
 
@@ -26,7 +26,7 @@
 | Task | Component | Description | Status |
 |:--|:--|:--|:--|
 | Mimir Dockerfiles | 🧠 Mimir | Multi-stage builds for API (Rust) + Dashboard (Next.js) | ✅ Done |
-| Verify compose builds | 🏰 Asgard | `docker compose build` all services (6/6 passed) | ✅ Done |
+| Backup CLI | 🏰 Asgard | `scripts/backup.sh` backs up MariaDB + Qdrant | ✅ Done |
 
 ### Week 2 (P1 — Should Do)
 | Task | Component | Description | Status |
@@ -55,11 +55,11 @@
 - [ ] Agent deployment API → Bifrost
 - [ ] A2A Server endpoints
 
-### ⚡ Bifrost — Sprint 6: Auth + Integration
+### ⚡ Bifrost — Sprint 7: Mimir Sync
 - [x] Eir agent tools (patient_search, fhir_query, clinical_summary)
 - [x] Fenrir MCP connection (SSE transport, auto-discovery)
 - [x] Yggdrasil JWT auth middleware
-- [ ] Mimir agent config sync
+- [x] Mimir agent config sync
 
 ### 🏥 Eir — Sprint 4: Auth & FHIR
 - [ ] Yggdrasil JWT validation (replace static Bearer)
@@ -73,10 +73,10 @@
 - [ ] OpenEMR form mapping
 - [ ] E2E test: Message → Bifrost → AI Reply in OpenEMR
 
-### 🌳 Yggdrasil — Sprint 3: OIDC Integration
+### 🌳 Yggdrasil — Sprint 4: M2M Auth
 - [x] FastAPI `require_auth()` dependency
+- [x] Service account tokens (client_credentials)
 - [ ] Mimir OIDC login flow
-- [ ] Service account tokens
 - [ ] Rust JWKS crate for Eir
 
 ### 🛡️ Heimdall — Maintenance
