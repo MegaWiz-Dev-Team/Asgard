@@ -28,6 +28,8 @@
 | Qdrant | latest | :6333 | ✅ Running |
 | Redis | 7 | :6379 | ✅ Running |
 | Neo4j | 5 | :7474 | ✅ Running |
+| Huginn | 0.1.0 | :8400 | 📋 Planned |
+| Muninn | 0.1.0 | :8500 | 📋 Planned |
 
 **Hardware**: Mac Mini M4 Pro, 64GB RAM
 
