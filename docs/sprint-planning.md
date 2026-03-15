@@ -10,13 +10,13 @@
 |:--|:--|:--|:--|:--|:--|:--|
 | 🛡️ Heimdall | v0.4.0 | — | Benchmarked | ✅ | ⚠️ Host only | ✅ Production |
 | 🧠 Mimir | — | Sprint 28 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
-| ⚡ Bifrost | v0.5.0 | Sprint 5 | 113 | ✅ | ✅ Dockerfile | ✅ E2E |
+| ⚡ Bifrost | v0.6.0 | Sprint 6 | 127 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
 | 🏥 Eir | v0.3.0 | Sprint 3 | 47 | ✅ | ⚠️ OpenEMR image | ✅ Done |
-| 🐺 Fenrir | v0.2.0 | Sprint 2 | 55 | ✅ | ✅ Dockerfile | ✅ Done |
+| 🐺 Fenrir | v0.3.0 | Sprint 3 | 63 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
 | 🌳 Yggdrasil | v0.3.0 | Sprint 3 | 31 | ✅ | ✅ Compose | ✅ Done |
 | 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
 
-> **501+ tests** across the entire platform
+> **523+ tests** across the entire platform
 
 ---
 
@@ -29,19 +29,21 @@
 | Verify compose builds | 🏰 Asgard | `docker compose build` all services (6/6 passed) | ✅ Done |
 
 ### Week 2 (P1 — Should Do)
-| Task | Component | Description |
-|:--|:--|:--|
+| Task | Component | Description | Status |
+|:--|:--|:--|:--|
 | Yggdrasil FastAPI Depends | 🌳 Yggdrasil | `require_auth()` for Python services | ✅ Done |
+| Bifrost JWT auth | ⚡ Bifrost | Yggdrasil JWT middleware | ✅ Done |
+| Fenrir JWT auth | 🐺 Fenrir | Yggdrasil JWT middleware | ✅ Done |
+| Bifrost ↔ Eir E2E | ⚡↔🏥 | ReAct agent → patient query → response | ✅ Done |
 | Service accounts | 🌳 Yggdrasil | Machine-to-machine tokens |
-| Bifrost ↔ Eir E2E | ⚡↔🏥 | ReAct agent → patient query → response |
 | Mimir OIDC login | 🧠🌳 | Dashboard → Zitadel SSO |
 
 ### Week 3 (P2 — Nice to Have)
-| Task | Component | Description |
-|:--|:--|:--|
+| Task | Component | Description | Status |
+|:--|:--|:--|:--|
 | Fenrir + Heimdall LLM | 🐺🛡️ | Browser Use + NL → actions |
 | Eir FHIR extensions | 🏥 | Encounter create, Medication request |
-| Cross-component JWT | All | All services validate Zitadel tokens |
+| Cross-component JWT | All | All services validate Zitadel tokens | ✅ Done (Bifrost+Fenrir) |
 
 ---
 
@@ -53,22 +55,22 @@
 - [ ] Agent deployment API → Bifrost
 - [ ] A2A Server endpoints
 
-### ⚡ Bifrost — Sprint 5: Integration
+### ⚡ Bifrost — Sprint 6: Auth + Integration
 - [x] Eir agent tools (patient_search, fhir_query, clinical_summary)
 - [x] Fenrir MCP connection (SSE transport, auto-discovery)
+- [x] Yggdrasil JWT auth middleware
 - [ ] Mimir agent config sync
-- [ ] Yggdrasil JWT auth middleware
 
 ### 🏥 Eir — Sprint 4: Auth & FHIR
 - [ ] Yggdrasil JWT validation (replace static Bearer)
 - [ ] FHIR extended resources
 - [ ] Bifrost E2E counterpart
 
-### 🐺 Fenrir — Sprint 3: LLM + E2E
+### 🐺 Fenrir — Sprint 3: Auth + E2E
 - [x] OpenEMR Message Center integration (Sprint 1.5 → 2)
+- [x] Yggdrasil JWT auth
 - [ ] Browser Use + Heimdall LLM
 - [ ] OpenEMR form mapping
-- [ ] Yggdrasil JWT auth
 - [ ] E2E test: Message → Bifrost → AI Reply in OpenEMR
 
 ### 🌳 Yggdrasil — Sprint 3: OIDC Integration
