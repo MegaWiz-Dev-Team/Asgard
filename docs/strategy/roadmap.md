@@ -43,6 +43,15 @@ gantt
     Unified Docker Compose            :active,  a1, 2026-04, 2026-05
     Backup/Restore CLI                :         a2, 2026-05, 2026-06
     Documentation Site                :         a3, 2026-06, 2026-08
+
+    section 🐦‍⬛ Huginn (Enterprise)
+    S1-S2 Foundation+Scans            :         hg1, 2026-03, 2026-04
+    S3-S4 AI Pentest+Multi-Agent      :         hg2, 2026-05, 2026-06
+    S5-S6 Purple Team+LLM Security    :         hg3, 2026-06, 2026-07
+
+    section 🐦 Muninn (Enterprise)
+    S1-S2 Foundation+Auto-Fix         :         mn1, 2026-04, 2026-05
+    S3-S4 Multi-Agent+Learning        :         mn2, 2026-05, 2026-06
 ```
 
 ---
@@ -55,9 +64,9 @@ gantt
 |:--|:--|:--|:--|
 | Bifrost MVP | ⚡ Bifrost | 🚧 | ReAct loop works, calls tools via MCP |
 | Unified Docker Compose | 🏰 Asgard | 📋 | Single `docker compose up` starts all services |
-| Heimdall vLLM | 🛡️ Heimdall | 📋 | Routes to vLLM backend on NVIDIA |
-| Yggdrasil Deploy | 🌳 Yggdrasil | 📋 | Yggdrasil running, Mimir delegating login |
 | Backup CLI | 🏰 Asgard | 📋 | `scripts/backup.sh` backs up MariaDB + Qdrant |
+| **Huginn S1-S2** | 🐦‍⬛ **Huginn** | 🚧 | Foundation + DAST/SAST scan orchestration |
+| **Muninn S1** | 🐦 **Muninn** | 📋 | Foundation + GitHub issue watching |
 
 ### 🔵 Next (Q3 2026 — July-September)
 
@@ -68,6 +77,8 @@ gantt
 | Fenrir MVP | 🐺 Fenrir |
 | Documentation Site | 🏰 Asgard (asgardai.dev) |
 | Intelligent Router | 🛡️ Heimdall |
+| **Huginn S3-S5** | 🐦‍⬛ **Huginn** (AI Pentest + Multi-Agent + Purple Team) |
+| **Muninn S2-S3** | 🐦 **Muninn** (AI Fix + Multi-Agent Pipeline) |
 
 ### 🟣 Later (Q4 2026 — October-December)
 
@@ -76,6 +87,8 @@ gantt
 | Plugin System | ⚡ Bifrost |
 | Agent Marketplace | 🧠 Mimir |
 | Community v1.0 Launch | 🏰 All |
+| **Huginn S6 + Polish** | 🐦‍⬛ **Huginn** (LLM Security + Compliance) |
+| **Muninn S4** | 🐦 **Muninn** (Continuous Learning) |
 
 > ℹ️ Knowledge Graph (Neo4j) already done in Mimir Sprint 17 (Mar 2026)
 
@@ -94,10 +107,10 @@ gantt
 
 | Version | Codename | Target | Key Deliverables |
 |:--|:--|:--|:--|
-| **v0.5** | Foundation | Q2 2026 | Unified Docker Compose, Bifrost MVP, Yggdrasil |
-| **v0.8** | Growth | Q3 2026 | Workflow Builder, A2A, Fenrir MVP |
-| **v1.0** | Community Launch | Q4 2026 | Full platform, docs site, marketplace |
-| **v2.0** | Enterprise | 2027 | SSO, HA, Analytics, White-Label |
+| **v0.5** | Foundation | Q2 2026 | Unified Docker Compose, Bifrost MVP, Yggdrasil, **Huginn S1-S2** |
+| **v0.8** | Growth | Q3 2026 | Workflow Builder, A2A, Fenrir MVP, **Huginn S3-S5, Muninn S1-S3** |
+| **v1.0** | Community Launch | Q4 2026 | Full platform, docs site, marketplace, **Huginn S6, Muninn S4** |
+| **v2.0** | Enterprise | 2027 | SSO, HA, Analytics, White-Label, **Odin's Ravens Commercial** |
 
 ---
 

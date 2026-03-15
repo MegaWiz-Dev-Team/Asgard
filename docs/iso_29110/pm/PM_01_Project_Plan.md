@@ -1,7 +1,7 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
-**Document Version:** 1.9
-**Date:** 2026-03-14 (updated — Yggdrasil Sprint 2: FastAPI auth deps)
+**Document Version:** 2.0
+**Date:** 2026-03-16 (updated — Huginn & Muninn added)
 **Standard:** ISO/IEC 29110 — PM Process
 
 ---
@@ -9,7 +9,7 @@
 ## 1. Project Scope & Objectives (ขอบเขตและวัตถุประสงค์)
 
 ### เป้าหมาย
-พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย 7 components ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
+พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย 9 components ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
 
 ### Component Status (as of 2026-03-14)
 | Component | Repository | Description | Version | Tests | Status |
@@ -21,6 +21,8 @@
 | 🌳 Yggdrasil | MegaWiz-Dev-Team/Yggdrasil | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | v0.2.0 | 31 tests | ✅ Sprint 2 Complete |
 | 🏥 Eir | MegaWiz-Dev-Team/Eir | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.3.0 | 47 tests | ✅ Sprint 3 Complete |
 | 🛡️ Várðr | MegaWiz-Dev-Team/Vardr | Monitoring Dashboard — service health, logs, metrics (Rust) | v0.1.0 | 5 tests | ✅ Sprint 1 Complete |
+| 🐦‍⬛ **Huginn** | MegaWiz-Dev-Team/Huginn | Security Scanner — Multi-Agent Pentest + DAST/SAST + LLM Security (Rust) | v0.1.0 | — | 📋 Sprint 1 Planned |
+| 🐦 **Muninn** | MegaWiz-Dev-Team/Muninn | Auto-Fixer — Issue Watcher + Multi-Agent Fix Pipeline (Rust) | v0.1.0 | — | 📋 Sprint 1 Planned |
 | 🏰 Asgard | MegaWiz-Dev-Team/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
 
 ### Test Summary
@@ -32,6 +34,8 @@
 | Fenrir | 47 | pytest + pytest-asyncio | MCP + FHIR + Browser + Router + Messaging |
 | Yggdrasil | 31 | pytest + pytest-asyncio | JWT + Client + Models + FastAPI Auth |
 | Várðr | 5 | Rust (#[cfg(test)]) | Docker CLI parsers |
+| Huginn | — | Rust (#[cfg(test)]) | Planned (Sprint 1) |
+| Muninn | — | Rust (#[cfg(test)]) | Planned (Sprint 1) |
 | **Total** | **484+** | | |
 
 ### Deliverables
@@ -119,6 +123,24 @@
 | Sprint 1 | Zitadel Docker + Auth SDK (JWT + Client + Models) | 19 | ✅ Done (2026-03-12) |
 | Sprint 2 | FastAPI `require_auth`, roles/scopes, dev bypass | 31 | ✅ Done (2026-03-14) |
 
+### Huginn (🐦‍⬛ Security Scanner)
+| Sprint | Deliverable | Tests | Status |
+|:--|:--|:--|:--|
+| Sprint 1 | Scaffold, health, scan API, nmap | — | 📋 Planned |
+| Sprint 2 | DAST+SAST (ZAP, Semgrep, Trivy) | — | 📋 Planned |
+| Sprint 3 | AI Pentest Agent (ReAct, LLM, chatbot) | — | 📋 Planned |
+| Sprint 4 | Multi-Agent Swarm (5 agents) | — | 📋 Planned |
+| Sprint 5 | Purple Team + Cross-Service Graph | — | 📋 Planned |
+| Sprint 6 | LLM Security + Compliance Reports | — | 📋 Planned |
+
+### Muninn (🐦 Auto-Fixer)
+| Sprint | Deliverable | Tests | Status |
+|:--|:--|:--|:--|
+| Sprint 1 | Scaffold, GitHub poller, label filter | — | 📋 Planned |
+| Sprint 2 | AI Analyzer + Auto-Fix + PR | — | 📋 Planned |
+| Sprint 3 | Multi-Agent Fix Pipeline (4 agents) | — | 📋 Planned |
+| Sprint 4 | Continuous Learning + Trend Analysis | — | 📋 Planned |
+
 ---
 
 ## 4. Phase Planning
@@ -144,6 +166,8 @@
 | Yggdrasil Sprint 2 (FastAPI require_auth, 31 tests) | 2026-03-14 | ✅ Done |
 | Eir Sprint 4 (MCP Server + Chat UI) | 2026-03-15 | 📋 Planned |
 | Bifrost Sprint 5 (MCP: Eir + Fenrir clients) | 2026-03-16 | 📋 Planned |
+| **Huginn Sprint 1 (Foundation)** | 2026-03-17 | 📋 **Planned** |
+| **Muninn Sprint 1 (Foundation)** | 2026-03-24 | 📋 **Planned** |
 
 ### Phase 2: Growth (Q3 2026)
 | Milestone | Target | Status |
@@ -152,6 +176,8 @@
 | Fenrir MVP (OpenEMR E2E) | 2026-08 | 📋 Planned |
 | Documentation Site (asgardai.dev) | 2026-08 | 📋 Planned |
 | Developer Preview (GitHub public) | 2026-09 | 📋 Planned |
+| **Huginn S3-S5 (AI Pentest + Multi-Agent)** | 2026-05~07 | 📋 **Planned** |
+| **Muninn S2-S3 (AI Fix + Multi-Agent Pipeline)** | 2026-05~06 | 📋 **Planned** |
 
 ### Phase 3: Community Launch (Q4 2026)
 | Milestone | Target | Status |
@@ -180,8 +206,11 @@
 | **Hardware supply chain (DGX Spark, Mac)** | Medium | Maintain multiple suppliers; pre-order strategy |
 | **AGPL compliance enforcement** | Low | License key system; feature flags |
 | **Enterprise sales cycle too long** | Medium | Design partner program (free 6 months) |
+| **Huginn scan impacts production** | High | Kill switch, blast radius limit, RoE, dry-run mode |
+| **Muninn auto-fix introduces bugs** | High | Draft PR only, multi-agent review, human approval |
+| **WhiteRabbitNeo offensive model abuse** | High | RBAC gating, RoE enforcement, audit log |
 
 ---
 
 *บันทึกโดย: AI Assistant (ตามมาตรฐาน ISO/IEC 29110 หมวด PM-01)*
-*Last updated: 2026-03-14 by Antigravity — Yggdrasil Sprint 2 (FastAPI auth deps, 31 tests)*
+*Last updated: 2026-03-16 by Antigravity — Huginn & Muninn ISO docs + sprint plan*

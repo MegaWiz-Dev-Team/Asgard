@@ -60,9 +60,11 @@ graph LR
 | 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
 | 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
 | 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
+| 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Python (FastAPI) | — | 🚧 Sprint 1 |
+| 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Python (FastAPI) | — | 🚧 Sprint 1 |
 | 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
 
-> **484+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation
+> **484+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
 ---
 
@@ -148,8 +150,8 @@ Build a **self-hosted AI platform** that enables:
 | **Eir** | Goddess of healing | Clinic management (Gateway + OpenEMR) | Community |
 | **Yggdrasil** | The world tree | Auth service | Community |
 | **Várðr** | The guardian | Monitoring dashboard | Community |
-| **Huginn** | Odin's raven (Thought) | Security Scanner | Enterprise |
-| **Muninn** | Odin's raven (Memory) | Auto-Fixer (LLM) | Enterprise |
+| **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | Odin's Ravens |
+| **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | Odin's Ravens |
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
