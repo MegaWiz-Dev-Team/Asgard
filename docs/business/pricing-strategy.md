@@ -44,7 +44,7 @@
 | Community support (GitHub) | ✅ | ✅ |
 | **Enterprise Features** | | |
 | Multi-agent collaboration | ❌ | ✅ |
-| SSO (SAML, OIDC, LDAP) via Zitadel | ❌ | ✅ |
+| SSO (SAML, OIDC, LDAP) via Yggdrasil | ❌ | ✅ |
 | Audit logging (SOC 2, HIPAA) | ❌ | ✅ |
 | HA clustering (multi-node) | ❌ | ✅ |
 | White-label branding | ❌ | ✅ |

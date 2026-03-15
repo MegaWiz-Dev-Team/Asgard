@@ -59,7 +59,51 @@ BDFL (Benevolent Dictator For Life)
 | Docker Hub pulls | Track monthly |
 | Active contributors | Track monthly |
 
-### 6️⃣ Output
+### 6️⃣ Developer Relations (DevRel)
+
+| Activity | Frequency | Goal |
+|----------|-----------|------|
+| Write tutorials | 2x/month | Reduce time-to-value |
+| Answer community questions | Daily | Build trust |
+| Create demo videos | 2x/month | Visual learning |
+| Attend/speak at meetups | Monthly | Awareness |
+| Monitor Reddit/HN/Twitter | Daily | Sentiment tracking |
+
+**DevRel success metrics:**
+- Tutorial completion rate
+- Time from first visit → first `docker compose up`
+- Community question response time
+- Social media engagement rate
+
+### 7️⃣ Developer Advocacy / Ambassador Program
+
+```markdown
+## Ambassador Tiers
+1. **Contributor** — 1+ merged PRs → Listed in CONTRIBUTORS.md
+2. **Advocate** — 3+ contributions + 1 blog/talk → Asgard swag
+3. **Champion** — Ongoing contributions + community leadership → Early access + advisory role
+
+## Ambassador Benefits
+- Early access to new features
+- Direct communication with core team
+- Co-branding opportunities
+- Referral commission (Enterprise leads)
+```
+
+### 8️⃣ Documentation-as-Marketing
+
+Great docs drive organic traffic and reduce support burden:
+
+| Doc Type | SEO Target | Example |
+|----------|-----------|---------|
+| Quick Start | "self-hosted AI setup" | 15-minute guide |
+| Architecture | "local LLM gateway design" | System overview |
+| Comparison | "Dify vs self-hosted AI" | Feature matrix |
+| FAQ | Long-tail keywords | Common questions |
+
+Link to `content-marketing` skill for full content framework.
+
+### 9️⃣ Output
 Write to `docs/business/community-strategy.md`
 
 ---
@@ -69,6 +113,7 @@ Write to `docs/business/community-strategy.md`
 - Make first contribution easy — "good first issue" labels
 - Celebrate contributors — shoutouts, CONTRIBUTORS.md
 - Be transparent about decisions (ADRs)
+- Documentation IS marketing for developer tools
 
 ## When to Use
 Before public launch, setting up community infra, quarterly community review, or planning events.

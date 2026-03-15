@@ -23,7 +23,7 @@ All 11 services build and start successfully with `docker compose up`:
 | 🕸️ Neo4j | :7474 | ✅ Running |
 
 ### 🔧 Fixes
-- Zitadel masterkey: exactly 32 bytes + `--masterkeyFromEnv` + `--tlsMode disabled`
+- Yggdrasil masterkey: exactly 32 bytes + `--masterkeyFromEnv` + `--tlsMode disabled`
 - Mimir API: `MARIADB_URL` → `DATABASE_URL`
 - Bifrost healthcheck: `/health` → `/healthz`
 
@@ -56,7 +56,7 @@ All 6 components have completed Sprint 1 or later. The entire platform can be st
 | ⚡ Bifrost | v0.4.0 | 99 | ReAct + MCP + Multi-Agent + PSO |
 | 🐺 Fenrir | v0.1.0 | 35 | MCP Server + FHIR R4 + Browser Use |
 | 🏥 Eir | v0.3.0 | 47 | Rust API Gateway + Agent Tools + A2A |
-| 🌳 Yggdrasil | v0.1.0 | 19 | Zitadel Auth + JWT SDK |
+| 🌳 Yggdrasil | v0.1.0 | 19 | Auth + JWT SDK |
 | **Total** | | **455+** | |
 
 ### 📄 ISO 29110 Documentation

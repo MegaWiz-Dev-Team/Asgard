@@ -63,7 +63,7 @@ Asgard lets any organization deploy a full AI stack on Apple Silicon or NVIDIA G
 
 | Decision | Date | ADR |
 |:--|:--|:--|
-| Auth platform → Zitadel | Mar 2026 | [yggdrasil-auth-selection.md](../technical/yggdrasil-auth-selection.md) |
+| Auth platform → Yggdrasil | Mar 2026 | [yggdrasil-auth-selection.md](../technical/yggdrasil-auth-selection.md) |
 | ADK-Rust → Cherry-pick | Mar 2026 | [adk-rust-evaluation.md](../technical/adk-rust-evaluation.md) |
 | Workflow Builder → ReactFlow | Mar 2026 | [adk-rust-evaluation.md](../technical/adk-rust-evaluation.md) |
 | A2A Protocol → Support | Mar 2026 | [adk-rust-evaluation.md](../technical/adk-rust-evaluation.md) |

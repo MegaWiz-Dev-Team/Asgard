@@ -77,12 +77,12 @@
 
 | Step | Action | Impact |
 |:--|:--|:--|
-| 1 | Deploy Zitadel in Docker Compose | No impact on Mimir |
+| 1 | Deploy Yggdrasil in Docker Compose | No impact on Mimir |
 | 2 | Create Organizations matching Mimir tenants | Parallel run |
-| 3 | Migrate users → Zitadel import API | Data migration |
-| 4 | Heimdall → validate Zitadel JWT | Replace static API key |
+| 3 | Migrate users → Yggdrasil import API | Data migration |
+| 4 | Heimdall → validate Yggdrasil JWT | Replace static API key |
 | 5 | Mimir → delegate login (OIDC) | Remove auth code |
-| 6 | Bifrost → validate Zitadel JWT | Add middleware |
+| 6 | Bifrost → validate Yggdrasil JWT | Add middleware |
 | 7 | Remove Mimir IAM code | Cleanup |
 
 ### Docker Compose
@@ -112,11 +112,11 @@ yggdrasil-db:
 | Original Gap | Changes to |
 |:--|:--|
 | Heimdall JWT validation | → Validate Zitadel JWT |
-| Mimir SSO support | → ❌ Not needed — Zitadel provides it |
-| Mimir Audit Log | → ❌ Not needed — Zitadel has event-sourced audit |
-| Mimir IAM code | → Reduced — delegated to Zitadel |
+| Mimir SSO support | → ❌ Not needed — Yggdrasil provides it |
+| Mimir Audit Log | → ❌ Not needed — Yggdrasil has event-sourced audit |
+| Mimir IAM code | → Reduced — delegated to Yggdrasil |
 
-> Choosing Zitadel → Mimir becomes significantly lighter, and many Enterprise features come for free.
+> Choosing Yggdrasil → Mimir becomes significantly lighter, and many Enterprise features come for free.
 
 ---
 
