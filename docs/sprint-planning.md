@@ -4,7 +4,7 @@
 
 ---
 
-## 📊 Current Status (as of 2026-03-13)
+## 📊 Current Status (as of 2026-03-15)
 
 | Component | Version | Sprint | Tests | ISO Docs | Docker | Status |
 |:--|:--|:--|:--|:--|:--|:--|
@@ -12,26 +12,26 @@
 | 🧠 Mimir | — | Sprint 28 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
 | ⚡ Bifrost | v0.4.0 | Sprint 4 | 99 | ✅ | ✅ Dockerfile | ✅ MVP |
 | 🏥 Eir | v0.3.0 | Sprint 3 | 47 | ✅ | ⚠️ OpenEMR image | ✅ Done |
-| 🐺 Fenrir | v0.1.0 | Sprint 1 | 35 | ✅ | ✅ Dockerfile | ✅ Done |
-| 🌳 Yggdrasil | v0.1.0 | Sprint 1 | 19 | ✅ | ✅ Compose | ✅ Done |
+| 🐺 Fenrir | v0.2.0 | Sprint 2 | 55 | ✅ | ✅ Dockerfile | ✅ Done |
+| 🌳 Yggdrasil | v0.3.0 | Sprint 3 | 31 | ✅ | ✅ Compose | ✅ Done |
 | 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
 
-> **455+ tests** across the entire platform
+> **487+ tests** across the entire platform
 
 ---
 
 ## 🎯 Next Sprint: Integration & Hardening
 
-### Week 1 (P0 — Must Do)
-| Task | Component | Description |
-|:--|:--|:--|
-| Mimir Dockerfiles | 🧠 Mimir | Multi-stage builds for API (Rust) + Dashboard (Next.js) |
-| Verify compose builds | 🏰 Asgard | `docker compose build` all services |
+### Week 1 (P0 — Must Do) ✅ Completed 2026-03-14
+| Task | Component | Description | Status |
+|:--|:--|:--|:--|
+| Mimir Dockerfiles | 🧠 Mimir | Multi-stage builds for API (Rust) + Dashboard (Next.js) | ✅ Done |
+| Verify compose builds | 🏰 Asgard | `docker compose build` all services (6/6 passed) | ✅ Done |
 
 ### Week 2 (P1 — Should Do)
 | Task | Component | Description |
 |:--|:--|:--|
-| Yggdrasil FastAPI Depends | 🌳 Yggdrasil | `require_auth()` for Python services |
+| Yggdrasil FastAPI Depends | 🌳 Yggdrasil | `require_auth()` for Python services | ✅ Done |
 | Service accounts | 🌳 Yggdrasil | Machine-to-machine tokens |
 | Bifrost ↔ Eir E2E | ⚡↔🏥 | ReAct agent → patient query → response |
 | Mimir OIDC login | 🧠🌳 | Dashboard → Zitadel SSO |
@@ -63,13 +63,15 @@
 - [ ] FHIR extended resources
 - [ ] Bifrost E2E counterpart
 
-### 🐺 Fenrir — Sprint 2: LLM Integration
+### 🐺 Fenrir — Sprint 3: LLM + E2E
+- [x] OpenEMR Message Center integration (Sprint 1.5 → 2)
 - [ ] Browser Use + Heimdall LLM
 - [ ] OpenEMR form mapping
 - [ ] Yggdrasil JWT auth
+- [ ] E2E test: Message → Bifrost → AI Reply in OpenEMR
 
-### 🌳 Yggdrasil — Sprint 2: OIDC Integration
-- [ ] FastAPI `require_auth()` dependency
+### 🌳 Yggdrasil — Sprint 3: OIDC Integration
+- [x] FastAPI `require_auth()` dependency
 - [ ] Mimir OIDC login flow
 - [ ] Service account tokens
 - [ ] Rust JWKS crate for Eir
