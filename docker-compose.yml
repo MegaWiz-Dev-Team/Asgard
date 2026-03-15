@@ -5,7 +5,7 @@
 #
 # Profiles:
 #   default   — Core services (infra + auth + Mimir + Bifrost + Fenrir)
-#   full      — Core + OpenEMR/Eir
+#   full      — Core + OpenEMR/Eir + Eir Gateway
 #
 # Usage:
 #   docker compose up -d                           # Core services
@@ -111,7 +111,7 @@ services:
   # ═══════════════════════════════════════
 
   yggdrasil:
-    image: ghcr.io/zitadel/zitadel:latest
+    image: ghcr.io/zitadel/zitadel:v3.3.1
     platform: linux/arm64
     container_name: asgard_yggdrasil
     restart: unless-stopped
@@ -261,8 +261,8 @@ services:
       FENRIR_HOST: 0.0.0.0
       FENRIR_PORT: 8200
       HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
-      OPENEMR_URL: http://eir:80
-      OPENEMR_FHIR_URL: http://eir:80/apis/default/fhir
+      OPENEMR_URL: http://eir-gateway:8300
+      OPENEMR_FHIR_URL: http://eir-gateway:8300/apis/default/fhir
       # ── Shared Secrets (from Asgard/.env) ──
       HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
       OPENEMR_AUTH_TOKEN: ${OPENEMR_AUTH_TOKEN:-}
@@ -293,10 +293,44 @@ services:
       MYSQL_PASS: ${OPENEMR_MYSQL_PASSWORD:-openemr}
       MYSQL_DATABASE: openemr
       OE_USER: admin
-      OE_PASS: ${OPENEMR_ADMIN_PASSWORD:-pass}
+      OE_PASS: ${OPENEMR_ADMIN_PASSWORD:-1qazXSW@}
     depends_on:
       mariadb:
         condition: service_healthy
+    volumes:
+      - ../Eir/eir-chat-inject.conf:/etc/apache2/conf.d/eir-chat-inject.conf:ro
+    networks:
+      - asgard
+
+  eir-gateway:
+    build:
+      context: ../Eir
+      dockerfile: Dockerfile.gateway
+    container_name: asgard_eir_gateway
+    restart: unless-stopped
+    profiles:
+      - full
+    ports:
+      - "${EIR_GATEWAY_PORT:-8300}:8300"
+    environment:
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORT: 8300
+      OPENEMR_URL: http://eir:80
+      AUTH_ENABLED: ${EIR_AUTH_ENABLED:-false}
+      AUTH_SECRET: ${EIR_AUTH_SECRET:-dev-secret}
+      RATE_LIMIT_RPS: ${EIR_RATE_LIMIT_RPS:-100}
+      CACHE_TTL_SECS: ${EIR_CACHE_TTL_SECS:-60}
+      TENANT_ID: ${EIR_TENANT_ID:-default}
+      BIFROST_URL: http://bifrost:8100
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      - eir
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8300/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
     networks:
       - asgard
 
