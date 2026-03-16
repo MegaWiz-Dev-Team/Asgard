@@ -52,6 +52,22 @@ gantt
     section 🐦 Muninn (Enterprise)
     S1-S2 Foundation+Auto-Fix         :         mn1, 2026-04, 2026-05
     S3-S4 Multi-Agent+Learning        :         mn2, 2026-05, 2026-06
+
+    section 👁️ Syn (TOR OCR/eKYC)
+    S1 OCR Foundation                 :         syn1, 2026-04, 2026-05
+    S2 eKYC + Thai ID                 :         syn2, 2026-05, 2026-06
+
+    section 🗣️ Sága (TOR STT)
+    S1 Whisper Foundation             :         sag1, 2026-05, 2026-06
+    S2 Streaming + Call Center        :         sag2, 2026-06, 2026-07
+
+    section 📨 Hermóðr (TOR Notify)
+    S1 SMS/Push/Webhook               :         her1, 2026-05, 2026-06
+
+    section 📸 Visual BMI
+    PoC Gemini Flash                  :         vbmi1, 2026-04, 2026-04
+    Pilot + STOP-BANG Integration     :         vbmi2, 2026-05, 2026-06
+    Gemma 3 On-prem + Production      :         vbmi3, 2026-07, 2026-08
 ```
 
 ---
@@ -67,6 +83,8 @@ gantt
 | Backup CLI | 🏰 Asgard | 📋 | `scripts/backup.sh` backs up MariaDB + Qdrant |
 | **Huginn S1-S2** | 🐦‍⬛ **Huginn** | 🚧 | Foundation + DAST/SAST scan orchestration |
 | **Muninn S1** | 🐦 **Muninn** | 📋 | Foundation + GitHub issue watching |
+| 🆕 **Visual BMI PoC** | 📸 **FR-UW-BMI-01** | 📋 | Gemini 2.5 Flash PoC (1-2 days) + Digital Scale eval |
+| 🆕 **Syn S1** | 👁️ **Syn** | 📋 | OCR Foundation (PaddleOCR + Thai ID parser) |
 
 ### 🔵 Next (Q3 2026 — July-September)
 
@@ -79,6 +97,10 @@ gantt
 | Intelligent Router | 🛡️ Heimdall |
 | **Huginn S3-S5** | 🐦‍⬛ **Huginn** (AI Pentest + Multi-Agent + Purple Team) |
 | **Muninn S2-S3** | 🐦 **Muninn** (AI Fix + Multi-Agent Pipeline) |
+| 🆕 Visual BMI Pilot | 📸 Pilot + STOP-BANG integration + Gemma 3 on-prem |
+| 🆕 Syn S2 | 👁️ eKYC + Face match |
+| 🆕 Sága S1-S2 | 🗣️ STT Foundation + Streaming |
+| 🆕 Hermóðr S1 | 📨 Notification Foundation (SMS/Push/Webhook) |
 
 ### 🟣 Later (Q4 2026 — October-December)
 
@@ -107,8 +129,8 @@ gantt
 
 | Version | Codename | Target | Key Deliverables |
 |:--|:--|:--|:--|
-| **v0.5** | Foundation | Q2 2026 | Unified Docker Compose, Bifrost MVP, Yggdrasil, **Huginn S1-S2** |
-| **v0.8** | Growth | Q3 2026 | Workflow Builder, A2A, Fenrir MVP, **Huginn S3-S5, Muninn S1-S3** |
+| **v0.5** | Foundation | Q2 2026 | Unified Docker Compose, Bifrost MVP, Yggdrasil, **Huginn S1-S2**, 🆕 Visual BMI PoC, 🆕 Syn S1 |
+| **v0.8** | Growth | Q3 2026 | Workflow Builder, A2A, Fenrir MVP, **Huginn S3-S5, Muninn S1-S3**, 🆕 Sága S1-S2, 🆕 Hermóðr S1, 🆕 Visual BMI Pilot |
 | **v1.0** | Community Launch | Q4 2026 | Full platform, docs site, marketplace, **Huginn S6, Muninn S4** |
 | **v2.0** | Enterprise | 2027 | SSO, HA, Analytics, White-Label, **Odin's Ravens Commercial** |
 

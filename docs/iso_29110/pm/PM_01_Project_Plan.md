@@ -1,7 +1,7 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
-**Document Version:** 2.0
-**Date:** 2026-03-16 (updated — Huginn & Muninn added)
+**Document Version:** 3.0
+**Date:** 2026-03-16 (updated — TOR Gap Analysis + 3 New Services)
 **Standard:** ISO/IEC 29110 — PM Process
 
 ---
@@ -9,34 +9,42 @@
 ## 1. Project Scope & Objectives (ขอบเขตและวัตถุประสงค์)
 
 ### เป้าหมาย
-พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย 9 components ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
+พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย **13 components** ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
 
-### Component Status (as of 2026-03-14)
+> **TOR Gap Closure**: Platform ถูกขยายเพื่อรองรับ TOR AI Agent OPS (ประกันภัย — Dhipaya Life) ผ่าน gap analysis จาก 46% → 85%+ coverage — ดู [Sprint Plan](../strategy/asgard_sprint_plan_gap_to_action.md)
+
+### Component Status (as of 2026-03-16)
 | Component | Repository | Description | Version | Tests | Status |
 |:--|:--|:--|:--|:--|:--|
 | 🛡️ Heimdall | MegaWiz-Dev-Team/Heimdall | LLM Gateway — multi-backend proxy (Ollama/MLX/Gemini/OpenAI) | v0.4.0 | Benchmarked | ✅ Production |
-| 🧠 Mimir | MegaWiz-Dev-Team/Mimir | RAG Pipeline + Agent Builder + Dashboard (Rust + Next.js) | Sprint 28 | 255+ tests | ✅ Active Development |
-| ⚡ Bifrost | MegaWiz-Dev-Team/Bifrost | Agent Runtime — ReAct + MCP + Multi-Agent + PSO (Python) | Sprint 4 | 99 tests | ✅ MVP Complete |
-| 🐺 Fenrir | MegaWiz-Dev-Team/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 + OpenEMR Messaging | v0.1.0 | 47 tests | ✅ Sprint 1.5 Complete |
-| 🌳 Yggdrasil | MegaWiz-Dev-Team/Yggdrasil | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | v0.2.0 | 31 tests | ✅ Sprint 2 Complete |
-| 🏥 Eir | MegaWiz-Dev-Team/Eir | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.3.0 | 47 tests | ✅ Sprint 3 Complete |
+| 🧠 Mimir | MegaWiz-Dev-Team/Mimir | RAG Pipeline + Agent Builder + Dashboard (Rust + Next.js) | Sprint 29 | 255+ tests | ✅ Active Development |
+| ⚡ Bifrost | MegaWiz-Dev-Team/Bifrost | Agent Runtime — ReAct + MCP + Multi-Agent + PSO (Python) | Sprint 7 | 133 tests | ✅ MVP Complete |
+| 🐺 Fenrir | MegaWiz-Dev-Team/Fenrir | Computer-Use Agent — Browser Use + FHIR R4 + OpenEMR Messaging | v0.3.0 | 63 tests | ✅ Sprint 3 Complete |
+| 🌳 Yggdrasil | MegaWiz-Dev-Team/Yggdrasil | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | v0.5.0 | 45 tests | ✅ Sprint 5 Complete |
+| 🏥 Eir | MegaWiz-Dev-Team/Eir | Rust API Gateway (Axum) + OpenEMR (FHIR R4) | v0.4.0 | 57 tests | ✅ Sprint 4 Complete |
 | 🛡️ Várðr | MegaWiz-Dev-Team/Vardr | Monitoring Dashboard — service health, logs, metrics (Rust) | v0.1.0 | 5 tests | ✅ Sprint 1 Complete |
-| 🐦‍⬛ **Huginn** | MegaWiz-Dev-Team/Huginn | Security Scanner — Multi-Agent Pentest + DAST/SAST + LLM Security (Rust) | v0.1.0 | — | 📋 Sprint 1 Planned |
-| 🐦 **Muninn** | MegaWiz-Dev-Team/Muninn | Auto-Fixer — Issue Watcher + Multi-Agent Fix Pipeline (Rust) | v0.1.0 | — | 📋 Sprint 1 Planned |
+| 🐦‍⬛ **Huginn** | MegaWiz-Dev-Team/Huginn | Security Scanner — Multi-Agent Pentest + DAST/SAST + LLM Security (Rust) | v0.1.0 | 36 tests | 🚧 Sprint 2 Complete |
+| 🐦 **Muninn** | MegaWiz-Dev-Team/Muninn | Auto-Fixer — Issue Watcher + Multi-Agent Fix Pipeline (Rust) | v0.1.0 | 37 tests | 🚧 Sprint 2 Complete |
+| 👁️ **Syn** | MegaWiz-Dev-Team/Syn | Document Vision & Identity — OCR + eKYC (Python) | — | — | 🆕 Planned (Apr 2026) |
+| 🗣️ **Sága** | MegaWiz-Dev-Team/Saga | Speech & Voice — STT (Whisper) + Streaming (Python) | — | — | 🆕 Planned (May 2026) |
+| 📨 **Hermóðr** | MegaWiz-Dev-Team/Hermodr | Notification Gateway — SMS + Push + Webhook | — | — | 🆕 Planned (May 2026) |
 | 🏰 Asgard | MegaWiz-Dev-Team/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
 
 ### Test Summary
 | Component | Tests | Framework | Coverage |
 |:--|:--|:--|:--|
 | Mimir | 255+ | Rust (#[cfg(test)]) + Vitest | Core + API + Frontend |
-| Bifrost | 99 | pytest + pytest-asyncio | ReAct + MCP + A2A + PSO |
-| Eir Gateway | 47 | Rust (#[cfg(test)]) | All modules |
-| Fenrir | 47 | pytest + pytest-asyncio | MCP + FHIR + Browser + Router + Messaging |
-| Yggdrasil | 31 | pytest + pytest-asyncio | JWT + Client + Models + FastAPI Auth |
+| Bifrost | 133 | pytest + pytest-asyncio | ReAct + MCP + A2A + PSO + Sync |
+| Eir Gateway | 57 | Rust (#[cfg(test)]) | All modules + Chat + A2A |
+| Fenrir | 63 | pytest + pytest-asyncio | MCP + FHIR + Browser + Router + Messaging |
+| Yggdrasil | 45 | pytest + pytest-asyncio | JWT + Client + Models + FastAPI Auth + Roles |
 | Várðr | 5 | Rust (#[cfg(test)]) | Docker CLI parsers |
-| Huginn | — | Rust (#[cfg(test)]) | Planned (Sprint 1) |
-| Muninn | — | Rust (#[cfg(test)]) | Planned (Sprint 1) |
-| **Total** | **484+** | | |
+| Huginn | 36 | Rust (#[cfg(test)]) | Scanner + Parser + DB + Health |
+| Muninn | 37 | Rust (#[cfg(test)]) | Watcher + Fixer + LLM + DB + Health |
+| Syn | — | pytest | Planned (Apr 2026) |
+| Sága | — | pytest | Planned (May 2026) |
+| Hermóðr | — | pytest | Planned (May 2026) |
+| **Total** | **610+** | | |
 
 ### Deliverables
 - Unified `docker-compose.yml` ที่ start ทุก service ด้วยคำสั่งเดียว
@@ -126,8 +134,8 @@
 ### Huginn (🐦‍⬛ Security Scanner)
 | Sprint | Deliverable | Tests | Status |
 |:--|:--|:--|:--|
-| Sprint 1 | Scaffold, health, scan API, nmap | — | 📋 Planned |
-| Sprint 2 | DAST+SAST (ZAP, Semgrep, Trivy) | — | 📋 Planned |
+| Sprint 1 | Scaffold, health, scan API, nmap parser | 18 | ✅ Done (2026-03-15) |
+| Sprint 2 | DAST+SAST (ZAP, Semgrep, Trivy) integration | 36 | ✅ Done (2026-03-15) |
 | Sprint 3 | AI Pentest Agent (ReAct, LLM, chatbot) | — | 📋 Planned |
 | Sprint 4 | Multi-Agent Swarm (5 agents) | — | 📋 Planned |
 | Sprint 5 | Purple Team + Cross-Service Graph | — | 📋 Planned |
@@ -136,8 +144,8 @@
 ### Muninn (🐦 Auto-Fixer)
 | Sprint | Deliverable | Tests | Status |
 |:--|:--|:--|:--|
-| Sprint 1 | Scaffold, GitHub poller, label filter | — | 📋 Planned |
-| Sprint 2 | AI Analyzer + Auto-Fix + PR | — | 📋 Planned |
+| Sprint 1 | Scaffold, GitHub poller, label filter, health | 19 | ✅ Done (2026-03-15) |
+| Sprint 2 | AI Analyzer + Auto-Fix + PR creator + LLM client | 37 | ✅ Done (2026-03-15) |
 | Sprint 3 | Multi-Agent Fix Pipeline (4 agents) | — | 📋 Planned |
 | Sprint 4 | Continuous Learning + Trend Analysis | — | 📋 Planned |
 
@@ -169,24 +177,52 @@
 | **Huginn Sprint 1 (Foundation)** | 2026-03-17 | 📋 **Planned** |
 | **Muninn Sprint 1 (Foundation)** | 2026-03-24 | 📋 **Planned** |
 
-### Phase 2: Growth (Q3 2026)
+### Phase 2a: TOR Gap Closure — Shield Wall (Apr 2026)
+> Ref: [Comprehensive Sprint Plan](../strategy/asgard_sprint_plan_gap_to_action.md)
+
 | Milestone | Target | Status |
 |:--|:--|:--|
+| **Bifrost S8** — AI Guardrails + PII + Kill Switch + Handover | 2026-04 W1-2 | 📋 Planned |
+| **Package Extract** — line-connector, email-service, tts-service from MegaCare | 2026-04 W1-2 | 📋 Planned |
+| **Syn S1** — Thai ID Card OCR foundation (PaddleOCR) | 2026-04 W3-4 | 📋 Planned |
+| **Huginn S1-S2** — Foundation + DAST/SAST | 2026-04 | ✅ Done (2026-03-15) |
+| 🆕 **Visual BMI PoC** — Gemini 2.5 Flash + Digital Scale eval | 2026-04 W1 | 📋 Planned |
+
+### Phase 2b: TOR Gap Closure — Valhalla Rising (May-Jun 2026)
+| Milestone | Target | Status |
+|:--|:--|:--|
+| **Bifrost S9** — Approval workflow + Rule engine + Scoring | 2026-05 W1-2 | 📋 Planned |
+| **Syn S2** — Medical OCR + eKYC + Document classifier | 2026-05 W1-2 | 📋 Planned |
+| **Sága S1** — Whisper Thai STT + FastAPI + WebSocket | 2026-05 W3-4 | 📋 Planned |
+| **Hermóðr S1** — SMS + Push + Webhook + Retry queue | 2026-05 W3-4 | 📋 Planned |
+| **Mimir S30** — PageIndex integration (tree indexing Step 0) | 2026-05~06 | 📋 Planned |
+| **Package Extract 2** — nlq-engine, adk-base from MegaCare | 2026-06 | 📋 Planned |
+| **Huginn S3-S4** — AI Pentest + Multi-Agent | 2026-05~06 | 📋 Planned |
+| **Muninn S1-S2** — Foundation + AI Auto-Fix | 2026-05~06 | ✅ Done (2026-03-15) |
+| 🆕 **Visual BMI Pilot** — STOP-BANG integration + Gemma 3 eval | 2026-06 | 📋 Planned |
+
+### Phase 3: Integration — Ragnarök Prep (Jul-Aug 2026)
+| Milestone | Target | Status |
+|:--|:--|:--|
+| **Sága S2** — Real-time streaming STT + Speaker diarization | 2026-07 | 📋 Planned |
+| **Mimir S31-S32** — XLSX/table extraction + PDF/Excel reports | 2026-07~08 | 📋 Planned |
+| **Bifrost S10** — A2A Client + Multi-skill routing | 2026-08 | 📋 Planned |
 | Visual Workflow Builder | 2026-07 | 📋 Planned |
-| Fenrir MVP (OpenEMR E2E) | 2026-08 | 📋 Planned |
 | Documentation Site (asgardai.dev) | 2026-08 | 📋 Planned |
-| Developer Preview (GitHub public) | 2026-09 | 📋 Planned |
-| **Huginn S3-S5 (AI Pentest + Multi-Agent)** | 2026-05~07 | 📋 **Planned** |
-| **Muninn S2-S3 (AI Fix + Multi-Agent Pipeline)** | 2026-05~06 | 📋 **Planned** |
+| **Huginn S5** — Purple Team | 2026-07 | 📋 Planned |
+| **Muninn S3** — Multi-Agent Fix Pipeline | 2026-07 | 📋 Planned |
 
-### Phase 3: Community Launch (Q4 2026)
+### Phase 4: Community Launch — Götterdämmerung (Sep-Oct 2026)
 | Milestone | Target | Status |
 |:--|:--|:--|
+| E2E Integration (LINE→Bifrost→Eir→Mimir→Response) | 2026-09 | 📋 Planned |
+| Insurance connectors (eBao, Salesforce stubs) | 2026-09 | 📋 Planned |
 | v1.0 Community Edition | 2026-10 | 📋 Planned |
-| Product Hunt / HackerNews launch | 2026-10 | 📋 Planned |
-| 3-5 Design Partners | 2026-12 | 📋 Planned |
+| TOR Demo readiness (85%+ coverage) | 2026-10 | 📋 Planned |
+| **Huginn S6** — LLM Security + Compliance | 2026-09 | 📋 Planned |
+| **Muninn S4** — Continuous Learning | 2026-09 | 📋 Planned |
 
-### Phase 4: Enterprise (2027)
+### Phase 5: Enterprise (2027)
 | Milestone | Target | Status |
 |:--|:--|:--|
 | Enterprise Pilot | 2027-Q1 | 📋 Planned |
@@ -209,8 +245,16 @@
 | **Huginn scan impacts production** | High | Kill switch, blast radius limit, RoE, dry-run mode |
 | **Muninn auto-fix introduces bugs** | High | Draft PR only, multi-agent review, human approval |
 | **WhiteRabbitNeo offensive model abuse** | High | RBAC gating, RoE enforcement, audit log |
+| **PaddleOCR Thai accuracy (Syn)** | Medium | Test early with real Thai ID cards; iApp API fallback |
+| **Whisper Thai STT accuracy (Sága)** | Medium | Benchmark vs Google STT; hybrid approach |
+| **PageIndex Thai ToC detection** | Low | Test with Thai PDFs; adjust LLM prompts |
+| **eBao API access (Insurance domain)** | High | Need partner coordination with Dhipaya Life early |
+| **Team capacity — 12 products** | High | Prioritize P0 items only in Phase 2a; defer P2 |
+| **AGPL contamination (Eir/OpenEMR)** | Medium | Keep Eir isolated; no code merge into proprietary modules |
+| 🆕 **Visual BMI cross-population accuracy** | Medium | Gemini PoC first (1-2 days); Digital Scale fine-tune with Thai dataset; use as flag only |
+| 🆕 **Visual BMI PDPA (biometric data)** | High | PoC: anonymized on Cloud; Production: Gemma 3 on-prem; delete images after scoring |
 
 ---
 
 *บันทึกโดย: AI Assistant (ตามมาตรฐาน ISO/IEC 29110 หมวด PM-01)*
-*Last updated: 2026-03-16 by Antigravity — Huginn & Muninn ISO docs + sprint plan*
+*Last updated: 2026-03-16 by Antigravity — Visual BMI PoC + STOP-BANG, Huginn S1-S2 + Muninn S1-S2 done (73 tests)*
