@@ -6,8 +6,8 @@
 | Field | Value |
 |:--|:--|
 | **Document ID** | SI-TST-RPT-E2E-001 |
-| **Version** | 1.0 |
-| **Last Updated** | 2026-03-13 |
+| **Version** | 1.1 |
+| **Last Updated** | 2026-03-16 |
 | **Status** | ✅ All tests passing |
 
 ---
@@ -28,8 +28,11 @@
 | Qdrant | latest | :6333 | ✅ Running |
 | Redis | 7 | :6379 | ✅ Running |
 | Neo4j | 5 | :7474 | ✅ Running |
-| Huginn | 0.1.0 | :8400 | 📋 Planned |
+| Huginn | 0.1.0 | :8400 | 🚧 Sprint 1 Starting |
 | Muninn | 0.1.0 | :8500 | 📋 Planned |
+| Syn | — | :8600 | 🆕 Planned (Apr 2026) |
+| Sága | — | :8700 | 🆕 Planned (May 2026) |
+| Hermóðr | — | :8800 | 🆕 Planned (May 2026) |
 
 **Hardware**: Mac Mini M4 Pro, 64GB RAM
 
@@ -91,3 +94,22 @@
 | **Failed** | 0 |
 | **Skipped** | 3 |
 | **Pass Rate** | 100% (of non-skipped) |
+
+---
+
+## 5. TOR Gap Coverage Plan
+
+> Sprint plan reference: [asgard_sprint_plan_gap_to_action.md](../../strategy/asgard_sprint_plan_gap_to_action.md)
+
+| Phase | Target | TOR Coverage |
+|:--|:--|:--|
+| Phase 2a: Shield Wall | Apr 2026 | 46% → 55% |
+| Phase 2b: Valhalla Rising | May-Jun 2026 | 55% → 65% |
+| Phase 3: Ragnarök Prep | Jul-Aug 2026 | 65% → 85%+ |
+| Phase 4: Götterdämmerung | Sep-Oct 2026 | 85%+ (พร้อม demo) |
+
+**New services added for TOR compliance:** Syn (OCR/eKYC), Sága (STT), Hermóðr (Notification)
+
+---
+
+*Last updated: 2026-03-16 by Antigravity — Added 3 new services, TOR coverage plan*

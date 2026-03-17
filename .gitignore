@@ -16,3 +16,6 @@ Thumbs.db
 # Docker volumes
 data/
 volumes/
+.venv/
+.pytest_cache/
+__pycache__/
