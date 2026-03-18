@@ -79,7 +79,7 @@ class ForsetiReporter:
             entry = {
                 "test_id": report.nodeid,
                 "name": report.nodeid.split("::")[-1],
-                "status": "pass" if report.passed else "fail",
+                "status": "passed" if report.passed else "failed",
                 "duration_ms": int(report.duration * 1000),
             }
             if report.failed:
@@ -89,7 +89,7 @@ class ForsetiReporter:
                 self.passed += 1
             elif report.skipped:
                 self.skipped += 1
-                entry["status"] = "skip"
+                entry["status"] = "skipped"
             self.results.append(entry)
         elif report.when == "setup" and report.failed:
             self.errors += 1
