@@ -4,7 +4,7 @@
 # ╚══════════════════════════════════════════════════════════════╝
 #
 # Profiles:
-#   default   — Core services (infra + auth + Mimir + Bifrost + Fenrir)
+#   default   — Core services (infra + auth + Mimir + Bifrost + Fenrir + Forseti)
 #   full      — Core + OpenEMR/Eir + Eir Gateway
 #
 # Usage:
@@ -252,8 +252,31 @@ services:
       MAX_ITERATIONS: ${BIFROST_MAX_ITERATIONS:-10}
       MAX_EXECUTION_TIME: ${BIFROST_MAX_EXECUTION_TIME:-120}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      AUTH_ENABLED: "false"
     depends_on:
       - mimir-api
+    networks:
+      - asgard
+
+  # ═══════════════════════════════════════
+  # 🐿️ RATATOSKR — Shared Browser Service
+  # ═══════════════════════════════════════
+
+  ratatoskr:
+    build:
+      context: ../Ratatoskr
+      dockerfile: Dockerfile
+    container_name: asgard_ratatoskr
+    restart: unless-stopped
+    ports:
+      - "${RATATOSKR_PORT:-9200}:9200"
+    environment:
+      PORT: 9200
+      RUST_LOG: ratatoskr=info
+    deploy:
+      resources:
+        limits:
+          memory: 2G
     networks:
       - asgard
 
@@ -282,6 +305,49 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       - bifrost
+    networks:
+      - asgard
+
+  # ═══════════════════════════════════════
+  # ⚖️ FORSETI — E2E Testing & Dashboard
+  # ═══════════════════════════════════════
+
+  forseti:
+    build:
+      context: ../Forseti
+      dockerfile: Dockerfile
+    container_name: asgard_forseti
+    restart: unless-stopped
+    ports:
+      - "${FORSETI_PORT:-5555}:5555"
+    environment:
+      # ── Forseti Config ──
+      FORSETI_HOST: 0.0.0.0
+      FORSETI_PORT: 5555
+      DB_PATH: /app/data/forseti_results.db
+      # ── Asgard Service URLs (for E2E testing) ──
+      MIMIR_URL: http://mimir-api:8080
+      BIFROST_URL: http://bifrost:8100
+      FENRIR_URL: http://fenrir:8200
+      HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
+      YGGDRASIL_URL: http://yggdrasil:8080
+      VARDR_URL: http://vardr:9090
+      PAGEINDEX_URL: http://pageindex:8600
+      # ── Shared Secrets ──
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - forseti_data:/app/data
+    depends_on:
+      - mimir-api
+      - bifrost
+      - fenrir
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
     networks:
       - asgard
 
@@ -368,6 +434,31 @@ services:
     networks:
       - asgard
 
+  # ═══════════════════════════════════════
+  # 📑 PAGEINDEX — Reasoning-based RAG Sidecar
+  # ═══════════════════════════════════════
+
+  pageindex:
+    build:
+      context: ../Mimir/pageindex-sidecar
+      dockerfile: Dockerfile
+    container_name: asgard_pageindex
+    restart: unless-stopped
+    ports:
+      - "${PAGEINDEX_PORT:-8600}:8600"
+    environment:
+      PAGEINDEX_PORT: 8600
+      OPENAI_API_BASE: http://host.docker.internal:${HEIMDALL_PORT:-8080}/v1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy}
+      PAGEINDEX_MODEL: ${PAGEINDEX_MODEL:-auto}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8600/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - asgard
+
 # ═══════════════════════════════════════
 # 📦 VOLUMES
 # ═══════════════════════════════════════
@@ -383,6 +474,9 @@ volumes:
     driver: local
   neo4j_data:
     driver: local
+  forseti_data:
+    driver: local
+
 
 # ═══════════════════════════════════════
 # 🌐 NETWORK

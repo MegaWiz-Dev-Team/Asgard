@@ -25,6 +25,9 @@ graph LR
     Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
     Bifrost --> |"MCP"| EirGW
 
+    Mimir --> |"scrape"| Ratatoskr["🐿️ Ratatoskr<br/>Browser Service"]
+    Bifrost --> |"browse"| Ratatoskr
+
     EirGW --> |"proxy"| Eir["📋 OpenEMR<br/>FHIR R4"]
     Fenrir --> |"Browser"| Eir
 
@@ -41,6 +44,7 @@ graph LR
     style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style Heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style Fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
+    style Ratatoskr fill:#422006,stroke:#fb923c,color:#fed7aa
     style Eir fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style EirGW fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style Yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
@@ -62,6 +66,7 @@ graph LR
 | 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
 | 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Python (FastAPI) | — | 🚧 Sprint 1 |
 | 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Python (FastAPI) | — | 🚧 Sprint 1 |
+| 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
 | 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
 
 > **484+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
@@ -152,6 +157,7 @@ Build a **self-hosted AI platform** that enables:
 | **Várðr** | The guardian | Monitoring dashboard | Community |
 | **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | Odin's Ravens |
 | **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | Odin's Ravens |
+| **Ratatoskr** | The squirrel on Yggdrasil | Shared Browser Service | Community |
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
@@ -176,5 +182,6 @@ Build a **self-hosted AI platform** that enables:
   <a href="https://github.com/MegaWiz-Dev-Team/Fenrir">Fenrir</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Yggdrasil">Yggdrasil</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Eir">Eir</a> ·
-  <a href="https://github.com/MegaWiz-Dev-Team/Vardr">Várðr</a>
+  <a href="https://github.com/MegaWiz-Dev-Team/Vardr">Várðr</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Ratatoskr">Ratatoskr</a>
 </p>
