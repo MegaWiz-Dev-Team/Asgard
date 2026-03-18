@@ -248,7 +248,7 @@ services:
       # ── Shared Secrets (from Asgard/.env) ──
       HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
       MIMIR_API_KEY: ${HEIMDALL_API_KEY:-}
-      DEFAULT_MODEL: ${BIFROST_DEFAULT_MODEL:-qwen3.5}
+      DEFAULT_MODEL: ${BIFROST_DEFAULT_MODEL:-mlx-community/Qwen3.5-9B-MLX-4bit}
       MAX_ITERATIONS: ${BIFROST_MAX_ITERATIONS:-10}
       MAX_EXECUTION_TIME: ${BIFROST_MAX_EXECUTION_TIME:-120}
       LOG_LEVEL: ${LOG_LEVEL:-info}
