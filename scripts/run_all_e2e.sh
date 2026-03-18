@@ -20,7 +20,7 @@ if [ -f "$SCRIPT_DIR/../.env" ]; then
 fi
 
 # Available suites
-SUITES=(asgard bifrost ratatoskr fenrir forseti huginn muninn eir vardr)
+SUITES=(asgard bifrost ratatoskr fenrir forseti huginn muninn eir vardr ui)
 
 # Parse args — run specific suites or all
 if [ $# -gt 0 ]; then
