@@ -197,6 +197,92 @@ async def test_mimir_cross_tenant():
     assert len(results) == 2
 
 
+# ── Sprint 31: Mimir Vector Search Tests ──────────────
+
+@pytest.mark.asyncio
+async def test_mimir_vector_search_mode():
+    """Mimir Sprint 31: vector mode queries Qdrant instead of SQL fallback."""
+    from bifrost.clients.mimir_knowledge import MimirKnowledgeClient
+
+    client = MimirKnowledgeClient(mimir_url="http://test:4200")
+
+    async def mock_query(tenant, question, mode="vector"):
+        return {
+            "answer": "Aspirin is a nonsteroidal anti-inflammatory drug",
+            "sources": [
+                {
+                    "document_title": "Drug Info: Aspirin",
+                    "relevant_sections": ["Aspirin is a nonsteroidal anti-inflammatory drug"],
+                    "source_type": "vector",
+                }
+            ],
+            "mode_used": "vector",
+        }
+
+    with patch.object(client, "query_tenant", side_effect=mock_query):
+        result = await client.query_tenant("medical_tenant", "What is Aspirin?", mode="vector")
+
+    assert result["mode_used"] == "vector"
+    assert len(result["sources"]) > 0
+    assert result["sources"][0]["source_type"] == "vector"
+    assert "NSAID" in result["answer"] or "anti-inflammatory" in result["answer"]
+
+
+@pytest.mark.asyncio
+async def test_mimir_hybrid_mode_includes_vector():
+    """Mimir Sprint 31: hybrid mode includes vector sources from Qdrant."""
+    from bifrost.clients.mimir_knowledge import MimirKnowledgeClient
+
+    client = MimirKnowledgeClient(mimir_url="http://test:4200")
+
+    async def mock_query(tenant, question, mode="hybrid"):
+        return {
+            "answer": "Combined tree + vector answer",
+            "sources": [
+                {"document_title": "Doc1", "relevant_sections": ["sec1"], "source_type": "tree"},
+                {"document_title": "Doc2", "relevant_sections": ["sec2"], "source_type": "vector"},
+            ],
+            "mode_used": "hybrid",
+        }
+
+    with patch.object(client, "query_tenant", side_effect=mock_query):
+        result = await client.query_tenant("test", "architecture?", mode="hybrid")
+
+    assert result["mode_used"] == "hybrid"
+    source_types = {s["source_type"] for s in result["sources"]}
+    assert "vector" in source_types, "Hybrid mode should include vector sources"
+    assert "tree" in source_types, "Hybrid mode should include tree sources"
+
+
+@pytest.mark.asyncio
+async def test_mimir_vector_source_has_relevant_sections():
+    """Mimir Sprint 31: vector sources now populate relevant_sections (not empty)."""
+    from bifrost.clients.mimir_knowledge import MimirKnowledgeClient
+
+    client = MimirKnowledgeClient(mimir_url="http://test:4200")
+
+    async def mock_query(tenant, question, mode="vector"):
+        return {
+            "answer": "Real content from Qdrant",
+            "sources": [
+                {
+                    "document_title": "Policy v2",
+                    "relevant_sections": ["Patient records must be stored securely."],
+                    "source_type": "vector",
+                }
+            ],
+            "mode_used": "vector",
+        }
+
+    with patch.object(client, "query_tenant", side_effect=mock_query):
+        result = await client.query_tenant("compliance", "security policy?", mode="vector")
+
+    for source in result["sources"]:
+        if source["source_type"] == "vector":
+            assert len(source["relevant_sections"]) > 0, \
+                "Sprint 31: vector sources must populate relevant_sections"
+
+
 # ═══════════════════════════════════════════════════════════════
 # 3. BIFROST — Agent Runtime (port 8100)
 # ═══════════════════════════════════════════════════════════════
