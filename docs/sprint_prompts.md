@@ -49,11 +49,16 @@ Frontend (Mimir Dashboard — Next.js):
 2. เมื่อจบ Sprint → รัน Unit/E2E Test + push ผลเข้า Forseti
 3. ส่งโค้ดสแกน Huginn (Semgrep/Trivy) ก่อนปิด Sprint
 4. อัปเดต ISO docs (SI-02, PM-02, SI-04) + Tag Release Version
+5. ทุก task ต้องสร้าง GitHub Issue ก่อน → Branch → PR → Merge
 
 เอกสารอ้างอิง:
 - Master Sprint Plan: Asgard/docs/iso_29110/pm/PM_01_Ecosystem_Roadmap_S31_S34.md
 - Bifrost Gap Analysis: Bifrost/docs/Bifrost_Gap_Analysis_Sprint32.md
 - MCP Implementation Plan: Asgard/docs/architecture/MCP_Ecosystem_Implementation_Plan.md
+
+Sprint 31 ผลลัพธ์ (เสร็จครบ):
+- Mimir v0.31.0 — Hybrid RAG + MCP Server (119/119 tests)
+- Huginn v0.2.0 — Schema enhanced with project/version tracking (51/51 tests)
 
 Pre-requisite: Sprint 31 เสร็จแล้ว (Mimir MCP Server ต้องรันได้)
 
@@ -64,6 +69,11 @@ Pre-requisite: Sprint 31 เสร็จแล้ว (Mimir MCP Server ต้อ
 4. Implement Dynamic X-Tenant-ID injection ผ่าน ADK session context
 5. ลบ legacy bifrost/tools/mimir.py
 6. E2E test: Asgard → Mimir Agent → MCP → Hybrid Search → Response
+
+งานจาก Huginn/Forseti recommendations (Sprint 31):
+7. Huginn #5 — เพิ่ม scheduled/automated cargo-audit scanning
+8. Huginn #6 — push Huginn test results (51 tests) เข้า Forseti
+9. Mimir #257 — ตรวจสอบ neo4rs upgrade เพื่อลด 4 unmaintained dep warnings
 
 เริ่มจากสร้าง GitHub Issues ก่อน แล้วทำ TDD ข้อ 2 เลยครับ
 ```

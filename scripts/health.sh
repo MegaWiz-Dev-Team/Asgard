@@ -45,7 +45,7 @@ echo "💾 Infrastructure:"
 check_docker "MariaDB" "asgard_mariadb"
 check_docker "PostgreSQL" "asgard_postgres"
 check "Qdrant" "http://localhost:6333/healthz"
-check "Redis" "http://localhost:6379"
+check_docker "Redis" "asgard_redis"
 check "Neo4j" "http://localhost:7474"
 
 echo ""
