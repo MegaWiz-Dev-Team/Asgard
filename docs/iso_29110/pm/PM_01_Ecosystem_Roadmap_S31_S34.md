@@ -48,6 +48,15 @@
   - **Commercial Dashboard:** Unified Security Command Center (แยก repo private)
   - **Open-Core Model:** Community OSS agents + Commercial Odin dashboard
   - **3 UX Modes:** Dashboard (review), Auto-Pilot (autonomous), Chat-Driven (MCP)
+  - **Full Pipeline Demo:** Huginn scan → Muninn analyze → Odin approve → PR → Merge
+- **[Project Bifrost — ✅ Security Fix]**
+  - **CWE-942 CORS Fix:** เปลี่ยน `allow_origins=["*"]` → explicit allow-list (PR #10, merged)
+  - **Odin Pipeline:** RA-001 fixed via full automated pipeline
+  - **SI-01 Updated:** v0.2.0 พร้อม security section
+- **[Project Huginn — ✅ Automation]**
+  - **scan-all.sh:** Automated ecosystem-wide cargo-audit (cron-ready)
+  - **push_results_to_forseti.py:** Push scan results to Forseti API
+  - Issues #5, #6 closed
 - **[Forseti — 📋 Planned]**
   - เพิ่ม test types: Unit, Integration, E2E, Security Regression, Contract, Performance
 
