@@ -39,6 +39,17 @@
   - **ADK-MCP Adapter:** พัฒนาตัวเชื่อม (Adapter) ที่แปลงสัญญาณ JSON-RPC ของ Tool ยัดใส่ `LlmAgent` ใน ADK อัตโนมัติ
   - **Dynamic Context Isolation:** แพตช์ระบบ MCP Request Meta ให้ส่ง `X-Tenant-ID` ผ่าน Session User เสมอ
   - **Testing:** ทดสอบให้ตัวแทน Agent วิ่งไปดึงข้อมูลด้วยไฮบริดค้นหา ผ่านท่อ MCP ได้สำเร็จ
+- **[Project Muninn — ✅ Completed]**
+  - **Review Mode:** เพิ่ม `FIX_MODE=review` ให้ AI propose fix แล้วรอ approve ก่อนสร้าง PR
+  - **Configurable LLM:** `LLM_PROVIDER`, `GEMINI_MODEL=gemini-2.5-flash`, `LLM_TEMPERATURE=0.1`
+  - **Odin API:** endpoints `approve`/`reject`/`config` สำหรับ dashboard
+  - **TDD:** 76 tests all passing (17 ใหม่)
+- **[Project Odin — ✅ Created]**
+  - **Commercial Dashboard:** Unified Security Command Center (แยก repo private)
+  - **Open-Core Model:** Community OSS agents + Commercial Odin dashboard
+  - **3 UX Modes:** Dashboard (review), Auto-Pilot (autonomous), Chat-Driven (MCP)
+- **[Forseti — 📋 Planned]**
+  - เพิ่ม test types: Unit, Integration, E2E, Security Regression, Contract, Performance
 
 ---
 

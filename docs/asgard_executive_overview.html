@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asgard AI Platform — Executive Overview</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #1a1a2e;
+            background: #f8f9fa;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .slide {
+            width: 100%;
+            max-width: 960px;
+            min-height: 680px;
+            margin: 0 auto 40px;
+            padding: 60px 64px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1, #6c5ce7, #ff6b9d);
+        }
+
+        /* Title Slide */
+        .slide-title {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+        }
+        .slide-title::before {
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1, #ff6b9d, #f7dc6f);
+            height: 6px;
+        }
+        .slide-title .logo { font-size: 72px; margin-bottom: 16px; }
+        .slide-title h1 {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+        }
+        .slide-title h2 {
+            font-size: 20px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-bottom: 48px;
+        }
+        .slide-title .partners {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        .slide-title .partners span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .slide-title .date {
+            position: absolute;
+            bottom: 32px;
+            font-size: 14px;
+            opacity: 0.5;
+        }
+
+        /* Section headers */
+        .section-num {
+            display: inline-block;
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        h2.slide-heading {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 32px;
+            letter-spacing: -0.5px;
+        }
+
+        /* Flow diagram as styled boxes */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        .flow-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: stretch;
+        }
+        .flow-box {
+            flex: 1;
+            max-width: 220px;
+            padding: 20px 18px;
+            border-radius: 14px;
+            text-align: center;
+            position: relative;
+        }
+        .flow-box .icon { font-size: 32px; margin-bottom: 8px; }
+        .flow-box .name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .flow-box .desc { font-size: 12px; opacity: 0.8; line-height: 1.4; }
+
+        .box-sakura { background: linear-gradient(135deg, #ff6b9d22, #ff6b9d11); border: 2px solid #ff6b9d; }
+        .box-mega { background: linear-gradient(135deg, #4ecdc422, #4ecdc411); border: 2px solid #4ecdc4; }
+        .box-sojitz { background: linear-gradient(135deg, #f7dc6f22, #f7dc6f11); border: 2px solid #f7dc6f; }
+        .box-si { background: linear-gradient(135deg, #82e0aa22, #82e0aa11); border: 2px solid #82e0aa; }
+        .box-customer { background: linear-gradient(135deg, #bb8fce22, #bb8fce11); border: 2px solid #bb8fce; }
+
+        .arrow-down {
+            display: flex;
+            justify-content: center;
+            color: #aaa;
+            font-size: 22px;
+        }
+        .arrow-label {
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+            margin: -4px 0;
+        }
+
+        /* Architecture */
+        .arch-container {
+            display: flex;
+            gap: 20px;
+        }
+        .arch-section {
+            flex: 1;
+            border-radius: 14px;
+            padding: 24px 20px;
+        }
+        .arch-community {
+            background: linear-gradient(135deg, #e8f8f5, #d5f5e3);
+            border: 2px solid #4ecdc4;
+        }
+        .arch-enterprise {
+            background: linear-gradient(135deg, #fdf2e9, #fdebd0);
+            border: 2px solid #f59e0b;
+        }
+        .arch-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .arch-section .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .badge-free { background: #4ecdc433; color: #2ea89e; }
+        .badge-paid { background: #f59e0b33; color: #d97706; }
+
+        .module-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .module-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+        }
+        .module-list li .mod-icon { font-size: 16px; }
+        .module-list li .mod-name { font-weight: 600; }
+        .module-list li .mod-desc { color: #666; font-size: 12px; }
+
+        .gpu-badge {
+            margin-top: 20px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #ff6b9d22, #ff6b9d11);
+            border: 1px dashed #ff6b9d;
+            border-radius: 10px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* Revenue Flow */
+        .revenue-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 24px 0;
+        }
+        .rev-box {
+            padding: 24px 20px;
+            border-radius: 14px;
+            text-align: center;
+            min-width: 160px;
+        }
+        .rev-box .icon { font-size: 36px; margin-bottom: 8px; }
+        .rev-box .name { font-size: 15px; font-weight: 700; }
+        .rev-box .role { font-size: 12px; color: #666; }
+        .rev-customer { background: linear-gradient(135deg, #bb8fce22, #bb8fce11); border: 2px solid #bb8fce; }
+        .rev-sojitz { background: linear-gradient(135deg, #f7dc6f22, #f7dc6f11); border: 2px solid #f7dc6f; }
+
+        .rev-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 12px;
+        }
+        .rev-arrow .line {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #bb8fce, #f7dc6f);
+            position: relative;
+        }
+        .rev-arrow .line::after {
+            content: '▶';
+            position: absolute;
+            right: -8px;
+            top: -8px;
+            color: #f7dc6f;
+            font-size: 14px;
+        }
+        .rev-arrow .label { font-size: 11px; color: #888; margin-top: 4px; }
+
+        .share-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        .share-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .share-arrow .down {
+            width: 3px;
+            height: 30px;
+            background: #f7dc6f;
+            position: relative;
+        }
+        .share-arrow .down::after {
+            content: '▼';
+            position: absolute;
+            bottom: -12px;
+            left: -5px;
+            color: #f7dc6f;
+            font-size: 12px;
+        }
+        .share-arrow .label { font-size: 11px; color: #888; }
+        .share-target {
+            padding: 16px 20px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 180px;
+        }
+        .share-target .icon { font-size: 28px; }
+        .share-target .name { font-size: 14px; font-weight: 700; }
+        .share-target .detail { font-size: 11px; color: #666; }
+
+        /* License Table */
+        .license-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .license-table th {
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .license-table th:first-child { border-radius: 10px 0 0 0; }
+        .license-table th:last-child { border-radius: 0 10px 0 0; }
+        .license-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+        }
+        .license-table tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+        .license-table tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+        .license-table tr:nth-child(even) { background: #f8f9fa; }
+        .tier-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .tier-free { background: #4ecdc433; color: #2ea89e; }
+        .tier-starter { background: #45b7d133; color: #2d8fa8; }
+        .tier-pro { background: #6c5ce733; color: #5a4bd1; }
+        .tier-custom { background: #ff6b9d33; color: #c94070; }
+
+        /* Roles table */
+        .roles-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .roles-table th {
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .roles-table th:first-child { border-radius: 10px 0 0 0; }
+        .roles-table th:last-child { border-radius: 0 10px 0 0; }
+        .roles-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .roles-table tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+        .roles-table tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+        .roles-table tr:nth-child(even) { background: #f8f9fa; }
+
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            right: 32px;
+            font-size: 11px;
+            color: #bbb;
+        }
+
+        @media print {
+            body { background: white; }
+            .slide {
+                box-shadow: none;
+                margin: 0;
+                border-radius: 0;
+                max-width: 100%;
+                min-height: auto;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide slide-title">
+    <div class="logo">🏰</div>
+    <h1>Asgard AI Platform</h1>
+    <h2>Executive Overview</h2>
+    <div class="partners">
+        <span>🌸 SAKURA Internet</span>
+        <span>×</span>
+        <span>🏢 Sojitz</span>
+        <span>×</span>
+        <span>🔧 SI Partners</span>
+    </div>
+    <div class="date">March 2026 · Prepared by Megawiz</div>
+</div>
+
+<!-- Slide 2: Business Flow -->
+<div class="slide">
+    <span class="section-num">01</span>
+    <h2 class="slide-heading">Business Flow</h2>
+
+    <div class="flow-container">
+        <div class="flow-row">
+            <div class="flow-box box-sakura">
+                <div class="icon">🌸</div>
+                <div class="name">SAKURA Internet</div>
+                <div class="desc">GPU as a Service<br/>H100 / B200</div>
+            </div>
+            <div class="flow-box box-mega">
+                <div class="icon">🧙</div>
+                <div class="name">Megawiz</div>
+                <div class="desc">Asgard Platform<br/>Development & Consulting</div>
+            </div>
+        </div>
+
+        <div class="arrow-down">⬇</div>
+        <div class="arrow-label">GPU Compute &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Platform + License</div>
+
+        <div class="flow-row">
+            <div class="flow-box box-sojitz">
+                <div class="icon">🏢</div>
+                <div class="name">Sojitz</div>
+                <div class="desc">Enterprise Sales Channel<br/>Corporate Network</div>
+            </div>
+            <div class="flow-box box-si">
+                <div class="icon">🔧</div>
+                <div class="name">SI Partners</div>
+                <div class="desc">System Integrators<br/>Deploy & Operate</div>
+            </div>
+        </div>
+
+        <div class="arrow-down">⬇</div>
+        <div class="arrow-label">Leads &amp; Referrals &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; On-Site Deployment</div>
+
+        <div class="flow-row">
+            <div class="flow-box box-customer" style="max-width: 460px">
+                <div class="icon">🏭</div>
+                <div class="name">Enterprise Customer (Thailand)</div>
+                <div class="desc">On-Premise Asgard Platform · Data Sovereignty · No AI Engineer Needed</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Asgard AI Platform · March 2026</div>
+</div>
+
+<!-- Slide 3: Architecture -->
+<div class="slide">
+    <span class="section-num">02</span>
+    <h2 class="slide-heading">Platform Architecture</h2>
+
+    <div class="arch-container">
+        <div class="arch-section arch-community">
+            <h3>🆓 Community Edition <span class="badge badge-free">AGPL-3.0 Free</span></h3>
+            <ul class="module-list">
+                <li><span class="mod-icon">🧠</span> <span class="mod-name">Mimir</span> <span class="mod-desc">— RAG + Agent Builder</span></li>
+                <li><span class="mod-icon">🛡️</span> <span class="mod-name">Heimdall</span> <span class="mod-desc">— LLM Gateway</span></li>
+                <li><span class="mod-icon">⚡</span> <span class="mod-name">Bifrost</span> <span class="mod-desc">— Agent Runtime</span></li>
+                <li><span class="mod-icon">🐺</span> <span class="mod-name">Fenrir</span> <span class="mod-desc">— Computer Use</span></li>
+                <li><span class="mod-icon">🏥</span> <span class="mod-name">Eir</span> <span class="mod-desc">— Healthcare GW</span></li>
+                <li><span class="mod-icon">🌳</span> <span class="mod-name">Yggdrasil</span> <span class="mod-desc">— Auth (SSO)</span></li>
+                <li><span class="mod-icon">🛡️</span> <span class="mod-name">Vardr</span> <span class="mod-desc">— Monitoring</span></li>
+                <li><span class="mod-icon">🐿️</span> <span class="mod-name">Ratatoskr</span> <span class="mod-desc">— Browser Service</span></li>
+            </ul>
+        </div>
+        <div class="arch-section arch-enterprise">
+            <h3>💎 Enterprise Edition <span class="badge badge-paid">Paid License</span></h3>
+            <ul class="module-list">
+                <li><span class="mod-icon">🔐</span> <span class="mod-name">SSO</span> <span class="mod-desc">— SAML / OIDC / LDAP</span></li>
+                <li><span class="mod-icon">📊</span> <span class="mod-name">Analytics</span> <span class="mod-desc">— Usage & Billing</span></li>
+                <li><span class="mod-icon">📋</span> <span class="mod-name">Audit Log</span> <span class="mod-desc">— SOC2 / HIPAA</span></li>
+                <li><span class="mod-icon">🔄</span> <span class="mod-name">HA Cluster</span> <span class="mod-desc">— Multi-node</span></li>
+                <li><span class="mod-icon">🏷️</span> <span class="mod-name">White-Label</span> <span class="mod-desc">— Custom Branding</span></li>
+                <li><span class="mod-icon">🤖</span> <span class="mod-name">Advanced Agents</span> <span class="mod-desc">— Multi-agent</span></li>
+                <li><span class="mod-icon">🦅</span> <span class="mod-name">Huginn</span> <span class="mod-desc">— Security Scanner</span></li>
+                <li><span class="mod-icon">🐦</span> <span class="mod-name">Muninn</span> <span class="mod-desc">— Auto Issue Fixer</span></li>
+            </ul>
+        </div>
+    </div>
+    <div class="gpu-badge">🌸 Powered by <strong>SAKURA Internet GPU</strong> — H100 / B200 via Remote API</div>
+    <div class="footer">Asgard AI Platform · March 2026</div>
+</div>
+
+<!-- Slide 4: Revenue Flow -->
+<div class="slide">
+    <span class="section-num">03</span>
+    <h2 class="slide-heading">Revenue Flow</h2>
+
+    <div style="display:flex; flex-direction:column; align-items:center; margin-top:16px;">
+        <!-- Customer → Sojitz -->
+        <div style="display:flex; align-items:center; gap:24px;">
+            <div class="rev-box rev-customer">
+                <div class="icon">🏭</div>
+                <div class="name">Customer</div>
+                <div class="role">Enterprise / Corporate</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+                <div style="font-size:12px; color:#888;">Service Payment</div>
+                <div style="font-size:28px; color:#f7dc6f;">→</div>
+            </div>
+            <div class="rev-box rev-sojitz" style="min-width:200px;">
+                <div class="icon">🏢</div>
+                <div class="name">Sojitz</div>
+                <div class="role">Revenue Hub</div>
+            </div>
+        </div>
+
+        <!-- Arrow down from Sojitz -->
+        <div style="margin:20px 0 4px 180px; color:#f7dc6f; font-size:24px;">⬇</div>
+        <div style="margin-left:180px; font-size:12px; color:#888; margin-bottom:16px;">Revenue Share</div>
+
+        <!-- Three targets -->
+        <div style="display:flex; gap:24px; margin-left:24px;">
+            <div class="share-target box-sakura">
+                <div class="icon">🌸</div>
+                <div class="name">SAKURA</div>
+                <div class="detail">GPU Compute Cost</div>
+            </div>
+            <div class="share-target box-mega">
+                <div class="icon">🧙</div>
+                <div class="name">Megawiz</div>
+                <div class="detail">License + Consulting</div>
+            </div>
+            <div class="share-target box-si">
+                <div class="icon">🔧</div>
+                <div class="name">SI Partners</div>
+                <div class="detail">Implementation Fee</div>
+            </div>
+        </div>
+    </div>
+
+    <table class="license-table" style="margin-top:32px;">
+        <thead>
+            <tr>
+                <th>Tier</th>
+                <th>Price</th>
+                <th>Included Modules</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="tier-badge tier-free">Community</span></td>
+                <td>Free</td>
+                <td>Mimir, Heimdall, Bifrost, Fenrir, Eir, Yggdrasil, Vardr, Ratatoskr</td>
+            </tr>
+            <tr>
+                <td><span class="tier-badge tier-starter">Starter</span></td>
+                <td>💰</td>
+                <td>+ SSO, RBAC, Analytics, Priority Support</td>
+            </tr>
+            <tr>
+                <td><span class="tier-badge tier-pro">Professional</span></td>
+                <td>💰💰</td>
+                <td>+ Audit, HA Cluster, White-Label, Advanced Agents</td>
+            </tr>
+            <tr>
+                <td><span class="tier-badge tier-custom">Custom</span></td>
+                <td>💰💰💰</td>
+                <td>+ Huginn, Muninn + Custom Features</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="footer">Asgard AI Platform · March 2026</div>
+</div>
+
+<!-- Slide 5: Partner Roles -->
+<div class="slide">
+    <span class="section-num">04</span>
+    <h2 class="slide-heading">Partner Roles</h2>
+
+    <table class="roles-table">
+        <thead>
+            <tr>
+                <th style="width:25%">Partner</th>
+                <th style="width:25%">Role</th>
+                <th>Value Proposition</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>🌸 <strong>SAKURA Internet</strong></td>
+                <td>GPU Provider</td>
+                <td>H100 / B200 at lower cost than hyperscalers (AWS / GCP / Azure)</td>
+            </tr>
+            <tr>
+                <td>🧙 <strong>Megawiz</strong></td>
+                <td>Platform Developer</td>
+                <td>Asgard AI Platform + Enterprise License + Installation & Consulting</td>
+            </tr>
+            <tr>
+                <td>🏢 <strong>Sojitz</strong></td>
+                <td>Sales Channel & Revenue Hub</td>
+                <td>Corporate / Enterprise customer network in Thailand, single billing point</td>
+            </tr>
+            <tr>
+                <td>🔧 <strong>SI Partners</strong></td>
+                <td>System Integrator</td>
+                <td>On-site deployment & support — no AI Engineer required</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top:48px; padding:28px 32px; background:linear-gradient(135deg,#0f0c29,#302b63); border-radius:14px; text-align:center; color:white;">
+        <div style="font-size:36px; margin-bottom:8px;">🏰</div>
+        <div style="font-size:20px; font-weight:700; margin-bottom:4px;">Asgard belongs to everyone.</div>
+        <div style="font-size:14px; opacity:0.6;">Open Source Community · Enterprise Ready · On-Premise First</div>
+    </div>
+    <div class="footer" style="color:#ccc;">Asgard AI Platform · March 2026</div>
+</div>
+
+</body>
+</html>
