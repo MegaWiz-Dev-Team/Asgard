@@ -10,10 +10,11 @@
 
 | Decision | Choice |
 |----------|--------|
-| **Architecture** | Centralized ที่ Mimir (License Authority) |
-| **Validation** | Offline-only (Ed25519 signature, ไม่ต้อง internet) |
+| **Architecture** | Decentralized — ทุก service verify เอง (ไม่มี single authority) |
+| **Validation** | Offline-only (Ed25519 signature, ไม่ต้อง internet/network call) |
 | **Key Format** | JWT-like signed payload |
-| **Enforcement** | Feature gate middleware + Docker profiles |
+| **Enforcement** | Feature gate middleware + Docker/K8s profiles |
+| **Package** | `packages/asgard-license/` (Rust crate) + `asgard-license-py` (Python) |
 
 ---
 
@@ -21,36 +22,41 @@
 
 ```mermaid
 flowchart TB
-    subgraph STARTUP["🚀 Startup Flow"]
-        ENV["ENV: ASGARD_LICENSE_KEY"] --> MIMIR_BOOT["Mimir Boot"]
-        MIMIR_BOOT --> VERIFY["Ed25519 Verify<br/>(embedded public key)"]
-        VERIFY -->|Valid| CACHE["Cache in Redis<br/>+ memory"]
-        VERIFY -->|Invalid/None| COMMUNITY["Community Mode<br/>(all enterprise features locked)"]
+    subgraph ENV_LAYER["🔑 Environment"]
+        ENV["ENV: ASGARD_LICENSE_KEY<br/>(same key for all services)"]
     end
 
-    subgraph RUNTIME["⚡ Runtime"]
-        CACHE --> API["GET /api/license<br/>(Mimir endpoint)"]
-        API --> HEIMDALL["🛡️ Heimdall<br/>fetches on startup"]
-        API --> BIFROST["⚡ Bifrost<br/>fetches on startup"]
-        API --> FENRIR["🐺 Fenrir<br/>fetches on startup"]
+    subgraph SERVICES["🚀 Each Service Boot (Independent)"]
+        ENV --> MIMIR["🧠 Mimir<br/>asgard-license crate"]
+        ENV --> BIFROST["⚡ Bifrost<br/>asgard-license-py"]
+        ENV --> HEIMDALL["🛡️ Heimdall<br/>asgard-license crate"]
+        ENV --> FENRIR["🐺 Fenrir<br/>asgard-license crate"]
+        ENV --> HUGINN["🐦‍⬛ Huginn<br/>asgard-license crate"]
+    end
+
+    subgraph VERIFY["🔐 Ed25519 Verify (per service)"]
+        MIMIR --> V1["verify(embedded pubkey)"]
+        BIFROST --> V2["verify(embedded pubkey)"]
+        HEIMDALL --> V3["verify(embedded pubkey)"]
+        V1 --> GATE
+        V2 --> GATE
+        V3 --> GATE
     end
 
     subgraph GATE["🚧 Feature Gate"]
-        HEIMDALL --> H_CHECK{"has_feature?"}
-        BIFROST --> B_CHECK{"has_feature?"}
-        H_CHECK -->|Yes| ALLOW["✅ Allow"]
-        H_CHECK -->|No| DENY["❌ 403 Enterprise Required"]
-        B_CHECK -->|Yes| ALLOW
-        B_CHECK -->|No| DENY
+        CHECK{"has_feature?"}
+        CHECK -->|Yes| ALLOW["✅ Allow"]
+        CHECK -->|No| DENY["❌ 403 Enterprise Required"]
     end
 ```
 
 **Flow:**
-1. Mimir อ่าน `ASGARD_LICENSE_KEY` จาก env var ตอน boot
-2. Verify ด้วย Ed25519 public key ที่ embed มาใน binary (offline, ไม่ต้อง internet)
-3. Cache license info ใน Redis + memory
-4. Services อื่นดึง license info จาก `GET /api/license` ตอน startup แล้ว cache ไว้
-5. ทุก request ที่เข้า enterprise endpoint → check feature gate
+1. ทุก service อ่าน `ASGARD_LICENSE_KEY` จาก env var ตอน boot
+2. แต่ละ service verify ด้วย Ed25519 public key ที่ embed มา (offline, ไม่ต้อง network call)
+3. Cache license info ใน memory ของ process เอง
+4. ทุก request ที่เข้า enterprise endpoint → check feature gate
+
+> **ข้อดี:** ไม่มี single point of failure — Mimir ล่มก็ไม่กระทบ License ของ Bifrost/Fenrir
 
 ---
 
@@ -238,7 +244,7 @@ const MEGAWIZ_PUBLIC_KEY: &[u8; 32] = include_bytes!("../keys/megawiz.ed25519.pu
 
 ---
 
-### 2. Mimir — License Authority
+### 2. Mimir — Feature Gate (Rust)
 
 **Add to Mimir's `Cargo.toml`:**
 ```toml
@@ -249,7 +255,7 @@ asgard-license = { path = "../../Asgard/packages/asgard-license" }
 **New module: `src/license/mod.rs`**
 ```rust
 use asgard_license::LicenseInfo;
-use axum::{Router, Json, middleware};
+use axum::{middleware, Router, Json};
 use std::sync::Arc;
 
 pub struct LicenseState {
@@ -267,21 +273,8 @@ impl LicenseState {
     }
 }
 
-// API endpoint — other services call this
-pub async fn get_license(
-    State(state): State<Arc<LicenseState>>,
-) -> Json<LicenseResponse> {
-    Json(LicenseResponse {
-        tier: state.info.tier.as_str().to_string(),
-        org: state.info.org.clone(),
-        features: state.info.features.clone(),
-        max_nodes: state.info.max_nodes,
-        expires_at: state.info.expires_at.to_rfc3339(),
-    })
-}
-
 // Feature gate middleware
-pub async fn require_feature(
+pub fn require_feature(
     feature: &'static str,
 ) -> impl Fn(State<Arc<LicenseState>>, Request, Next) -> impl Future {
     move |State(state), req, next| async move {
@@ -301,12 +294,10 @@ pub async fn require_feature(
 
 **Usage in Mimir routes:**
 ```rust
-// src/routes/mod.rs
 let app = Router::new()
     // Community routes (always available)
     .route("/api/documents", get(list_documents))
     .route("/api/agents", get(list_agents))
-    .route("/api/license", get(license::get_license))    // ← NEW
 
     // Enterprise routes (feature-gated)
     .route("/api/sso/config", get(sso_config)
@@ -321,120 +312,81 @@ let app = Router::new()
 
 ---
 
-### 3. Bifrost — License Client (Python)
+### 3. Bifrost — Feature Gate (Python)
 
-**New file: `bifrost/license.py`**
+**New package: `packages/asgard-license-py/`**
 ```python
-import httpx
-import logging
+# packages/asgard-license-py/asgard_license/__init__.py
+import os, json, base64, time, logging
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from functools import wraps
 from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
+MEGAWIZ_PUBLIC_KEY = bytes.fromhex("...")  # Embedded public key
 
-class LicenseClient:
-    """Fetches license info from Mimir (License Authority)"""
+class LicenseInfo:
+    """Verifies license key locally using embedded Ed25519 public key."""
 
-    def __init__(self, mimir_url: str):
-        self.mimir_url = mimir_url
-        self._cache: dict | None = None
+    def __init__(self, tier="community", org="", features=None, max_nodes=1, expires_at=None):
+        self.tier = tier
+        self.org = org
+        self.features = features or []
+        self.max_nodes = max_nodes
+        self.expires_at = expires_at
 
-    async def refresh(self):
-        """Fetch license from Mimir on startup"""
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    f"{self.mimir_url}/api/license",
-                    timeout=5.0
-                )
-                self._cache = resp.json()
-                logger.info(f"License: {self._cache.get('tier')} ({self._cache.get('org')})")
-        except Exception as e:
-            logger.warning(f"License fetch failed: {e}, running Community mode")
-            self._cache = {"tier": "community", "features": []}
+    @classmethod
+    def from_env(cls) -> "LicenseInfo":
+        key = os.environ.get("ASGARD_LICENSE_KEY", "")
+        if not key:
+            return cls()  # community
+        return cls._verify(key)
+
+    @classmethod
+    def _verify(cls, key: str) -> "LicenseInfo":
+        payload_b64, sig_b64 = key.removeprefix("ASGARD-").split(".", 1)
+        payload_bytes = base64.urlsafe_b64decode(payload_b64 + "==")
+        sig_bytes = base64.urlsafe_b64decode(sig_b64 + "==")
+        pubkey = Ed25519PublicKey.from_public_bytes(MEGAWIZ_PUBLIC_KEY)
+        pubkey.verify(sig_bytes, payload_bytes)  # raises on invalid
+        payload = json.loads(payload_bytes)
+        if payload.get("exp", 0) < time.time():
+            raise ValueError("License expired")
+        return cls(tier=payload["tier"], org=payload["org"],
+                   features=payload.get("features", []),
+                   max_nodes=payload.get("max_nodes", 1))
 
     def has_feature(self, feature: str) -> bool:
-        if not self._cache:
-            return False
-        return feature in self._cache.get("features", [])
+        return feature in self.features
 
-    @property
-    def tier(self) -> str:
-        return self._cache.get("tier", "community") if self._cache else "community"
-
-
-# Global instance
-license_client = LicenseClient(mimir_url="")
-
+license_info = LicenseInfo.from_env()  # initialized on import
 
 def require_feature(feature: str):
-    """Decorator for enterprise-only endpoints"""
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            if not license_client.has_feature(feature):
-                raise HTTPException(
-                    status_code=403,
-                    detail={
-                        "error": "enterprise_required",
-                        "feature": feature,
-                        "message": f"{feature} requires Enterprise license",
-                    }
-                )
+            if not license_info.has_feature(feature):
+                raise HTTPException(status_code=403, detail={
+                    "error": "enterprise_required", "feature": feature})
             return await func(*args, **kwargs)
         return wrapper
     return decorator
 ```
 
-**Usage in Bifrost endpoints:**
-```python
-# bifrost/routes/agents.py
-from bifrost.license import require_feature
-
-@router.post("/agents/multi-agent")
-@require_feature("advanced_agents")
-async def multi_agent_run(request: MultiAgentRequest):
-    """Multi-agent orchestration (Enterprise only)"""
-    ...
-
-@router.post("/agents/pso-optimize")
-@require_feature("advanced_agents")
-async def pso_optimize(request: PSORequest):
-    """PSO optimization (Enterprise only)"""
-    ...
-```
-
-**Startup initialization:**
-```python
-# bifrost/main.py
-from bifrost.license import license_client
-
-@app.on_event("startup")
-async def startup():
-    license_client.mimir_url = settings.mimir_url
-    await license_client.refresh()
-```
+**Usage:** `from asgard_license import require_feature` — no startup fetch needed.
 
 ---
 
-### 4. Heimdall — Same Pattern (Rust)
+### 4. Heimdall / Fenrir / Huginn — Same Pattern (Rust)
 
+All Rust services use the shared crate directly, no network calls:
 ```rust
-// heimdall/src/license.rs
 use asgard_license::LicenseInfo;
-
-/// Fetch license info from Mimir on startup
-pub async fn fetch_license(mimir_url: &str) -> LicenseInfo {
-    match reqwest::get(format!("{mimir_url}/api/license")).await {
-        Ok(resp) => resp.json::<LicenseResponse>().await
-            .map(|r| r.into())
-            .unwrap_or_else(|_| LicenseInfo::community()),
-        Err(e) => {
-            tracing::warn!("Cannot reach Mimir for license: {e}");
-            LicenseInfo::community()
-        }
-    }
-}
+let license = LicenseInfo::from_env().unwrap_or_else(|e| {
+    tracing::warn!("License: {e}, Community mode");
+    LicenseInfo::community()
+});
+if license.has_feature("audit") { /* allowed */ }
 ```
 
 ---
@@ -677,17 +629,16 @@ export function LicenseStatus({ license }: { license: LicenseInfo }) {
 ## Implementation Checklist
 
 - [ ] **Step 1:** Generate Ed25519 keypair (one-time)
-- [ ] **Step 2:** Create `packages/asgard-license/` Rust crate
-- [ ] **Step 3:** Add `src/license/` module to Mimir + `GET /api/license` endpoint
+- [ ] **Step 2:** Create `packages/asgard-license/` Rust crate (Ed25519 verify, tier, features)
+- [ ] **Step 3:** Create `packages/asgard-license-py/` Python package (same logic)
 - [ ] **Step 4:** Add feature gate middleware to Mimir enterprise routes
-- [ ] **Step 5:** Create `bifrost/license.py` license client
-- [ ] **Step 6:** Add `@require_feature` decorators to Bifrost enterprise endpoints
-- [ ] **Step 7:** Add license client to Heimdall
-- [ ] **Step 8:** Update `.env.example` + `docker-compose.yml`
-- [ ] **Step 9:** Create `scripts/asgard-license-gen.py`
-- [ ] **Step 10:** Add License Status to Mimir Dashboard Settings
-- [ ] **Step 11:** Write tests (valid key, expired key, invalid sig, community mode)
-- [ ] **Step 12:** Generate test license key + verify full flow
+- [ ] **Step 5:** Add `@require_feature` decorators to Bifrost enterprise endpoints
+- [ ] **Step 6:** Add `asgard-license` crate to Heimdall, Fenrir, Huginn
+- [ ] **Step 7:** Update `.env.example` + `docker-compose.yml` + K8s `values.yaml`
+- [ ] **Step 8:** Create `scripts/asgard-license-gen.py`
+- [ ] **Step 9:** Add License Status to Mimir Dashboard Settings
+- [ ] **Step 10:** Write tests (valid key, expired key, invalid sig, community mode)
+- [ ] **Step 11:** Generate test license key + verify full flow
 
 ---
 
