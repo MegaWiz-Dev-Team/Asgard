@@ -29,17 +29,17 @@ These high-traffic services will have MCP embedded directly into their native ru
 
 ## 2. Universal Gateway Sidecars (The Pattern for Legacy/Heavy APIs)
 
-Services that are difficult to modify or written in heavier legacy stacks will be frontlined by a unified, ultra-lightweight **Go MCP Sidecar** (`asgard-mcp-sidecar`). 
+Services that are difficult to modify or written in heavier legacy stacks will be frontlined by a unified, ultra-lightweight **Rust MCP Sidecar** (`Asgard/mcp-sidecar/`). 
 
 ### 🏥 Eir (OpenEMR)
 * **Current Stack:** PHP (OpenEMR) + Python FastAPI Gateway.
-* **MCP Implementation:** Deploy the Go MCP Sidecar in front of Eir. The Sidecar translates MCP JSON-RPC tool calls into standard REST FHIR API calls to OpenEMR.
+* **MCP Implementation:** Deploy the Rust MCP Sidecar in front of Eir. The Sidecar translates MCP JSON-RPC tool calls into standard REST FHIR API calls to OpenEMR.
 * **Tools Exposed:** `get_patient_medical_history`, `book_appointment`, `prescribe_medication`.
 * **Why:** We avoid touching legacy PHP code and bypass the memory overhead of spinning up another Python MCP server.
 
 ### 🛡️ Heimdall (LLM Server)
 * **Current Stack:** Python (vLLM / MLX)
-* **MCP Implementation:** Go MCP Sidecar. We do not want to add Python async MCP loop overhead to the machine already dedicating all its VRAM and CPU cycles to tensor operations.
+* **MCP Implementation:** Rust MCP Sidecar. We do not want to add Python async MCP loop overhead to the machine already dedicating all its VRAM and CPU cycles to tensor operations.
 * **Tools Exposed:** `get_model_benchmark`, `switch_active_model`, `get_gpu_vram_usage`.
 
 ## 3. Native Python Servers (For Specialized Python Libraries)
@@ -68,4 +68,4 @@ Asgard/Bifrost will act purely as the **Master MCP Client**.
 
 > [!IMPORTANT]
 > User Review Required
-> This architecture will involve creating a new universal Go Sidecar repository/image (`asgard-mcp-sidecar`) and heavily modifying `bifrost/main.py`. Do you approve this architectural roadmap?
+> This architecture uses a universal Rust Sidecar (`Asgard/mcp-sidecar/`) within the Asgard monorepo and heavily modifies `bifrost/main.py`. Approved and implemented in Sprint 33.

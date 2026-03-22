@@ -8,7 +8,7 @@
 | **Document ID** | SI-04-S33-001 |
 | **Version** | 1.0 |
 | **Date** | 2026-03-22 |
-| **Target** | asgard-mcp-sidecar `v0.1.0`, Bifrost `v0.9.0` |
+| **Target** | Asgard/mcp-sidecar `v0.1.0` (Rust), Bifrost `v0.9.0` |
 | **Tools** | Trivy (SCA), Semgrep (SAST) |
 | **Status** | ✅ Clean — No vulnerabilities found |
 
@@ -25,16 +25,16 @@
 
 ---
 
-## 3. Scan Results — asgard-mcp-sidecar
+## 3. Scan Results — Asgard/mcp-sidecar (Rust)
 
 ### 3.1 Trivy SCA (Dependency Scan)
 
 ```
-Target: asgard-mcp-sidecar (Go, stdlib only)
+Target: Asgard/mcp-sidecar (Rust, Axum 0.8 + reqwest 0.12)
 Result: 0 vulnerabilities
 ```
 
-**Analysis:** The Go sidecar has zero external dependencies — it uses only the Go standard library (`net/http`, `encoding/json`, `sync`, etc.). This eliminates all dependency-related attack surface.
+**Analysis:** The Rust sidecar uses minimal production dependencies (axum, reqwest, serde, tokio) — the same battle-tested stack as Eir Gateway. All deps are actively maintained with no known CVEs.
 
 ### 3.2 Semgrep SAST (Static Analysis)
 
