@@ -17,7 +17,7 @@
 
 | Service | Version | Repository |
 |:--|:--|:--|
-| asgard-mcp-sidecar | `v0.1.0` | MegaWiz-Dev-Team/asgard-mcp-sidecar |
+| mcp-sidecar (Asgard/) | `v0.1.0` | Asgard monorepo |
 | Bifrost | `v0.9.0` | MegaWiz-Dev-Team/Bifrost |
 
 ---
@@ -80,9 +80,9 @@ Mock FHIR tests with Bundle, Appointment, and OperationOutcome error handling. 6
 
 ## 5. Quality Metrics
 
-| Metric | asgard-mcp-sidecar | Bifrost |
+| Metric | mcp-sidecar (Rust) | Bifrost |
 |:--|:--|:--|
-| Unit/E2E Tests | 50 pass | 6 pass + 2 skip |
+| Unit/E2E Tests | 33 pass | 6 pass + 2 skip |
 | Test Failures | 0 | 0 |
 | TDD Compliance | 100% (Red→Green) | 100% |
 | Security Scan | 0 vulnerabilities (Trivy) | — |

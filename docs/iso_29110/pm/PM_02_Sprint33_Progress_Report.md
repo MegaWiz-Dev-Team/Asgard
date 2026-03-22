@@ -14,7 +14,7 @@
 ---
 
 ## 2. Sprint Goal
-Scaffold a universal Go MCP sidecar (`asgard-mcp-sidecar`), implement Yggdrasil and Eir tool definitions, wire them into Bifrost agents via dynamic MCP discovery, and verify the full chain with E2E tests.
+Build a universal Rust MCP sidecar (`Asgard/mcp-sidecar/`), implement Yggdrasil and Eir tool definitions, wire them into Bifrost agents via dynamic MCP discovery, and verify the full chain with E2E tests.
 
 ---
 
@@ -22,7 +22,7 @@ Scaffold a universal Go MCP sidecar (`asgard-mcp-sidecar`), implement Yggdrasil 
 
 | # | Task | Status | Notes |
 |:--|:--|:--|:--|
-| 1 | Scaffold Go project (module, Dockerfile, README) | ✅ Done | 22 TDD tests |
+| 1 | Scaffold Rust project (Cargo, Axum, tests) | ✅ Done | 33 TDD tests |
 | 2 | Yggdrasil tools (validate_token, get_user_roles) | ✅ Done | 6 E2E tests |
 | 3 | Eir tools (get_patient_medical_history, book_appointment) | ✅ Done | 6 FHIR E2E tests |
 | 4 | Bifrost wiring (config, discovery, agent injection) | ✅ Done | 6 Python tests |
@@ -37,7 +37,7 @@ Scaffold a universal Go MCP sidecar (`asgard-mcp-sidecar`), implement Yggdrasil 
 
 | Service | Previous | New | Delta |
 |:--|:--|:--|:--|
-| asgard-mcp-sidecar | — | `v0.1.0` | New project (Go sidecar) |
+| mcp-sidecar (Asgard/) | — | `v0.1.0` | New Rust sidecar in monorepo |
 | Bifrost | `v0.8.1` | `v0.9.0` | MCP sidecar wiring |
 
 ---
@@ -46,7 +46,7 @@ Scaffold a universal Go MCP sidecar (`asgard-mcp-sidecar`), implement Yggdrasil 
 
 | Metric | asgard-mcp-sidecar | Bifrost |
 |:--|:--|:--|
-| Tests | 50 pass | 6 pass + 2 skip |
+| Tests | 33 pass (Rust) | 6 pass + 2 skip |
 | Test Failures | 0 | 0 |
 | Security Issues | 0 (Trivy clean) | — |
 | TDD Compliance | 100% | 100% |
@@ -57,7 +57,6 @@ Scaffold a universal Go MCP sidecar (`asgard-mcp-sidecar`), implement Yggdrasil 
 
 | Risk | Severity | Status |
 |:--|:--|:--|
-| GitHub repo not yet created (token issue) | Low | ⏳ Manual creation needed |
 | Sidecars not yet deployed to staging | Low | Planned for Sprint 34 |
 
 ---
