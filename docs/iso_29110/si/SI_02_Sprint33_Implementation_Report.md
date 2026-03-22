@@ -24,15 +24,15 @@
 
 ## 3. Deliverables — asgard-mcp-sidecar (`v0.1.0`)
 
-### 3.1 Universal Go MCP Sidecar (Phase 1)
+### 3.1 Universal Rust MCP Sidecar (Phase 1 → Phase 7)
 
 | Item | Detail |
 |:--|:--|
-| **Language** | Go 1.26.1 (static binary, ~8.7MB) |
-| **Module** | `github.com/MegaWiz-Dev-Team/asgard-mcp-sidecar` |
+| **Language** | Rust (Axum 0.8 + reqwest 0.12) |
+| **Location** | `Asgard/mcp-sidecar/` (monorepo subdirectory) |
 | **Architecture** | JSON-RPC 2.0 handler → REST proxy → upstream service |
 | **Key Design** | HTTP 4xx/5xx → JSON-RPC -32603 (prevents LLM hallucination) |
-| **Tests** | 22 TDD tests (types, handler, proxy, registry) |
+| **Tests** | 33 Rust tests (unit + integration with live Axum mocks) |
 
 ### 3.2 Yggdrasil MCP Tools (Phase 2)
 
@@ -60,7 +60,7 @@ Mock FHIR tests with Bundle, Appointment, and OperationOutcome error handling. 6
 | `TestE2E_Eir_FullChain` | tools/list → $everything → 404 wrapping → book_appointment → initialize |
 | `TestE2E_MultiService_SameInstance` | 4 tools combined (Yggdrasil + Eir) |
 
-**Total: 50 Go tests, all passing.**
+**Total: 33 Rust tests + 6 Bifrost Python tests, all passing.**
 
 ---
 
