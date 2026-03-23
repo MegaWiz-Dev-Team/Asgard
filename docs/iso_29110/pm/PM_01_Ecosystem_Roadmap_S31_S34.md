@@ -66,10 +66,10 @@
 เป้าหมาย: ขยายการเชื่อมต่อปลั๊กอินไปยังบริการความปลอดภัยและการแพทย์ (Zitadel & OpenEMR) 
 
 - **[Global Tooling - Error Handling]**
-  - **[Action - Code Review]:** เขียน `asgard-mcp-sidecar` (Go) ให้ดักจับ HTTP 500 Error จาก Service เก่า (เช่น PHP) และแปลงฟอร์แมตกลับเป็นมาตรฐาน **JSON-RPC Error Code -32603** คืนให้ LLM ป้องกันบอทเพ้อเจ้อเมื่อระบบล่ม
+  - **[Action - Code Review]:** Hermóðr (Rust MCP Sidecar) ดักจับ HTTP 500 Error จาก Service เก่า (เช่น PHP) และแปลงฟอร์แมตกลับเป็นมาตรฐาน **JSON-RPC Error Code -32603** คืนให้ LLM ป้องกันบอทเพ้อเจ้อเมื่อระบบล่ม
 - **[Project Yggdrasil & Eir]**
   - สร้าง `yggdrasil-mcp` (Go Sidecar) เปิด Tools: `validate_token`, `get_user_roles`
-  - จับ `asgard-mcp-sidecar` หุ้ม `eir-gateway` (PHP) เปิด Tools: `get_patient_medical_history`, `book_appointment`
+  - จับ Hermóðr (Rust MCP Sidecar) หุ้ม `eir-gateway` (PHP) เปิด Tools: `get_patient_medical_history`, `book_appointment`
 - **[Project Bifrost]**
   - จ่าย Tools ด้านสุขภาพและสิทธิใช้งานให้ Eir Agent และ Yggdrasil Agent
 

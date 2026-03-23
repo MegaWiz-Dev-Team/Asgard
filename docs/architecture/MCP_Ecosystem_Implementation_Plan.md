@@ -29,7 +29,7 @@ These high-traffic services will have MCP embedded directly into their native ru
 
 ## 2. Universal Gateway Sidecars (The Pattern for Legacy/Heavy APIs)
 
-Services that are difficult to modify or written in heavier legacy stacks will be frontlined by a unified, ultra-lightweight **Rust MCP Sidecar** (`Asgard/mcp-sidecar/`). 
+Services that are difficult to modify or written in heavier legacy stacks will be frontlined by a unified, ultra-lightweight **Rust MCP Sidecar** — **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** (standalone repo, previously `Asgard/mcp-sidecar/`). 
 
 ### 🏥 Eir (OpenEMR)
 * **Current Stack:** PHP (OpenEMR) + Python FastAPI Gateway.
@@ -68,4 +68,4 @@ Asgard/Bifrost will act purely as the **Master MCP Client**.
 
 > [!IMPORTANT]
 > User Review Required
-> This architecture uses a universal Rust Sidecar (`Asgard/mcp-sidecar/`) within the Asgard monorepo and heavily modifies `bifrost/main.py`. Approved and implemented in Sprint 33.
+> This architecture uses a universal Rust Sidecar — **Hermóðr** ([MegaWiz-Dev-Team/Hermodr](https://github.com/MegaWiz-Dev-Team/Hermodr), extracted from `Asgard/mcp-sidecar/` in Sprint 6). Bifrost connects to Hermóðr instances via JSON-RPC. Approved and implemented in Sprint 33, extracted in Sprint 6.

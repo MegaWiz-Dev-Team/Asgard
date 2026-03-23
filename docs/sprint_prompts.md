@@ -89,7 +89,7 @@ Pre-requisite: Sprint 31 เสร็จแล้ว (Mimir MCP Server ต้อ
 Pre-requisite: Sprint 31-32 เสร็จแล้ว (Mimir MCP + Bifrost Adapter ทำงานได้)
 
 งานหลัก:
-1. Scaffold โปรเจค asgard-mcp-sidecar (Go) — universal proxy สำหรับหุ้ม REST
+1. Hermóðr (Rust MCP Sidecar, `MegaWiz-Dev-Team/Hermodr`) — universal proxy สำหรับหุ้ม REST
 2. Implement JSON-RPC error wrapping (HTTP 500 → code -32603) ป้องกัน LLM hallucinate
 3. สร้าง yggdrasil-mcp sidecar (Go) → เปิด tools: validate_token, get_user_roles
 4. Deploy sidecar หุ้ม Eir/OpenEMR → เปิด tools: get_patient_medical_history, book_appointment
