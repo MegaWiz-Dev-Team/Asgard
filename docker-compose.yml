@@ -245,10 +245,10 @@ services:
       BIFROST_PORT: 8100
       HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
       MIMIR_URL: http://mimir-api:8080
-      # ── MCP Sidecars (Rust) ──
-      YGGDRASIL_MCP_URL: http://mcp-sidecar-yggdrasil:8090/rpc
+      # ── MCP Sidecars (Hermóðr) ──
+      YGGDRASIL_MCP_URL: http://hermodr-yggdrasil:8090/rpc
       YGGDRASIL_MCP_ENABLED: ${YGGDRASIL_MCP_ENABLED:-true}
-      EIR_MCP_URL: http://mcp-sidecar-eir:8091/rpc
+      EIR_MCP_URL: http://hermodr-eir:8091/rpc
       EIR_MCP_ENABLED: ${EIR_MCP_ENABLED:-true}
       # ── Shared Secrets (from Asgard/.env) ──
       HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
@@ -264,14 +264,14 @@ services:
       - asgard
 
   # ═══════════════════════════════════════
-  # 🔌 MCP SIDECARS — Rust JSON-RPC bridges
+  # 🔌 HERMÓÐR — MCP Sidecars (Rust JSON-RPC bridges)
   # ═══════════════════════════════════════
 
-  mcp-sidecar-yggdrasil:
+  hermodr-yggdrasil:
     build:
-      context: ./mcp-sidecar
+      context: ../Hermodr
       dockerfile: Dockerfile
-    container_name: asgard_mcp_yggdrasil
+    container_name: asgard_hermodr_yggdrasil
     restart: unless-stopped
     ports:
       - "${YGGDRASIL_MCP_PORT:-8090}:8090"
@@ -286,11 +286,11 @@ services:
     networks:
       - asgard
 
-  mcp-sidecar-eir:
+  hermodr-eir:
     build:
-      context: ./mcp-sidecar
+      context: ../Hermodr
       dockerfile: Dockerfile
-    container_name: asgard_mcp_eir
+    container_name: asgard_hermodr_eir
     restart: unless-stopped
     profiles:
       - full
