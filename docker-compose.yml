@@ -509,6 +509,33 @@ services:
     networks:
       - asgard
 
+  # ─────────────────────────────────────
+  # 🔨 Mjölnir — Load Testing Service
+  # ─────────────────────────────────────
+  mjolnir:
+    build:
+      context: ../Mjolnir
+      dockerfile: Dockerfile
+    container_name: asgard_mjolnir
+    restart: unless-stopped
+    ports:
+      - "${MJOLNIR_PORT:-8700}:8700"
+    environment:
+      MJOLNIR_PORT: 8700
+      FORSETI_URL: http://forseti:5555
+      RUST_LOG: ${RUST_LOG:-info}
+      MAX_CONCURRENT_RUNS: ${MAX_CONCURRENT_RUNS:-3}
+    depends_on:
+      - forseti
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8700/healthz"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    networks:
+      - asgard
+
 # ═══════════════════════════════════════
 # 📦 VOLUMES
 # ═══════════════════════════════════════
