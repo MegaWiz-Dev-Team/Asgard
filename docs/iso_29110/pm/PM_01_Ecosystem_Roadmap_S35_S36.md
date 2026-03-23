@@ -12,29 +12,31 @@
 
 ---
 
-### 🧠 Sprint 35: Agent Intelligence Foundation
+### 🧠 Sprint 35: Agent Intelligence Foundation ✅ COMPLETE
 เป้าหมาย: เพิ่ม "ความจำ" และ "ทักษะ" ให้ Asgard agents — เปลี่ยนจาก stateless MCP tools เป็น intelligent agents
 
-- **[Skills System — ต้นแบบ: DeerFlow]**
-  - สร้าง `Asgard/skills/{public,custom}/` directory structure
-  - กำหนด `SKILL.md` format (YAML frontmatter + markdown) — compatible กับ DeerFlow ecosystem
-  - เขียน built-in skills: medical-research, patient-summary, iso-doc-generator, security-audit, deployment
-  - สร้าง Bifrost `skills_loader.py` — scan, parse, progressive loading (ไม่กิน context window)
-  - Integrate skills เข้า agent system prompt ของ Bifrost
+> **Completed:** 2026-03-23 | **Bifrost:** `v0.10.0` | **Asgard:** `v0.35.0` | **Tests:** 47 pass | **Semgrep:** Clean
 
-- **[Long-Term Agent Memory — ต้นแบบ: DeerFlow]**
-  - สร้าง Bifrost `memory/` module: schema, updater (LLM extraction), store, middleware
-  - Memory schema: User Context + History + Facts + Medical Context (Asgard-specific)
-  - **Multi-tenant isolation**: memory per `tenant_id` (จัดเก็บผ่าน MinIO shared storage)
-  - Memory injection: top 15 facts + context → `<memory>` block ใน system prompt
-  - Async extraction: queue conversations → LLM extracts facts → dedup → persist
+- **[Skills System — ต้นแบบ: DeerFlow] ✅**
+  - ✅ สร้าง `Asgard/skills/{public,custom}/` directory structure
+  - ✅ กำหนด `SKILL.md` format (YAML frontmatter + markdown) — compatible กับ DeerFlow ecosystem
+  - ✅ เขียน built-in skills: medical-research, patient-summary, iso-doc-generator, security-audit, deployment
+  - ✅ สร้าง Bifrost `skills/` module — models.py (parser), loader.py (scan, progressive loading)
+  - ✅ Integrate skills เข้า agent executor system prompt (`<skills>` block injection)
 
-- **[Context Engineering — ต้นแบบ: DeerFlow]**
-  - สร้าง Bifrost `context/` module: summarizer, middleware
-  - Summarize completed sub-tasks เมื่อ context ใกล้ limit (configurable triggers)
-  - เก็บ recent messages verbatim, สรุป older messages
+- **[Long-Term Agent Memory — ต้นแบบ: DeerFlow] ✅**
+  - ✅ สร้าง Bifrost `memory/` module: schema.py, store.py, updater.py
+  - ✅ Memory schema: 4 categories (fact, context, medical, preference)
+  - ✅ **Multi-tenant isolation**: memory per `tenant_id` + dedup index
+  - ✅ Memory injection: top 15 facts → `<memory>` block ใน system prompt
+  - ✅ LLM-based extraction: conversations → JSON facts → dedup → SQLite
 
-- **[Shared Storage Service — ใช้ RustFS ตัวเดิมของ Mimir (Rust-native S3-compatible) แทน MinIO]**
+- **[Context Engineering — ต้นแบบ: DeerFlow] ✅**
+  - ✅ สร้าง Bifrost `context/` module: summarizer.py, middleware.py
+  - ✅ Configurable triggers: max_messages=20, max_tokens=6000
+  - ✅ เก็บ recent messages verbatim, สรุป older messages via LLM
+
+- **[Shared Storage Service] — ⏳ Deferred to Sprint 36**
   - ย้าย **RustFS** จาก `Mimir/docker-compose.yml` → `Asgard/docker-compose.yml` เป็น shared service
   - Bucket structure: `tasks/`, `skills/`, `memory/`, `artifacts/`, `knowledge/`
   - สร้าง Bifrost `storage.py` — S3-compatible client wrapper (ใช้ endpoint เดียวกับ Mimir)
