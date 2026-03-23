@@ -245,8 +245,10 @@ services:
       BIFROST_PORT: 8100
       HEIMDALL_URL: http://host.docker.internal:${HEIMDALL_PORT:-8080}
       MIMIR_URL: http://mimir-api:8080
-      # ── MCP Servers ──
-      EIR_MCP_URL: ${EIR_MCP_URL:-http://eir-gateway:8300/api/mcp}
+      # ── MCP Sidecars (Rust) ──
+      YGGDRASIL_MCP_URL: http://mcp-sidecar-yggdrasil:8090/rpc
+      YGGDRASIL_MCP_ENABLED: ${YGGDRASIL_MCP_ENABLED:-true}
+      EIR_MCP_URL: http://mcp-sidecar-eir:8091/rpc
       EIR_MCP_ENABLED: ${EIR_MCP_ENABLED:-true}
       # ── Shared Secrets (from Asgard/.env) ──
       HEIMDALL_API_KEY: ${HEIMDALL_API_KEY:-}
@@ -258,6 +260,50 @@ services:
       AUTH_ENABLED: "false"
     depends_on:
       - mimir-api
+    networks:
+      - asgard
+
+  # ═══════════════════════════════════════
+  # 🔌 MCP SIDECARS — Rust JSON-RPC bridges
+  # ═══════════════════════════════════════
+
+  mcp-sidecar-yggdrasil:
+    build:
+      context: ./mcp-sidecar
+      dockerfile: Dockerfile
+    container_name: asgard_mcp_yggdrasil
+    restart: unless-stopped
+    ports:
+      - "${YGGDRASIL_MCP_PORT:-8090}:8090"
+    environment:
+      SERVICE_NAME: yggdrasil
+      UPSTREAM_URL: http://yggdrasil:8080
+      PORT: "8090"
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      yggdrasil:
+        condition: service_healthy
+    networks:
+      - asgard
+
+  mcp-sidecar-eir:
+    build:
+      context: ./mcp-sidecar
+      dockerfile: Dockerfile
+    container_name: asgard_mcp_eir
+    restart: unless-stopped
+    profiles:
+      - full
+    ports:
+      - "${EIR_MCP_PORT:-8091}:8091"
+    environment:
+      SERVICE_NAME: eir
+      UPSTREAM_URL: http://eir-gateway:8300
+      PORT: "8091"
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      eir-gateway:
+        condition: service_healthy
     networks:
       - asgard
 
