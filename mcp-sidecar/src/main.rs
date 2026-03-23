@@ -262,7 +262,7 @@ mod tests {
         let resp = rpc_request(&app, r#"{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}"#).await;
         let result = resp.result.unwrap();
         let tools = result["tools"].as_array().unwrap();
-        assert_eq!(tools.len(), 4); // 2 yggdrasil + 2 eir
+        assert_eq!(tools.len(), 8); // 2 yggdrasil + 6 eir
     }
 
     #[tokio::test]
