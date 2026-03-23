@@ -59,7 +59,7 @@ graph LR
 |:--|:--|:--|:--|:--|
 | 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
 | 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
-| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Agent Runtime — ReAct loop, MCP, A2A, PSO | Python (FastAPI) | 99 | ✅ Sprint 4 |
+| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Agent Runtime — ReAct, MCP, Skills, Memory, Context | Python (FastAPI) | 146 | ✅ Sprint 35 |
 | 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 + Messaging | Python (FastAPI) | 47 | ✅ Sprint 1.5 |
 | 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
 | 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
@@ -69,7 +69,7 @@ graph LR
 | 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
 | 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
 
-> **484+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
+> **530+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
 ---
 
@@ -120,6 +120,8 @@ Build a **self-hosted AI platform** that enables:
 - [x] Yggdrasil — Auth Service (Sprint 2, Zitadel + JWT + FastAPI Auth, 31 tests)
 - [x] Unified Docker Compose — 10 services, one command
 - [x] AGPL-3.0 licensing + CLA
+- [x] Bifrost Sprint 35 — Skills system, long-term memory, context engineering (146 tests)
+- [x] Asgard `skills/` — 5 built-in skills (DeerFlow-compatible SKILL.md format)
 
 ### Phase 2: Integration & Growth 🚧
 - [ ] Eir Sprint 4 — MCP Server (FHIR tools) + Chat UI widget
