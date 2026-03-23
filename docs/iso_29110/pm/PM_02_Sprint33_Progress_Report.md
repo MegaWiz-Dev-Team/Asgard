@@ -14,7 +14,7 @@
 ---
 
 ## 2. Sprint Goal
-Build a universal Rust MCP sidecar (`Asgard/mcp-sidecar/`), implement Yggdrasil and Eir tool definitions, wire them into Bifrost agents via dynamic MCP discovery, and verify the full chain with E2E tests.
+Build a universal Rust MCP sidecar — **Hermóðr** (`MegaWiz-Dev-Team/Hermodr`), implement Yggdrasil and Eir tool definitions, wire them into Bifrost agents via dynamic MCP discovery, and verify the full chain with E2E tests.
 
 ---
 
@@ -37,14 +37,14 @@ Build a universal Rust MCP sidecar (`Asgard/mcp-sidecar/`), implement Yggdrasil 
 
 | Service | Previous | New | Delta |
 |:--|:--|:--|:--|
-| mcp-sidecar (Asgard/) | — | `v0.1.0` | New Rust sidecar in monorepo |
+| Hermóðr (MCP Sidecar) | — | `v0.1.0` | Standalone Rust repo (MegaWiz-Dev-Team/Hermodr) |
 | Bifrost | `v0.8.1` | `v0.9.0` | MCP sidecar wiring |
 
 ---
 
 ## 5. Quality Metrics
 
-| Metric | asgard-mcp-sidecar | Bifrost |
+| Metric | Hermóðr | Bifrost |
 |:--|:--|:--|
 | Tests | 33 pass (Rust) | 6 pass + 2 skip |
 | Test Failures | 0 | 0 |

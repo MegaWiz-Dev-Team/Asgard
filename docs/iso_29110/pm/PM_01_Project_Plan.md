@@ -27,7 +27,7 @@
 | 🐦 **Muninn** | MegaWiz-Dev-Team/Muninn | Auto-Fixer — Issue Watcher + Multi-Agent Fix Pipeline (Rust) | v0.1.0 | 37 tests | 🚧 Sprint 2 Complete |
 | 👁️ **Syn** | MegaWiz-Dev-Team/Syn | Document Vision & Identity — OCR + eKYC (Python) | — | — | 🆕 Planned (Apr 2026) |
 | 🗣️ **Sága** | MegaWiz-Dev-Team/Saga | Speech & Voice — STT (Whisper) + Streaming (Python) | — | — | 🆕 Planned (May 2026) |
-| 📨 **Hermóðr** | MegaWiz-Dev-Team/Hermodr | Notification Gateway — SMS + Push + Webhook | — | — | 🆕 Planned (May 2026) |
+| 📨 **Hermóðr** | MegaWiz-Dev-Team/Hermodr | MCP Sidecar — Universal Rust JSON-RPC bridge for REST services | v0.1.0 | 37 tests | ✅ Sprint 6 Complete |
 | 🏰 Asgard | MegaWiz-Dev-Team/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
 
 ### Test Summary
@@ -43,8 +43,8 @@
 | Muninn | 37 | Rust (#[cfg(test)]) | Watcher + Fixer + LLM + DB + Health |
 | Syn | — | pytest | Planned (Apr 2026) |
 | Sága | — | pytest | Planned (May 2026) |
-| Hermóðr | — | pytest | Planned (May 2026) |
-| **Total** | **610+** | | |
+| Hermóðr | 37 | Rust (#[cfg(test)]) | MCP Sidecar tools + proxy + JSON-RPC |
+| **Total** | **647+** | | |
 
 ### Deliverables
 - Unified `docker-compose.yml` ที่ start ทุก service ด้วยคำสั่งเดียว
@@ -155,8 +155,8 @@
   - True Vector Integration, Parallel Tree Search, Neo4j Graph, Ensemble Retrieval, and Rust MCP Server.
 - **Sprint 32: Asgard/Bifrost MCP Adapter & Dynamic Tenants** [Planned]
   - Auto-discover tools from MCP servers, Dynamic Context Isolation (X-Tenant-ID), Agent-to-Agent via JSON-RPC.
-- **Sprint 33: Ecosystem Gateway Sidecars** [Planned]
-  - Yggdrasil & Eir Universal Go Sidecars to expose auth and medical tools to Asgard.
+- **Sprint 33: Ecosystem Gateway Sidecars** [✅ Done]
+  - Hermóðr Rust MCP Sidecar: Yggdrasil & Eir tools. Extracted to standalone repo in Sprint 6.
 - **Sprint 34: Platform Automation (Testing, Browsing & Security)** [Planned]
   - Deploy MCP across Fenrir, Forseti, Ratatoskr, Huginn, Muninn, and Heimdall.
 
@@ -203,7 +203,7 @@
 | **Bifrost S9** — Approval workflow + Rule engine + Scoring | 2026-05 W1-2 | 📋 Planned |
 | **Syn S2** — Medical OCR + eKYC + Document classifier | 2026-05 W1-2 | 📋 Planned |
 | **Sága S1** — Whisper Thai STT + FastAPI + WebSocket | 2026-05 W3-4 | 📋 Planned |
-| **Hermóðr S1** — SMS + Push + Webhook + Retry queue | 2026-05 W3-4 | 📋 Planned |
+| **Hermóðr S1** — MCP Sidecar Foundation (Yggdrasil + Eir tools) | 2026-03-22 | ✅ Done |
 | **Mimir S30** — PageIndex integration (tree indexing Step 0) | 2026-05~06 | 📋 Planned |
 | **Package Extract 2** — nlq-engine, adk-base from MegaCare | 2026-06 | 📋 Planned |
 | **Huginn S3-S4** — AI Pentest + Multi-Agent | 2026-05~06 | 📋 Planned |

@@ -8,7 +8,7 @@
 | **Document ID** | SI-04-S33-001 |
 | **Version** | 1.0 |
 | **Date** | 2026-03-22 |
-| **Target** | Asgard/mcp-sidecar `v0.1.0` (Rust), Bifrost `v0.9.0` |
+| **Target** | Hermóðr `v0.1.0` (Rust), Bifrost `v0.9.0` |
 | **Tools** | Trivy (SCA), Semgrep (SAST) |
 | **Status** | ✅ Clean — No vulnerabilities found |
 
@@ -25,12 +25,12 @@
 
 ---
 
-## 3. Scan Results — Asgard/mcp-sidecar (Rust)
+## 3. Scan Results — Hermóðr (Rust)
 
 ### 3.1 Trivy SCA (Dependency Scan)
 
 ```
-Target: Asgard/mcp-sidecar (Rust, Axum 0.8 + reqwest 0.12)
+Target: Hermóðr (Rust, Axum 0.8 + reqwest 0.12)
 Result: 0 vulnerabilities
 ```
 

@@ -17,22 +17,22 @@
 
 | Service | Version | Repository |
 |:--|:--|:--|
-| mcp-sidecar (Asgard/) | `v0.1.0` | Asgard monorepo |
+| Hermóðr (MCP Sidecar) | `v0.1.0` | MegaWiz-Dev-Team/Hermodr |
 | Bifrost | `v0.9.0` | MegaWiz-Dev-Team/Bifrost |
 
 ---
 
-## 3. Deliverables — asgard-mcp-sidecar (`v0.1.0`)
+## 3. Deliverables — Hermóðr (`v0.1.0`)
 
 ### 3.1 Universal Rust MCP Sidecar (Phase 1 → Phase 7)
 
 | Item | Detail |
 |:--|:--|
 | **Language** | Rust (Axum 0.8 + reqwest 0.12) |
-| **Location** | `Asgard/mcp-sidecar/` (monorepo subdirectory) |
+| **Location** | `MegaWiz-Dev-Team/Hermodr` (standalone repo, extracted from `Asgard/mcp-sidecar/` in Sprint 6) |
 | **Architecture** | JSON-RPC 2.0 handler → REST proxy → upstream service |
 | **Key Design** | HTTP 4xx/5xx → JSON-RPC -32603 (prevents LLM hallucination) |
-| **Tests** | 33 Rust tests (unit + integration with live Axum mocks) |
+| **Tests** | 37 Rust tests (unit + integration with live Axum mocks) |
 
 ### 3.2 Yggdrasil MCP Tools (Phase 2)
 
@@ -80,7 +80,7 @@ Mock FHIR tests with Bundle, Appointment, and OperationOutcome error handling. 6
 
 ## 5. Quality Metrics
 
-| Metric | mcp-sidecar (Rust) | Bifrost |
+| Metric | Hermóðr (Rust) | Bifrost |
 |:--|:--|:--|
 | Unit/E2E Tests | 33 pass | 6 pass + 2 skip |
 | Test Failures | 0 | 0 |
@@ -92,8 +92,8 @@ Mock FHIR tests with Bundle, Appointment, and OperationOutcome error handling. 6
 ## 6. Architecture
 
 ```
-LLM → Bifrost (ADK) → Yggdrasil Agent → yggdrasil-mcp (:8090) → Zitadel
-                     → Eir Agent      → eir-mcp (:8091)      → Eir Gateway → OpenEMR
+LLM → Bifrost (ADK) → Yggdrasil Agent → hermodr-yggdrasil (:8090) → Zitadel
+                     → Eir Agent      → hermodr-eir (:8091)      → Eir Gateway → OpenEMR
 ```
 
 ---
