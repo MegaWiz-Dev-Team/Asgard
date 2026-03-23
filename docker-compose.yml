@@ -525,6 +525,9 @@ services:
       FORSETI_URL: http://forseti:5555
       RUST_LOG: ${RUST_LOG:-info}
       MAX_CONCURRENT_RUNS: ${MAX_CONCURRENT_RUNS:-3}
+      DATABASE_URL: sqlite:/app/data/mjolnir.db
+    volumes:
+      - mjolnir_data:/app/data
     depends_on:
       - forseti
     healthcheck:
@@ -552,6 +555,8 @@ volumes:
   neo4j_data:
     driver: local
   forseti_data:
+    driver: local
+  mjolnir_data:
     driver: local
 
 
