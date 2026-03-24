@@ -1,0 +1,50 @@
+# 🧠 Mimir Dashboard — Next.js UI
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir-dashboard
+  namespace: asgard-services
+  labels:
+    app: mimir-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mimir-dashboard
+  template:
+    metadata:
+      labels:
+        app: mimir-dashboard
+    spec:
+      containers:
+        - name: mimir-dashboard
+          image: asgard-mimir-dashboard:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: http://mimir-api.asgard-services.svc:8080
+            - name: NEXT_PUBLIC_YGGDRASIL_URL
+              value: http://yggdrasil.asgard-services.svc:8080
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimir-dashboard
+  namespace: asgard-services
+spec:
+  selector:
+    app: mimir-dashboard
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30001
+  type: NodePort

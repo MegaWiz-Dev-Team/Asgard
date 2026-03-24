@@ -1,0 +1,77 @@
+# ⚡ Bifrost — Agent Runtime
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bifrost
+  namespace: asgard-services
+  labels:
+    app: bifrost
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bifrost
+  template:
+    metadata:
+      labels:
+        app: bifrost
+    spec:
+      containers:
+        - name: bifrost
+          image: asgard-bifrost:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8100
+          env:
+            - name: BIFROST_HOST
+              value: "0.0.0.0"
+            - name: BIFROST_PORT
+              value: "8100"
+            - name: HEIMDALL_URL
+              value: http://host.docker.internal:8080
+            - name: MIMIR_URL
+              value: http://mimir-api.asgard-services.svc:8080
+            - name: YGGDRASIL_MCP_URL
+              value: http://hermodr.asgard-services.svc:8090/rpc
+            - name: YGGDRASIL_MCP_ENABLED
+              value: "true"
+            - name: DEFAULT_MODEL
+              value: mlx-community/Qwen3.5-9B-MLX-4bit
+            - name: MAX_ITERATIONS
+              value: "10"
+            - name: MAX_EXECUTION_TIME
+              value: "120"
+            - name: LOG_LEVEL
+              value: info
+            - name: AUTH_ENABLED
+              value: "false"
+          envFrom:
+            - secretRef:
+                name: asgard-secrets
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8100
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bifrost
+  namespace: asgard-services
+spec:
+  selector:
+    app: bifrost
+  ports:
+    - port: 8100
+      targetPort: 8100
+      nodePort: 30100
+  type: NodePort

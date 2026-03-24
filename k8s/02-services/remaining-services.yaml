@@ -1,0 +1,239 @@
+# 🔌 Hermóðr — MCP Sidecar (Yggdrasil)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermodr
+  namespace: asgard-services
+  labels:
+    app: hermodr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hermodr
+  template:
+    metadata:
+      labels:
+        app: hermodr
+    spec:
+      containers:
+        - name: hermodr
+          image: asgard-hermodr-yggdrasil:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8090
+          env:
+            - name: SERVICE_NAME
+              value: yggdrasil
+            - name: UPSTREAM_URL
+              value: http://yggdrasil.asgard-services.svc:8080
+            - name: PORT
+              value: "8090"
+            - name: RUST_LOG
+              value: info
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+              cpu: 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermodr
+  namespace: asgard-services
+spec:
+  selector:
+    app: hermodr
+  ports:
+    - port: 8090
+      targetPort: 8090
+---
+# 🐿️ Ratatoskr — Browser Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratatoskr
+  namespace: asgard-services
+  labels:
+    app: ratatoskr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratatoskr
+  template:
+    metadata:
+      labels:
+        app: ratatoskr
+    spec:
+      containers:
+        - name: ratatoskr
+          image: asgard-ratatoskr:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9200
+          env:
+            - name: PORT
+              value: "9200"
+            - name: RUST_LOG
+              value: ratatoskr=info
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 2Gi
+              cpu: 1000m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratatoskr
+  namespace: asgard-services
+spec:
+  selector:
+    app: ratatoskr
+  ports:
+    - port: 9200
+      targetPort: 9200
+---
+# 🔨 Mjölnir — Load Testing
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mjolnir-data
+  namespace: asgard-services
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mjolnir
+  namespace: asgard-services
+  labels:
+    app: mjolnir
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mjolnir
+  template:
+    metadata:
+      labels:
+        app: mjolnir
+    spec:
+      containers:
+        - name: mjolnir
+          image: asgard-mjolnir:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8700
+          env:
+            - name: MJOLNIR_PORT
+              value: "8700"
+            - name: FORSETI_URL
+              value: http://forseti.asgard-services.svc:5555
+            - name: RUST_LOG
+              value: info
+            - name: MAX_CONCURRENT_RUNS
+              value: "3"
+            - name: DATABASE_URL
+              value: sqlite:/app/data/mjolnir.db
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8700
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 300m
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mjolnir-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mjolnir
+  namespace: asgard-services
+spec:
+  selector:
+    app: mjolnir
+  ports:
+    - port: 8700
+      targetPort: 8700
+---
+# 📑 PageIndex — RAG Sidecar
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pageindex
+  namespace: asgard-services
+  labels:
+    app: pageindex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pageindex
+  template:
+    metadata:
+      labels:
+        app: pageindex
+    spec:
+      containers:
+        - name: pageindex
+          image: asgard-pageindex:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8600
+          env:
+            - name: PAGEINDEX_PORT
+              value: "8600"
+            - name: OPENAI_API_BASE
+              value: http://host.docker.internal:8080/v1
+            - name: OPENAI_API_KEY
+              value: dummy
+            - name: PAGEINDEX_MODEL
+              value: auto
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8600
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pageindex
+  namespace: asgard-services
+spec:
+  selector:
+    app: pageindex
+  ports:
+    - port: 8600
+      targetPort: 8600
