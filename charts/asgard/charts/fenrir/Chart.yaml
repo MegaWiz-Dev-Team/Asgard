@@ -1,0 +1,5 @@
+apiVersion: v2
+name: fenrir
+description: Asgard fenrir sub-chart
+type: application
+version: 0.1.0

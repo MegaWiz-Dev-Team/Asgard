@@ -1,0 +1,54 @@
+# values-prod.yaml — Production overrides
+global:
+  imagePullPolicy: IfNotPresent
+  heimdallUrl: http://heimdall.asgard.internal:8080
+
+secrets:
+  heimdallApiKey: ""  # Set via --set or external-secrets
+  jwtSecret: ""
+  geminiApiKey: ""
+
+bifrost:
+  image: ghcr.io/megawiz-dev-team/bifrost:latest
+  defaultModel: mlx-community/Qwen3.5-35B-A3B-4bit
+
+mimir:
+  api:
+    image: ghcr.io/megawiz-dev-team/mimir-api:latest
+    resources:
+      requests: { memory: 512Mi, cpu: 500m }
+      limits: { memory: 2Gi, cpu: "2" }
+  dashboard:
+    image: ghcr.io/megawiz-dev-team/mimir-dashboard:latest
+
+fenrir:
+  image: ghcr.io/megawiz-dev-team/fenrir:latest
+
+forseti:
+  image: ghcr.io/megawiz-dev-team/forseti:latest
+  storage: 5Gi
+
+hermodr:
+  image: ghcr.io/megawiz-dev-team/hermodr:latest
+
+ratatoskr:
+  image: ghcr.io/megawiz-dev-team/ratatoskr:latest
+
+mjolnir:
+  image: ghcr.io/megawiz-dev-team/mjolnir:latest
+
+pageindex:
+  image: ghcr.io/megawiz-dev-team/pageindex:latest
+
+vardr:
+  image: ghcr.io/megawiz-dev-team/vardr:latest
+
+infra:
+  mariadb:
+    storage: 50Gi
+  postgres:
+    storage: 20Gi
+  qdrant:
+    storage: 50Gi
+  neo4j:
+    storage: 20Gi

@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mjolnir-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.storage | default "1Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mjolnir
+  labels: { app: mjolnir }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mjolnir }
+  template:
+    metadata:
+      labels: { app: mjolnir }
+    spec:
+      containers:
+        - name: mjolnir
+          image: {{ .Values.image | default "asgard-mjolnir:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          ports: [{ containerPort: 8700 }]
+          env:
+            - { name: MJOLNIR_PORT, value: "8700" }
+            - { name: FORSETI_URL, value: "http://forseti.{{ .Release.Namespace }}.svc:5555" }
+            - { name: RUST_LOG, value: {{ .Values.global.rustLog | default "info" | quote }} }
+            - { name: MAX_CONCURRENT_RUNS, value: "3" }
+            - { name: DATABASE_URL, value: "sqlite:/app/data/mjolnir.db" }
+          volumeMounts:
+            - { name: data, mountPath: /app/data }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8700 }
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests: { memory: 64Mi, cpu: 50m }
+            limits: { memory: 256Mi, cpu: 300m }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: mjolnir-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mjolnir
+spec:
+  selector: { app: mjolnir }
+  ports: [{ port: 8700, targetPort: 8700 }]

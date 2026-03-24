@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forseti-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.storage | default "1Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forseti
+  labels: { app: forseti }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: forseti }
+  template:
+    metadata:
+      labels: { app: forseti }
+    spec:
+      containers:
+        - name: forseti
+          image: {{ .Values.image | default "asgard-forseti:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          ports: [{ containerPort: 5555 }]
+          env:
+            - { name: FORSETI_HOST, value: "0.0.0.0" }
+            - { name: FORSETI_PORT, value: "5555" }
+            - { name: DB_PATH, value: /app/data/forseti_results.db }
+            - { name: MIMIR_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
+            - { name: BIFROST_URL, value: "http://bifrost.{{ .Release.Namespace }}.svc:8100" }
+            - { name: FENRIR_URL, value: "http://fenrir.{{ .Release.Namespace }}.svc:8200" }
+            - { name: HEIMDALL_URL, value: {{ .Values.global.heimdallUrl | quote }} }
+            - { name: LOG_LEVEL, value: {{ .Values.global.logLevel | default "info" | quote }} }
+          volumeMounts:
+            - { name: data, mountPath: /app/data }
+          readinessProbe:
+            httpGet: { path: /, port: 5555 }
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests: { memory: 128Mi, cpu: 100m }
+            limits: { memory: 512Mi, cpu: 500m }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: forseti-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forseti
+spec:
+  type: NodePort
+  selector: { app: forseti }
+  ports:
+    - port: 5555
+      targetPort: 5555
+      nodePort: {{ .Values.nodePort | default 30555 }}

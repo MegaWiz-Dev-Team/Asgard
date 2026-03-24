@@ -1,0 +1,18 @@
+# values-dev.yaml — Local development overrides
+global:
+  imagePullPolicy: Never
+  heimdallUrl: http://host.docker.internal:8080
+
+bifrost:
+  defaultModel: mlx-community/Qwen3.5-9B-MLX-4bit
+  maxIterations: 10
+
+infra:
+  mariadb:
+    storage: 5Gi
+  postgres:
+    storage: 2Gi
+  qdrant:
+    storage: 5Gi
+  neo4j:
+    storage: 2Gi

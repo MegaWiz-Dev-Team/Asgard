@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratatoskr
+  labels: { app: ratatoskr }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ratatoskr }
+  template:
+    metadata:
+      labels: { app: ratatoskr }
+    spec:
+      containers:
+        - name: ratatoskr
+          image: {{ .Values.image | default "asgard-ratatoskr:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          ports: [{ containerPort: 9200 }]
+          env:
+            - { name: PORT, value: "9200" }
+            - { name: RUST_LOG, value: ratatoskr=info }
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits: { memory: 2Gi, cpu: "1" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratatoskr
+spec:
+  selector: { app: ratatoskr }
+  ports: [{ port: 9200, targetPort: 9200 }]
