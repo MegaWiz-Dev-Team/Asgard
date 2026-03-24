@@ -1,0 +1,41 @@
+apiVersion: v2
+name: asgard
+description: 🏰 Asgard AI Platform — Umbrella Helm Chart
+type: application
+version: 0.1.0
+appVersion: "0.37.0"
+
+dependencies:
+  - name: infra
+    version: 0.1.0
+    condition: infra.enabled
+  - name: yggdrasil
+    version: 0.1.0
+    condition: yggdrasil.enabled
+  - name: mimir
+    version: 0.1.0
+    condition: mimir.enabled
+  - name: bifrost
+    version: 0.1.0
+    condition: bifrost.enabled
+  - name: fenrir
+    version: 0.1.0
+    condition: fenrir.enabled
+  - name: forseti
+    version: 0.1.0
+    condition: forseti.enabled
+  - name: hermodr
+    version: 0.1.0
+    condition: hermodr.enabled
+  - name: ratatoskr
+    version: 0.1.0
+    condition: ratatoskr.enabled
+  - name: mjolnir
+    version: 0.1.0
+    condition: mjolnir.enabled
+  - name: pageindex
+    version: 0.1.0
+    condition: pageindex.enabled
+  - name: vardr
+    version: 0.1.0
+    condition: vardr.enabled

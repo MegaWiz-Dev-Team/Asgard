@@ -1,0 +1,245 @@
+{{- if .Values.mariadb }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.mariadb.storage | default "10Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  labels:
+    app: mariadb
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: mariadb }
+  template:
+    metadata:
+      labels: { app: mariadb }
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:11
+          ports: [{ containerPort: 3306 }]
+          env:
+            - { name: MYSQL_ROOT_PASSWORD, value: {{ .Values.mariadb.rootPassword | quote }} }
+            - { name: MYSQL_DATABASE, value: {{ .Values.mariadb.database | quote }} }
+            - { name: MYSQL_USER, value: {{ .Values.mariadb.user | quote }} }
+            - { name: MYSQL_PASSWORD, value: {{ .Values.mariadb.password | quote }} }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits: { memory: 1Gi, cpu: 500m }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: mariadb-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+spec:
+  selector: { app: mariadb }
+  ports: [{ port: 3306, targetPort: 3306 }]
+{{- end }}
+---
+{{- if .Values.postgres }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.postgres.storage | default "5Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels: { app: postgres }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_USER, value: {{ .Values.postgres.user | quote }} }
+            - { name: POSTGRES_PASSWORD, value: {{ .Values.postgres.password | quote }} }
+            - { name: POSTGRES_DB, value: {{ .Values.postgres.database | quote }} }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "zitadel"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: { memory: 128Mi, cpu: 100m }
+            limits: { memory: 512Mi, cpu: 300m }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: postgres-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector: { app: postgres }
+  ports: [{ port: 5432, targetPort: 5432 }]
+{{- end }}
+---
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels: { app: redis }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: redis }
+  template:
+    metadata:
+      labels: { app: redis }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports: [{ containerPort: 6379 }]
+          resources:
+            requests: { memory: 64Mi, cpu: 50m }
+            limits: { memory: 256Mi, cpu: 200m }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector: { app: redis }
+  ports: [{ port: 6379, targetPort: 6379 }]
+{{- end }}
+---
+{{- if .Values.qdrant }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.qdrant.storage | default "10Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant
+  labels: { app: qdrant }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: qdrant }
+  template:
+    metadata:
+      labels: { app: qdrant }
+    spec:
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant
+          ports: [{ containerPort: 6333 }, { containerPort: 6334 }]
+          volumeMounts:
+            - { name: data, mountPath: /qdrant/storage }
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits: { memory: 1Gi, cpu: 500m }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: qdrant-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+spec:
+  selector: { app: qdrant }
+  ports:
+    - { name: http, port: 6333, targetPort: 6333 }
+    - { name: grpc, port: 6334, targetPort: 6334 }
+{{- end }}
+---
+{{- if .Values.neo4j }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: neo4j-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.neo4j.storage | default "5Gi" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo4j
+  labels: { app: neo4j }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: neo4j }
+  template:
+    metadata:
+      labels: { app: neo4j }
+    spec:
+      containers:
+        - name: neo4j
+          image: neo4j:5-community
+          ports: [{ containerPort: 7474 }, { containerPort: 7687 }]
+          env:
+            - { name: NEO4J_AUTH, value: {{ .Values.neo4j.auth | quote }} }
+            - { name: NEO4J_PLUGINS, value: '["apoc"]' }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits: { memory: 1Gi, cpu: 500m }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: neo4j-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+spec:
+  selector: { app: neo4j }
+  ports:
+    - { name: browser, port: 7474, targetPort: 7474 }
+    - { name: bolt, port: 7687, targetPort: 7687 }
+{{- end }}

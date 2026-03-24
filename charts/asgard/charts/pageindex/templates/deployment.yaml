@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pageindex
+  labels: { app: pageindex }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: pageindex }
+  template:
+    metadata:
+      labels: { app: pageindex }
+    spec:
+      containers:
+        - name: pageindex
+          image: {{ .Values.image | default "asgard-pageindex:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          ports: [{ containerPort: 8600 }]
+          env:
+            - { name: PAGEINDEX_PORT, value: "8600" }
+            - { name: OPENAI_API_BASE, value: "{{ .Values.global.heimdallUrl }}/v1" }
+            - { name: OPENAI_API_KEY, value: dummy }
+            - { name: PAGEINDEX_MODEL, value: auto }
+          readinessProbe:
+            httpGet: { path: /health, port: 8600 }
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests: { memory: 128Mi, cpu: 100m }
+            limits: { memory: 512Mi, cpu: 500m }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pageindex
+spec:
+  selector: { app: pageindex }
+  ports: [{ port: 8600, targetPort: 8600 }]

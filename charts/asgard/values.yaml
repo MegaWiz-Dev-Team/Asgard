@@ -1,0 +1,108 @@
+# 🏰 Asgard AI Platform — Base Values
+# Override with values-dev.yaml or values-prod.yaml
+
+global:
+  namespace: asgard
+  imagePullPolicy: Never  # local images; change to IfNotPresent for registry
+  heimdallUrl: http://host.docker.internal:8080
+  rustLog: info
+  logLevel: info
+
+# ── Shared Secrets ──
+secrets:
+  heimdallApiKey: ""
+  jwtSecret: ""
+  geminiApiKey: ""
+  geminiBaseUrl: ""
+  geminiModel: ""
+
+# ── Infrastructure ──
+infra:
+  enabled: true
+  mariadb:
+    rootPassword: root
+    database: mimir
+    user: mimir
+    password: mimir_password
+    storage: 10Gi
+  postgres:
+    user: postgres
+    password: yggdrasil-secret
+    database: zitadel
+    storage: 5Gi
+  redis:
+    enabled: true
+  qdrant:
+    storage: 10Gi
+  neo4j:
+    auth: neo4j/asgard_neo4j_password
+    storage: 5Gi
+
+# ── Auth ──
+yggdrasil:
+  enabled: true
+  image: ghcr.io/zitadel/zitadel:v2.71.6
+  masterKey: yggdrasil-masterkey-change-me-ok
+  nodePort: 30085
+
+# ── Knowledge Platform ──
+mimir:
+  enabled: true
+  api:
+    image: asgard-mimir-api:latest
+    nodePort: 30000
+    resources:
+      requests: { memory: 256Mi, cpu: 200m }
+      limits: { memory: 1Gi, cpu: "1" }
+  dashboard:
+    image: asgard-mimir-dashboard:latest
+    nodePort: 30001
+
+# ── Agent Runtime ──
+bifrost:
+  enabled: true
+  image: asgard-bifrost:latest
+  nodePort: 30100
+  defaultModel: mlx-community/Qwen3.5-9B-MLX-4bit
+  maxIterations: 10
+  maxExecutionTime: 120
+
+# ── Computer-Use Agent ──
+fenrir:
+  enabled: true
+  image: asgard-fenrir:latest
+  nodePort: 30200
+
+# ── E2E Testing ──
+forseti:
+  enabled: true
+  image: asgard-forseti:latest
+  nodePort: 30555
+  storage: 1Gi
+
+# ── MCP Sidecar ──
+hermodr:
+  enabled: true
+  image: asgard-hermodr-yggdrasil:latest
+
+# ── Browser Service ──
+ratatoskr:
+  enabled: true
+  image: asgard-ratatoskr:latest
+
+# ── Load Testing ──
+mjolnir:
+  enabled: true
+  image: asgard-mjolnir:latest
+  storage: 1Gi
+
+# ── RAG Sidecar ──
+pageindex:
+  enabled: true
+  image: asgard-pageindex:latest
+
+# ── Monitoring ──
+vardr:
+  enabled: true
+  image: asgard-vardr:latest
+  nodePort: 30090

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yggdrasil
+  labels: { app: yggdrasil }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: yggdrasil }
+  template:
+    metadata:
+      labels: { app: yggdrasil }
+    spec:
+      containers:
+        - name: yggdrasil
+          image: {{ .Values.image | default "ghcr.io/zitadel/zitadel:v2.71.6" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
+          command: ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled"]
+          ports: [{ containerPort: 8080 }]
+          env:
+            - { name: ZITADEL_DATABASE_POSTGRES_HOST, value: postgres.{{ .Release.Namespace }}.svc }
+            - { name: ZITADEL_DATABASE_POSTGRES_PORT, value: "5432" }
+            - { name: ZITADEL_DATABASE_POSTGRES_DATABASE, value: zitadel }
+            - { name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME, value: postgres }
+            - { name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD, value: yggdrasil-secret }
+            - { name: ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE, value: disable }
+            - { name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME, value: postgres }
+            - { name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD, value: yggdrasil-secret }
+            - { name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE, value: disable }
+            - { name: ZITADEL_EXTERNALSECURE, value: "false" }
+            - { name: ZITADEL_EXTERNALDOMAIN, value: localhost }
+            - { name: ZITADEL_EXTERNALPORT, value: "{{ .Values.nodePort | default 30085 }}" }
+            - { name: ZITADEL_FIRSTINSTANCE_ORG_NAME, value: Asgard }
+            - { name: ZITADEL_MASTERKEY, value: {{ .Values.masterKey | default "yggdrasil-masterkey-change-me-ok" | quote }} }
+            - { name: ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER, value: "false" }
+          readinessProbe:
+            exec:
+              command: ["/app/zitadel", "ready"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits: { memory: 512Mi, cpu: 500m }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yggdrasil
+spec:
+  type: NodePort
+  selector: { app: yggdrasil }
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: {{ .Values.nodePort | default 30085 }}

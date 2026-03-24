@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir-api
+  labels: { app: mimir-api }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mimir-api }
+  template:
+    metadata:
+      labels: { app: mimir-api }
+    spec:
+      containers:
+        - name: mimir-api
+          image: {{ .Values.api.image | default "asgard-mimir-api:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          ports: [{ containerPort: 8080 }]
+          env:
+            - { name: PORT, value: "8080" }
+            - { name: DATABASE_URL, value: "mysql://mimir:mimir_password@mariadb.{{ .Release.Namespace }}.svc:3306/mimir" }
+            - { name: QDRANT_URL, value: "http://qdrant.{{ .Release.Namespace }}.svc:6333" }
+            - { name: REDIS_URL, value: "redis://redis.{{ .Release.Namespace }}.svc:6379" }
+            - { name: NEO4J_URI, value: "bolt://neo4j.{{ .Release.Namespace }}.svc:7687" }
+            - { name: NEO4J_USER, value: neo4j }
+            - { name: NEO4J_PASSWORD, value: asgard_neo4j_password }
+            - { name: OLLAMA_API_URL, value: "{{ .Values.global.heimdallUrl }}/v1" }
+            - { name: OLLAMA_URL, value: {{ .Values.global.heimdallUrl | quote }} }
+            - { name: RUST_LOG, value: {{ .Values.global.rustLog | default "info" | quote }} }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources: {{ .Values.api.resources | toYaml | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimir-api
+spec:
+  type: NodePort
+  selector: { app: mimir-api }
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: {{ .Values.api.nodePort | default 30000 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir-dashboard
+  labels: { app: mimir-dashboard }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mimir-dashboard }
+  template:
+    metadata:
+      labels: { app: mimir-dashboard }
+    spec:
+      containers:
+        - name: mimir-dashboard
+          image: {{ .Values.dashboard.image | default "asgard-mimir-dashboard:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          ports: [{ containerPort: 3000 }]
+          env:
+            - { name: NEXT_PUBLIC_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
+            - { name: NEXT_PUBLIC_YGGDRASIL_URL, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
+          resources:
+            requests: { memory: 128Mi, cpu: 100m }
+            limits: { memory: 512Mi, cpu: 500m }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimir-dashboard
+spec:
+  type: NodePort
+  selector: { app: mimir-dashboard }
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: {{ .Values.dashboard.nodePort | default 30001 }}
