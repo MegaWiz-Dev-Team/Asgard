@@ -40,6 +40,8 @@ spec:
               value: neo4j/asgard_neo4j_password
             - name: NEO4J_PLUGINS
               value: '["apoc"]'
+            - name: NEO4J_server_config_strict__validation_enabled
+              value: "false"
           volumeMounts:
             - name: data
               mountPath: /data

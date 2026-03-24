@@ -19,7 +19,7 @@ spec:
       containers:
         - name: yggdrasil
           image: ghcr.io/zitadel/zitadel:v2.71.6
-          command: ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled"]
+          command: ["/app/zitadel", "start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled"]
           ports:
             - containerPort: 8080
           env:
