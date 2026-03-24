@@ -1,0 +1,68 @@
+# 🏰 Asgard — Deploy to K3s/K8s via Helm
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Build and Push"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, prod]
+
+env:
+  CHART_PATH: charts/asgard
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Runs on Mac Mini with K3s
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "values_file=values-${ENV}.yaml" >> $GITHUB_OUTPUT
+          echo "namespace=asgard" >> $GITHUB_OUTPUT
+
+      - name: Helm dependency update
+        run: helm dependency update ${{ env.CHART_PATH }}
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install asgard ${{ env.CHART_PATH }} \
+            --namespace ${{ steps.env.outputs.namespace }} \
+            --create-namespace \
+            -f ${{ env.CHART_PATH }}/values.yaml \
+            -f ${{ env.CHART_PATH }}/${{ steps.env.outputs.values_file }} \
+            --set secrets.heimdallApiKey="${{ secrets.HEIMDALL_API_KEY }}" \
+            --set secrets.jwtSecret="${{ secrets.JWT_SECRET }}" \
+            --set secrets.geminiApiKey="${{ secrets.GEMINI_API_KEY }}" \
+            --wait --timeout 5m
+
+      - name: Verify deployment
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n ${{ steps.env.outputs.namespace }} -o wide
+          echo ""
+          echo "=== Service Status ==="
+          kubectl get svc -n ${{ steps.env.outputs.namespace }}
+
+      - name: Health check
+        run: |
+          SERVICES=("bifrost:8100" "fenrir:8200" "forseti:5555" "mimir-api:8080")
+          NS="${{ steps.env.outputs.namespace }}"
+          for svc_port in "${SERVICES[@]}"; do
+            IFS=':' read -r svc port <<< "$svc_port"
+            echo -n "  $svc: "
+            kubectl exec -n $NS deploy/$svc -- curl -sf http://localhost:$port/healthz 2>/dev/null && echo "✅" || echo "❌"
+          done

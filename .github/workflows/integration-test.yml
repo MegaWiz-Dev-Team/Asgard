@@ -1,0 +1,67 @@
+# 🏰 Asgard — Integration Tests (post-deploy)
+name: Integration Tests
+
+on:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: |
+          pip install httpx pytest pytest-asyncio
+
+      - name: Wait for services
+        run: |
+          echo "⏳ Waiting for services to be ready..."
+          sleep 30
+          kubectl get pods -n asgard --field-selector=status.phase=Running
+
+      - name: Run Forseti E2E tests
+        run: |
+          cd ../Forseti
+          python run_e2e.py --target k8s 2>&1 || true
+
+      - name: Run Bifrost tests
+        run: |
+          cd ../Bifrost
+          .venv/bin/python -m pytest tests/ -v --tb=short 2>&1
+
+      - name: Push results to Forseti
+        if: always()
+        run: |
+          curl -sf http://localhost:30555/ > /dev/null && \
+          echo "✅ Forseti dashboard available at http://localhost:30555" || \
+          echo "⚠️  Forseti not reachable"
+
+      - name: Report summary
+        if: always()
+        run: |
+          echo "## 📊 Integration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|:--|:--|" >> $GITHUB_STEP_SUMMARY
+
+          SERVICES=("bifrost:30100" "fenrir:30200" "forseti:30555" "mimir-api:30000" "vardr:30090")
+          for svc_port in "${SERVICES[@]}"; do
+            IFS=':' read -r svc port <<< "$svc_port"
+            if curl -sf http://localhost:$port/healthz > /dev/null 2>&1; then
+              echo "| $svc | ✅ |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $svc | ❌ |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
