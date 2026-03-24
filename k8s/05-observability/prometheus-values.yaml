@@ -1,0 +1,137 @@
+# 🏰 Asgard — Prometheus + Grafana Observability
+#
+# Deploy via:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm install monitoring prometheus-community/kube-prometheus-stack \
+#     -n asgard-monitoring --create-namespace \
+#     -f k8s/05-observability/prometheus-values.yaml
+#
+# Access:
+#   Grafana: http://localhost:30300 (admin / asgard-grafana)
+#   Prometheus: http://localhost:30090 (via Vardr or port-forward)
+
+grafana:
+  adminUser: admin
+  adminPassword: asgard-grafana
+  service:
+    type: NodePort
+    nodePort: 30300
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: asgard
+          orgId: 1
+          folder: Asgard
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/asgard
+
+  dashboards:
+    asgard:
+      asgard-overview:
+        json: |
+          {
+            "title": "🏰 Asgard Platform Overview",
+            "uid": "asgard-overview",
+            "panels": [
+              {
+                "title": "Service Health",
+                "type": "stat",
+                "targets": [{ "expr": "up{namespace=~\"asgard.*\"}" }],
+                "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 }
+              },
+              {
+                "title": "HTTP Request Rate",
+                "type": "timeseries",
+                "targets": [{ "expr": "rate(http_requests_total{namespace=~\"asgard.*\"}[5m])" }],
+                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }
+              },
+              {
+                "title": "Memory Usage",
+                "type": "timeseries",
+                "targets": [{ "expr": "container_memory_working_set_bytes{namespace=~\"asgard.*\"}" }],
+                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }
+              },
+              {
+                "title": "CPU Usage",
+                "type": "timeseries",
+                "targets": [{ "expr": "rate(container_cpu_usage_seconds_total{namespace=~\"asgard.*\"}[5m])" }],
+                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }
+              },
+              {
+                "title": "Pod Restarts",
+                "type": "stat",
+                "targets": [{ "expr": "kube_pod_container_status_restarts_total{namespace=~\"asgard.*\"}" }],
+                "gridPos": { "h": 4, "w": 12, "x": 12, "y": 12 }
+              }
+            ],
+            "templating": { "list": [] },
+            "time": { "from": "now-1h", "to": "now" },
+            "refresh": "30s"
+          }
+
+prometheus:
+  service:
+    type: ClusterIP
+
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+    additionalScrapeConfigs:
+      # Scrape Asgard services that expose /metrics
+      - job_name: asgard-services
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [asgard-services, asgard-monitoring]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+)
+            replacement: ${1}
+
+# Alert rules
+defaultRules:
+  create: true
+
+additionalPrometheusRulesMap:
+  asgard-alerts:
+    groups:
+      - name: asgard.rules
+        rules:
+          - alert: ServiceDown
+            expr: up{namespace=~"asgard.*"} == 0
+            for: 2m
+            labels: { severity: critical }
+            annotations:
+              summary: "{{ $labels.pod }} is down"
+
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5..",namespace=~"asgard.*"}[5m]) > 0.05
+            for: 5m
+            labels: { severity: warning }
+            annotations:
+              summary: "High 5xx error rate on {{ $labels.service }}"
+
+          - alert: HighMemory
+            expr: container_memory_working_set_bytes{namespace=~"asgard.*"} / container_spec_memory_limit_bytes > 0.85
+            for: 5m
+            labels: { severity: warning }
+            annotations:
+              summary: "{{ $labels.pod }} memory > 85%"
+
+          - alert: PodCrashLooping
+            expr: increase(kube_pod_container_status_restarts_total{namespace=~"asgard.*"}[15m]) > 3
+            for: 1m
+            labels: { severity: critical }
+            annotations:
+              summary: "{{ $labels.pod }} restarting frequently"

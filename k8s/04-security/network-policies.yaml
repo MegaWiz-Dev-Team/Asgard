@@ -1,0 +1,55 @@
+# 🏰 Asgard — Network Policies
+# Restrict inter-namespace communication to defined paths only
+
+# Allow infra → only from services namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: infra-allow-services
+  namespace: asgard-infra
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: asgard
+      ports:
+        - { protocol: TCP, port: 3306 }   # MariaDB
+        - { protocol: TCP, port: 5432 }   # Postgres
+        - { protocol: TCP, port: 6379 }   # Redis
+        - { protocol: TCP, port: 6333 }   # Qdrant HTTP
+        - { protocol: TCP, port: 6334 }   # Qdrant gRPC
+        - { protocol: TCP, port: 7474 }   # Neo4j Browser
+        - { protocol: TCP, port: 7687 }   # Neo4j Bolt
+---
+# Allow monitoring → scrape from all namespaces
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-allow-scrape
+  namespace: asgard-monitoring
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: asgard
+---
+# Default deny for services (explicit allow required)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: services-default-allow-internal
+  namespace: asgard-services
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: asgard

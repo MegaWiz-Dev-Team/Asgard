@@ -1,0 +1,78 @@
+# 🏰 Asgard — Traefik Ingress Routes
+# Exposes all services via clean URLs on asgard.local
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: asgard-ingress
+  namespace: asgard-services
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  tls:
+    - hosts: ["*.asgard.local"]
+      secretName: asgard-tls-secret
+  rules:
+    - host: mimir.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mimir-dashboard
+                port: { number: 3000 }
+    - host: api.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mimir-api
+                port: { number: 8080 }
+    - host: bifrost.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bifrost
+                port: { number: 8100 }
+    - host: fenrir.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fenrir
+                port: { number: 8200 }
+    - host: forseti.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: forseti
+                port: { number: 5555 }
+    - host: auth.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yggdrasil
+                port: { number: 8080 }
+    - host: monitor.asgard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vardr
+                port: { number: 9090 }
