@@ -1,0 +1,37 @@
+# 🏰 Asgard — Shared Secrets ConfigMap
+# Centralized secrets referenced by all service deployments
+apiVersion: v1
+kind: Secret
+metadata:
+  name: asgard-secrets
+  namespace: asgard-services
+type: Opaque
+stringData:
+  HEIMDALL_API_KEY: ""
+  JWT_SECRET: ""
+  GEMINI_API_KEY: ""
+  GEMINI_BASE_URL: ""
+  GEMINI_MODEL: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: asgard-config
+  namespace: asgard-services
+data:
+  HEIMDALL_URL: "http://host.docker.internal:8080"
+  MIMIR_URL: "http://mimir-api.asgard-services.svc:8080"
+  BIFROST_URL: "http://bifrost.asgard-services.svc:8100"
+  FENRIR_URL: "http://fenrir.asgard-services.svc:8200"
+  FORSETI_URL: "http://forseti.asgard-services.svc:5555"
+  YGGDRASIL_URL: "http://yggdrasil.asgard-services.svc:8080"
+  VARDR_URL: "http://vardr.asgard-monitoring.svc:9090"
+  RATATOSKR_URL: "http://ratatoskr.asgard-services.svc:9200"
+  PAGEINDEX_URL: "http://pageindex.asgard-services.svc:8600"
+  MARIADB_HOST: "mariadb.asgard-infra.svc"
+  POSTGRES_HOST: "postgres.asgard-infra.svc"
+  REDIS_URL: "redis://redis.asgard-infra.svc:6379"
+  QDRANT_URL: "http://qdrant.asgard-infra.svc:6333"
+  NEO4J_URI: "bolt://neo4j.asgard-infra.svc:7687"
+  RUST_LOG: "info"
+  LOG_LEVEL: "info"

@@ -1,0 +1,24 @@
+# 🏰 Asgard — Kubernetes Namespaces
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: asgard-infra
+  labels:
+    app.kubernetes.io/part-of: asgard
+    tier: infrastructure
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: asgard-services
+  labels:
+    app.kubernetes.io/part-of: asgard
+    tier: services
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: asgard-monitoring
+  labels:
+    app.kubernetes.io/part-of: asgard
+    tier: monitoring

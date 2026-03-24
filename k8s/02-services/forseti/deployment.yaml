@@ -1,0 +1,95 @@
+# ⚖️ Forseti — E2E Testing & Dashboard
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forseti-data
+  namespace: asgard-services
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forseti
+  namespace: asgard-services
+  labels:
+    app: forseti
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: forseti
+  template:
+    metadata:
+      labels:
+        app: forseti
+    spec:
+      containers:
+        - name: forseti
+          image: asgard-forseti:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5555
+          env:
+            - name: FORSETI_HOST
+              value: "0.0.0.0"
+            - name: FORSETI_PORT
+              value: "5555"
+            - name: DB_PATH
+              value: /app/data/forseti_results.db
+            - name: MIMIR_URL
+              value: http://mimir-api.asgard-services.svc:8080
+            - name: BIFROST_URL
+              value: http://bifrost.asgard-services.svc:8100
+            - name: FENRIR_URL
+              value: http://fenrir.asgard-services.svc:8200
+            - name: HEIMDALL_URL
+              value: http://host.docker.internal:8080
+            - name: YGGDRASIL_URL
+              value: http://yggdrasil.asgard-services.svc:8080
+            - name: VARDR_URL
+              value: http://vardr.asgard-monitoring.svc:9090
+            - name: PAGEINDEX_URL
+              value: http://pageindex.asgard-services.svc:8600
+            - name: LOG_LEVEL
+              value: info
+          envFrom:
+            - secretRef:
+                name: asgard-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5555
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: forseti-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forseti
+  namespace: asgard-services
+spec:
+  selector:
+    app: forseti
+  ports:
+    - port: 5555
+      targetPort: 5555
+      nodePort: 30555
+  type: NodePort

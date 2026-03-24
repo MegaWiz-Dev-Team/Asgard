@@ -1,0 +1,75 @@
+# 🧠 Mimir API — Knowledge Platform
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir-api
+  namespace: asgard-services
+  labels:
+    app: mimir-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mimir-api
+  template:
+    metadata:
+      labels:
+        app: mimir-api
+    spec:
+      containers:
+        - name: mimir-api
+          image: asgard-mimir-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: DATABASE_URL
+              value: mysql://mimir:mimir_password@mariadb.asgard-infra.svc:3306/mimir
+            - name: QDRANT_URL
+              value: http://qdrant.asgard-infra.svc:6333
+            - name: REDIS_URL
+              value: redis://redis.asgard-infra.svc:6379
+            - name: NEO4J_URI
+              value: bolt://neo4j.asgard-infra.svc:7687
+            - name: NEO4J_USER
+              value: neo4j
+            - name: NEO4J_PASSWORD
+              value: asgard_neo4j_password
+            - name: OLLAMA_API_URL
+              value: http://host.docker.internal:8080/v1
+            - name: OLLAMA_URL
+              value: http://host.docker.internal:8080
+            - name: RUST_LOG
+              value: info
+          envFrom:
+            - secretRef:
+                name: asgard-secrets
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimir-api
+  namespace: asgard-services
+spec:
+  selector:
+    app: mimir-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30000
+  type: NodePort

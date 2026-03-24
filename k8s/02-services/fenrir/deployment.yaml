@@ -1,0 +1,67 @@
+# 🐺 Fenrir — Computer-Use Agent
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fenrir
+  namespace: asgard-services
+  labels:
+    app: fenrir
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fenrir
+  template:
+    metadata:
+      labels:
+        app: fenrir
+    spec:
+      containers:
+        - name: fenrir
+          image: asgard-fenrir:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8200
+          env:
+            - name: FENRIR_HOST
+              value: "0.0.0.0"
+            - name: FENRIR_PORT
+              value: "8200"
+            - name: HEIMDALL_URL
+              value: http://host.docker.internal:8080
+            - name: OPENEMR_URL
+              value: http://eir-gateway.asgard-services.svc:8300
+            - name: BROWSER_HEADLESS
+              value: "true"
+            - name: LOG_LEVEL
+              value: info
+          envFrom:
+            - secretRef:
+                name: asgard-secrets
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8200
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fenrir
+  namespace: asgard-services
+spec:
+  selector:
+    app: fenrir
+  ports:
+    - port: 8200
+      targetPort: 8200
+      nodePort: 30200
+  type: NodePort

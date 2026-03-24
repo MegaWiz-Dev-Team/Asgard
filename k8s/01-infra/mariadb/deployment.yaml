@@ -1,0 +1,82 @@
+# MariaDB — Primary database for Mimir + OpenEMR
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-data
+  namespace: asgard-infra
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: asgard-infra
+  labels:
+    app: mariadb
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:11
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - secretRef:
+                name: mariadb-secret
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 1Gi
+              cpu: 500m
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mariadb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: asgard-infra
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+      targetPort: 3306
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb-secret
+  namespace: asgard-infra
+type: Opaque
+stringData:
+  MYSQL_ROOT_PASSWORD: root
+  MYSQL_DATABASE: mimir
+  MYSQL_USER: mimir
+  MYSQL_PASSWORD: mimir_password
