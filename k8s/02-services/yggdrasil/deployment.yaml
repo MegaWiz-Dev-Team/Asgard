@@ -54,8 +54,9 @@ spec:
             - name: ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER
               value: "false"
           readinessProbe:
-            exec:
-              command: ["/app/zitadel", "ready"]
+            httpGet:
+              path: /debug/healthz
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
           resources:
