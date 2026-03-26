@@ -65,7 +65,11 @@ spec:
           ports: [{ containerPort: 3000 }]
           env:
             - { name: NEXT_PUBLIC_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
+            - { name: MIMIR_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080/api" }
             - { name: NEXT_PUBLIC_YGGDRASIL_URL, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
+            - { name: YGGDRASIL_ISSUER, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
+            - { name: YGGDRASIL_CLIENT_ID, value: "365685875977339411" }
+            - { name: YGGDRASIL_CLIENT_SECRET, value: "58zT6R47d3hSvOAceTRrSfMclDnvpAoawvSPC2yK8qPmsEuZDoVkUmG1HbPfWfRt" }
           resources:
             requests: { memory: 128Mi, cpu: 100m }
             limits: { memory: 512Mi, cpu: 500m }
