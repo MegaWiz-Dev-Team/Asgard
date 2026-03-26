@@ -15,7 +15,7 @@ spec:
         - name: yggdrasil
           image: {{ .Values.image | default "ghcr.io/zitadel/zitadel:v2.71.6" }}
           imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
-          command: ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled"]
+          args: ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled"]
           ports: [{ containerPort: 8080 }]
           env:
             - { name: ZITADEL_DATABASE_POSTGRES_HOST, value: postgres.{{ .Release.Namespace }}.svc }
@@ -34,8 +34,10 @@ spec:
             - { name: ZITADEL_MASTERKEY, value: {{ .Values.masterKey | default "yggdrasil-masterkey-change-me-ok" | quote }} }
             - { name: ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER, value: "false" }
           readinessProbe:
-            exec:
-              command: ["/app/zitadel", "ready"]
+            httpGet:
+              path: /debug/ready
+              port: 8080
+              scheme: HTTP
             initialDelaySeconds: 30
             periodSeconds: 10
           resources:

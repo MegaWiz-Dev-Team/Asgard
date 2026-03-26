@@ -224,6 +224,7 @@ spec:
           env:
             - { name: NEO4J_AUTH, value: {{ .Values.neo4j.auth | quote }} }
             - { name: NEO4J_PLUGINS, value: '["apoc"]' }
+            - { name: NEO4J_server_config_strict__validation_enabled, value: "false" }
           volumeMounts:
             - { name: data, mountPath: /data }
           resources:
