@@ -1,6 +1,6 @@
 # 🏰 Asgard AI Platform
 
-> **Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.**
+> **Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.** 
 
 > *The realm of the gods — a self-hosted AI agent platform built on Apple Silicon & NVIDIA GPU*
 

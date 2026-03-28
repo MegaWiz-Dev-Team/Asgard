@@ -1,0 +1,322 @@
+# 🏥 Eir — OpenEMR (Electronic Health Records)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: eir-sites-data
+  namespace: asgard
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eir
+  namespace: asgard
+  labels:
+    app: eir
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eir
+  template:
+    metadata:
+      labels:
+        app: eir
+    spec:
+      initContainers:
+        - name: prep-sites
+          image: asgard-eir:latest
+          imagePullPolicy: Never
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /mnt/sites/default/sqlconf.php ]; then
+                echo "Populating fresh PVC..."
+                mkdir -p /mnt/sites/default
+                cp -R /var/www/localhost/htdocs/openemr/sites/default/* /mnt/sites/default/ || true
+                cat << 'EOF' > /mnt/sites/default/sqlconf.php
+              <?php
+              $host    = 'mariadb.asgard-infra.svc';
+              $port    = '3306';
+              $login   = 'openemr';
+              $pass    = 'openemr';
+              $dbase   = 'openemr';
+              $sqlconf = array();
+              $sqlconf["host"]= $host;
+              $sqlconf["port"]= $port;
+              $sqlconf["login"]= $login;
+              $sqlconf["pass"]= $pass;
+              $sqlconf["dbase"]= $dbase;
+              $config = 1;
+              ?>
+              EOF
+              fi
+              # Ensure all cache directories exist
+              mkdir -p /mnt/sites/default/documents/smarty/gacl
+              mkdir -p /mnt/sites/default/documents/smarty/main
+              mkdir -p /mnt/sites/default/documents/smarty/templates_c
+              chown -R apache:apache /mnt/sites
+              chmod -R 777 /mnt/sites
+          volumeMounts:
+            - name: eir-sites
+              mountPath: /mnt/sites
+        - name: ssl-cert-init
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              cp /tmp/ssl-secret/tls.crt /ssl-certs/webserver.cert.pem
+              cp /tmp/ssl-secret/tls.key /ssl-keys/webserver.key.pem
+              chmod 644 /ssl-certs/webserver.cert.pem
+              chmod 600 /ssl-keys/webserver.key.pem
+          volumeMounts:
+            - name: eir-ssl-secret
+              mountPath: /tmp/ssl-secret
+              readOnly: true
+            - name: ssl-certs
+              mountPath: /ssl-certs
+            - name: ssl-keys
+              mountPath: /ssl-keys
+      containers:
+        - name: eir
+          image: asgard-eir:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          env:
+            - name: MYSQL_HOST
+              value: mariadb.asgard-infra.svc
+            - name: MYSQL_ROOT_PASS
+              value: root
+            - name: MYSQL_USER
+              value: openemr
+            - name: MYSQL_PASS
+              value: openemr
+            - name: MYSQL_DATABASE
+              value: openemr
+            - name: OE_USER
+              value: admin
+            - name: OE_PASS
+              value: "1qazXSW@"
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+          volumeMounts:
+            - name: eir-sites
+              mountPath: /var/www/localhost/htdocs/openemr/sites
+            - name: eir-chat-inject
+              mountPath: /etc/apache2/conf.d/eir-chat-inject.conf
+              subPath: eir-chat-inject.conf
+            - name: ssl-keys
+              mountPath: /etc/ssl/private
+        - name: eir-nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          volumeMounts:
+            - name: eir-ssl-secret
+              mountPath: /tmp/ssl-secret
+              readOnly: true
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: eir-sites
+          persistentVolumeClaim:
+            claimName: eir-sites-data
+        - name: eir-chat-inject
+          configMap:
+            name: eir-chat-inject
+        - name: eir-ssl-secret
+          secret:
+            secretName: eir-ssl-cert
+        - name: ssl-certs
+          emptyDir: {}
+        - name: ssl-keys
+          emptyDir: {}
+        - name: nginx-conf
+          configMap:
+            name: eir-nginx-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eir
+  namespace: asgard
+spec:
+  type: LoadBalancer
+  selector:
+    app: eir
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: https
+      port: 443
+      targetPort: 8443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eir-gateway
+  namespace: asgard
+  labels:
+    app: eir-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eir-gateway
+  template:
+    metadata:
+      labels:
+        app: eir-gateway
+    spec:
+      containers:
+        - name: gateway
+          image: asgard-eir-gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8300
+          env:
+            - name: RUST_LOG
+              value: "debug"
+            - name: OPENEMR_URL
+              value: "https://eir.asgard.svc"
+            - name: CLIENT_ID
+              value: "YUeXbce0jptSbSk2vM3TiWNPe98EvJG9gh1Znt_8DdU"
+            - name: CLIENT_SECRET
+              value: "xWVKMnOb3LAb5-lF83Pdxfxu2uCsSF3iimB56BpCPt8eu1Ml1AOJKuyTxSqzcdLiSAOKYvvXYiABPIlLsD4HJQ"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eir-gateway
+  namespace: asgard
+spec:
+  type: LoadBalancer
+  selector:
+    app: eir-gateway
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 8300
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermodr-eir
+  namespace: asgard
+  labels:
+    app: hermodr-eir
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hermodr-eir
+  template:
+    metadata:
+      labels:
+        app: hermodr-eir
+    spec:
+      containers:
+        - name: hermodr
+          image: asgard-hermodr:latest
+          imagePullPolicy: Never
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+            - name: UPSTREAM_URL
+              value: "http://eir-gateway.asgard.svc:3000"
+            - name: SERVICE_NAME
+              value: "eir"
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermodr-eir
+  namespace: asgard
+spec:
+  type: LoadBalancer
+  selector:
+    app: hermodr-eir
+  ports:
+    - protocol: TCP
+      port: 3005
+      targetPort: 3000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eir-chat-inject
+  namespace: asgard
+data:
+  eir-chat-inject.conf: |
+    <IfModule mod_substitute.c>
+        AddOutputFilterByType INFLATE;SUBSTITUTE;DEFLATE text/html
+        Substitute "s|</body>|<script>window.EIR_GATEWAY_URL='';</script><script src='/eir-chat-widget.js' defer></script></body>|i"
+    </IfModule>
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eir-nginx-conf
+  namespace: asgard
+data:
+  default.conf: |
+    server {
+        listen 8080;
+        location / {
+            proxy_pass http://127.0.0.1:80;
+            proxy_set_header Host $host;
+        }
+    }
+    server {
+        listen 8443 ssl;
+        ssl_certificate /tmp/ssl-secret/tls.crt;
+        ssl_certificate_key /tmp/ssl-secret/tls.key;
+
+        location /eir-chat-widget.js {
+            proxy_pass http://eir-gateway:3000/eir-chat-widget.js;
+            proxy_set_header Host $host;
+        }
+        location /v1/chat {
+            proxy_pass http://eir-gateway:3000/v1/chat;
+            proxy_set_header Host $host;
+        }
+        location /chat {
+            proxy_pass http://eir-gateway:3000/chat;
+            proxy_set_header Host $host;
+        }
+        location / {
+            proxy_pass http://127.0.0.1:80;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # Disable Upstream Compression for sub_filter to work
+            proxy_set_header Accept-Encoding "";
+            
+            # Inject Chat Widget Script
+            sub_filter '</body>' '<script>window.EIR_GATEWAY_URL=window.location.origin;</script><script src="/eir-chat-widget.js" defer></script></body>';
+            sub_filter_once on;
+        }
+    }
