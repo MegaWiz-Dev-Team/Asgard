@@ -424,33 +424,47 @@ graph LR
 
 ```mermaid
 graph LR
-    subgraph exposed["🌐 External Access"]
-        P3000["Mimir API<br/>:3000"]
-        P3001["Dashboard<br/>:3001"]
-        P8080["Heimdall<br/>:8080"]
-        P8085["Yggdrasil<br/>:8085"]
-        P9090["Várðr<br/>:9090"]
-        P8100["Bifrost<br/>:8100"]
+    subgraph exposed["🌐 External Access (Ingress / LoadBalancer)"]
+        P3000["Mimir Dashboard<br/>mimir.asgard.local"]
+        P8080["Mimir API<br/>api.asgard.local"]
+        P8100["Bifrost<br/>bifrost.asgard.local"]
+        P8200["Fenrir<br/>fenrir.asgard.local"]
+        P8085["Yggdrasil<br/>auth.asgard.local"]
+        P9090["Várðr<br/>monitor.asgard.local"]
+        P80["OpenEMR<br/>localhost:80 / 443"]
     end
 
-    subgraph internal["🔒 Internal Only"]
+    subgraph internal["🔒 Internal K3s (`asgard` namespace)"]
+        I3000["Mimir Dashboard<br/>:3000"]
+        I8080["Mimir API<br/>:8080"]
+        I8100["Bifrost<br/>:8100"]
+        I8200["Fenrir<br/>:8200"]
+        I8085["Yggdrasil<br/>:8080"]
+        I9090["Várðr<br/>:9090"]
+        I80["Eir<br/>:80 / 443"]
+        I8300["Eir GW<br/>:3000 (target: 8300)"]
+        I8090["Hermodr<br/>:8090"]
+        I8091["Hermodr-Eir<br/>:8091"]
+        I8600["Pageindex<br/>:8600"]
+        I8700["Mjolnir<br/>:8700"]
+    end
+
+    subgraph host["💻 Native Host"]
         P8081["mlx_lm<br/>:8081"]
         P8082["mlx_vlm<br/>:8082"]
         P8083["llama.cpp<br/>:8083"]
         P8084["vLLM<br/>:8084"]
         P11434["Ollama<br/>:11434"]
-        P8200["Fenrir<br/>:8200"]
-        P80["OpenEMR<br/>:80"]
-        P8300["Eir GW<br/>:8300"]
+        H8080["Heimdall<br/>:8080"]
     end
 
-    P8300 --> P80
-    P8080 --> P8081
-    P8080 --> P8082
-    P8080 --> P8083
-    P8080 --> P8084
-    P8080 --> P11434
-    P8100 --> P8200
+    I8300 --> I80
+    H8080 --> P8081
+    H8080 --> P8082
+    H8080 --> P8083
+    H8080 --> P8084
+    H8080 --> P11434
+    I8100 --> I8200
 
     style exposed fill:#1e293b,stroke:#60a5fa
     style internal fill:#1e293b,stroke:#ef4444

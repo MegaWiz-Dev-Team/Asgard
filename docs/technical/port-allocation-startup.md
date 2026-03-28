@@ -5,47 +5,58 @@
 
 ## 📋 Full Port Map
 
-### 🌐 External Access (User-facing)
+### 🌐 External Access (Ingress & LoadBalancer)
 
-| Port | Service | Component | Stack | Repo |
-|------|---------|-----------|-------|------|
-| `3000` | Mimir API (Backend) | 🧠 Mimir | Rust/Axum | [Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) |
-| `3001` | Mimir Dashboard | 🧠 Mimir | Next.js | [Mimir](https://github.com/MegaWiz-Dev-Team/Mimir) |
-| `8080` | Heimdall Gateway | 🛡️ Heimdall | Rust/Axum | [Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall) |
-| `8085` | Yggdrasil (Auth) | 🌳 Yggdrasil | Yggdrasil (Zitadel) | *reserved* |
-| `8100` | Bifrost (Agent Runtime) | ⚡ Bifrost | Python/FastAPI | *reserved* |
+| URL / Port | Service | Component | Stack |
+|------------|---------|-----------|-------|
+| `mimir.asgard.local` | Mimir Dashboard | 🧠 Mimir | Next.js |
+| `api.asgard.local` | Mimir API (Backend) | 🧠 Mimir | Rust/Axum |
+| `bifrost.asgard.local` | Bifrost (Agent Runtime) | ⚡ Bifrost | Python/FastAPI |
+| `fenrir.asgard.local` | Fenrir (Computer Use) | 🐺 Fenrir | Python |
+| `forseti.asgard.local` | Forseti | ⚖️ Forseti |
+| `auth.asgard.local` | Yggdrasil (Auth) | 🌳 Yggdrasil | Zitadel |
+| `monitor.asgard.local` | Várðr (Monitoring) | 🛡️ Várðr | Rust |
+| `localhost:80` & `443` | Eir (OpenEMR) | 🏥 Eir | PHP (LoadBalancer) |
+| `localhost:3005`   | Hermodr-Eir (Chat) | 📨 Messaging | LoadBalancer |
 
-### 🤖 LLM Backends (Internal)
+### ☸️ Internal K3s Services (`asgard` namespace)
+
+| Internal Port | Service | Target Port | Component |
+|---------------|---------|-------------|-----------|
+| `3000` | Mimir Dashboard | `3000` | 🧠 Mimir |
+| `8080` | Mimir API | `8080` | 🧠 Mimir |
+| `8100` | Bifrost | `8100` | ⚡ Bifrost |
+| `8200` | Fenrir | `8200` | 🐺 Fenrir |
+| `5555` | Forseti | `5555` | ⚖️ Forseti |
+| `8080` | Yggdrasil | `8080` | 🌳 Yggdrasil |
+| `9090` | Várðr | `9090` | 🛡️ Várðr |
+| `8090` | Hermodr | `3000` | 📨 Messaging |
+| `3000` | Eir Gateway | `8300` | 💊 API Gateway |
+| `8600` | Pageindex | `8600` | 🔍 Search |
+| `8700` | Mjolnir | `8700` | 🔨 Utility |
+| `9200` | Ratatoskr | `9200` | 🐿️ Browser API |
+
+### 🤖 LLM Backends (Native Host)
 
 | Port | Service | Component | Protocol |
 |------|---------|-----------|----------|
-| `8081` | mlx_lm (text) | 🍎 MLX | OpenAI-compatible |
-| `8082` | mlx_vlm (vision) | 👁️ MLX VLM | OpenAI-compatible |
-| `8083` | llama.cpp | 🦙 GGUF | OpenAI-compatible |
-| `8084` | vLLM | 🟢 NVIDIA | OpenAI-compatible |
-| `11434` | Ollama | 🐫 Ollama | Ollama API |
+| `8081` | mlx_lm (text) | 🍎 MLX | OpenAI |
+| `8082` | mlx_vlm (vision) | 👁️ MLX VLM | OpenAI |
+| `8083` | llama.cpp | 🦙 GGUF | OpenAI |
+| `8084` | vLLM | 🟢 NVIDIA | OpenAI |
+| `11434` | Ollama | 🐫 Ollama | Ollama |
+| `8080` | Heimdall Gateway | 🛡️ Heimdall | Proxy |
+| `8001` | Embedding Server | 🧮 MLX bge-m3| REST |
 
-### 🧮 AI Services (Internal)
-
-| Port | Service | Component | Protocol |
-|------|---------|-----------|----------|
-| `8001` | Embedding Server | 🧮 MLX bge-m3 | REST |
-| `8200` | Fenrir (Computer Use) | 🐺 Fenrir | MCP | *reserved* |
-| `80` | Eir (OpenEMR) | 🏥 Eir | HTTP/FHIR | *reserved* |
-
-### 💾 Infrastructure
+### 💾 Infrastructure (K3s)
 
 | Port | Service | Component |
 |------|---------|-----------|
-| `3306` | MariaDB 11 | 💾 Database |
-| `6333` | Qdrant (HTTP) | 📊 Vector DB |
-| `6334` | Qdrant (gRPC) | 📊 Vector DB |
-| `6379` | Redis 7 | ⚡ Cache |
-| `7474` | Neo4j (Browser) | 🔗 Graph DB |
-| `7687` | Neo4j (Bolt) | 🔗 Graph DB |
-| `8201` | Vault 1.15 | 🔐 Secrets |
-| `9000` | RustFS (S3 API) | 📦 Object Storage |
-| `9001` | RustFS (Console) | 📦 Object Storage |
+| `3306` | MariaDB | 💾 Database |
+| `5432` | PostgreSQL | 🐘 Database |
+| `6333` / `6334`| Qdrant | 📊 Vector DB |
+| `6379` | Redis | ⚡ Cache |
+| `7474` / `7687`| Neo4j | 🔗 Graph DB |
 
 ---
 

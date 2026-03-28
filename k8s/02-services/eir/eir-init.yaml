@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eir-init-pvc
+  namespace: asgard
+spec:
+  containers:
+  - name: init
+    image: alpine
+    command: ["sh", "-c", "mkdir -p /mnt/default && cat <<EOF > /mnt/default/sqlconf.php\n<?php\n\\$host = 'mariadb.asgard-infra.svc';\n\\$port = '3306';\n\\$login = 'openemr';\n\\$pass = 'openemr';\n\\$dbase = 'openemr';\n\\$sqlconf = array();\n\\$sqlconf['host'] = \\$host;\n\\$sqlconf['port'] = \\$port;\n\\$sqlconf['login'] = \\$login;\n\\$sqlconf['pass'] = \\$pass;\n\\$sqlconf['dbase'] = \\$dbase;\n\\$sqlsetup = '1';\n\nEOF\nchmod 666 /mnt/default/sqlconf.php\n"]
+    volumeMounts:
+    - name: eir-sites
+      mountPath: /mnt
+  restartPolicy: Never
+  volumes:
+  - name: eir-sites
+    persistentVolumeClaim:
+      claimName: eir-sites-data

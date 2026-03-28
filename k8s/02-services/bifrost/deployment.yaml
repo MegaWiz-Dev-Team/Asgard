@@ -35,6 +35,10 @@ spec:
               value: http://hermodr.asgard-services.svc:8090/rpc
             - name: YGGDRASIL_MCP_ENABLED
               value: "true"
+            - name: EIR_MCP_URL
+              value: http://hermodr-eir.asgard.svc:8091/rpc
+            - name: EIR_MCP_ENABLED
+              value: "true"
             - name: DEFAULT_MODEL
               value: mlx-community/Qwen3.5-9B-MLX-4bit
             - name: MAX_ITERATIONS

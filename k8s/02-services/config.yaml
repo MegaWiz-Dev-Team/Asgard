@@ -28,6 +28,8 @@ data:
   VARDR_URL: "http://vardr.asgard-monitoring.svc:9090"
   RATATOSKR_URL: "http://ratatoskr.asgard-services.svc:9200"
   PAGEINDEX_URL: "http://pageindex.asgard-services.svc:8600"
+  EIR_URL: "http://eir.asgard.svc:80"
+  EIR_GATEWAY_URL: "http://eir-gateway.asgard.svc:8300"
   MARIADB_HOST: "mariadb.asgard-infra.svc"
   POSTGRES_HOST: "postgres.asgard-infra.svc"
   REDIS_URL: "redis://redis.asgard-infra.svc:6379"
