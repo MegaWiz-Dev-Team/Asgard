@@ -108,60 +108,13 @@ Asgard is a **complete, modular, self-hosted AI platform**:
 
 ## 7. Financial Projections (3-Year)
 
-### Revenue Forecast
-
-| | Year 1 (2026) | Year 2 (2027) | Year 3 (2028) |
-|:--|:--|:--|:--|
-| Enterprise Licenses | $0 | $180K | $774K |
-| Hardware Bundles | $15K | $80K | $200K |
-| Consulting | $30K | $60K | $100K |
-| Training | $0 | $20K | $50K |
-| **Total Revenue** | **$45K** | **$340K** | **$1,124K** |
-
-### Cost Structure
-
-| | Year 1 | Year 2 | Year 3 |
-|:--|:--|:--|:--|
-| Hardware COGS (60%) | $9K | $48K | $120K |
-| Engineering (founder) | $0* | $120K | $240K |
-| Infrastructure (servers, domains) | $5K | $12K | $30K |
-| Marketing & Community | $5K | $30K | $60K |
-| Sales | $0 | $60K | $120K |
-| Legal & Admin | $5K | $10K | $20K |
-| **Total Costs** | **$24K** | **$280K** | **$590K** |
-| **Net** | **$21K** | **$60K** | **$534K** |
-
-*Assumption: Year 1 founder works without salary, bootstrapped. Hardware COGS ~60% of hardware revenue.*
-
-### Key Assumptions
-- Community Edition drives 10x awareness vs paid marketing
-- Enterprise conversion from Community: 2-5% by Year 2
-- SEA market first (Thailand → Singapore → Vietnam)
-- Average Enterprise contract: $12K-20K/yr
-- Churn rate: < 10% annually (self-hosted = sticky)
+> *Redacted from public repository. Detailed financial models and cap tables are restricted to NDA data room.*
 
 ---
 
 ## 8. Team & Resources
 
-### Current (Year 1)
-| Role | Person | Focus |
-|:--|:--|:--|
-| Founder/CTO | Paripol | Architecture, Rust backend, AI strategy |
-
-### Year 2 Target
-| Role | Hire When | Budget |
-|:--|:--|:--|
-| Full-stack Engineer | $100K ARR | Mimir Dashboard, Bifrost |
-| DevRel / Community Manager | Community launch | Content, docs, support |
-| Sales (part-time) | First enterprise deal | Enterprise pipeline |
-
-### Year 3 Target
-| Role | Count |
-|:--|:--|
-| Engineering | 3-4 |
-| Sales & Marketing | 2 |
-| Support | 1 |
+> *Redacted from public repository. Hiring plans and compensation budgets are restricted to NDA data room.*
 
 ---
 
@@ -214,21 +167,6 @@ gantt
 - Focus: ship v1.0, recruit design partners
 
 ### Seed Round (Target: Q2 2027)
-| Item | Ask |
-|:--|:--|
-| **Amount** | $500K |
-| **Use** | Hire 2 engineers + DevRel + 12 months runway |
-| **Valuation** | $3-5M (pre-money) |
-| **Milestone** | $100K ARR, 500+ GitHub stars, 3+ enterprise pilots |
-
-### Use of Proceeds
-| Category | Amount | % |
-|:--|:--|:--|
-| Engineering | $300K | 60% |
-| Marketing & Community | $100K | 20% |
-| Operations & Legal | $50K | 10% |
-| Reserve | $50K | 10% |
-
----
+> *Redacted from public repository.*-
 
 *📅 Created: March 2026 · Contact: paripol@megawiz.co*

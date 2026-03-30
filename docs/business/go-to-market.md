@@ -119,25 +119,13 @@ Awareness → Interest → Evaluation → POC → Close → Expand
 
 ### Enterprise Metrics
 
-| Metric | Enterprise Pilot | Enterprise GA | +12 months |
-|:--|:--|:--|:--|
-| Design Partners | 3-5 | — | — |
-| Paying Customers | 1-2 | 10 | 30 |
-| ARR | $10K | $100K | $500K |
-| Demo Requests (monthly) | 5 | 20 | 50 |
+> *Redacted from public repository. Enterprise ARR targets and design partner metrics are restricted to NDA data room.*
 
 ---
 
 ## 6. Budget Allocation (Year 1)
 
-| Category | Budget | Activities |
-|:--|:--|:--|
-| **Content** | $2,000 | Blog posts, tutorials, video production |
-| **Design** | $1,000 | Logo refinements, social assets, swag |
-| **Infrastructure** | $2,000 | asgardai.dev hosting, CI/CD, analytics |
-| **Events** | $1,000 | Local meetups, conference attendance |
-| **Tools** | $1,000 | Email, CRM, analytics |
-| **Total** | **$7,000** | |
+> *Redacted from public repository. Internal GTM budgets and vendor allocations are restricted to NDA data room.*
 
 > Year 1 is community-led growth. Paid marketing begins Year 2 with $30K budget.
 

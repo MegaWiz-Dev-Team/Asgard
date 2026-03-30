@@ -83,17 +83,7 @@
 
 ## Revenue Projection (3-Year)
 
-### Assumptions
-- Year 1: 3-5 design partners (discounted/free), 2-3 hardware sales
-- Year 2: 10-20 paying customers (mix of Starter + Professional), 8-12 hardware
-- Year 3: 30-50 customers, 2-3 Custom deals, 15-25 hardware
-- SEA market first, then global expansion
-
-| Year | Software Customers | Software ARR | Hardware Units | Hardware Revenue | **Total Revenue** |
-|:--|:--|:--|:--|:--|:--|
-| **Year 1 (2026)** | 3 design partners | $0 | 3 | $15K | **$15K** |
-| **Year 2 (2027)** | 15 paid | $180K | 10 | $80K | **$260K** |
-| **Year 3 (2028)** | 40 paid + 3 Custom | $774K | 20 | $200K | **$974K** |
+> *Redacted from public repository. 3-Year revenue forecasts are restricted to NDA data room.*
 
 ---
 
@@ -110,68 +100,60 @@
 ### Hardware Tiers
 
 #### 🟢 Tier 1 — Asgard Mini (Entry-Level)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **Mac Mini M4 Pro** | 12C CPU, 16C GPU, 24GB RAM, 512GB | ~$1,400 (฿49,000) | **$2,500 (฿87,500)** | $1,100 (44%) |
-| **Pre-installed** | Asgard Community, Heimdall, MLX, Qwen 9B model | | | |
-| **Best for** | Solo developer, prototyping, small RAG chatbot | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **Mac Mini M4 Pro** | 12C CPU, 16C GPU, 24GB RAM, 512GB | **$2,500 (฿87,500)** |
+| **Pre-installed** | Asgard Community, Heimdall, MLX, Qwen 9B model | |
+| **Best for** | Solo developer, prototyping, small RAG chatbot | |
 
 #### 🔵 Tier 2 — Asgard Pro (Production)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **Mac Mini M4 Pro** | 14C CPU, 20C GPU, 48GB RAM, 1TB | ~$2,200 (฿77,000) | **$3,800 (฿133,000)** | $1,600 (42%) |
-| **Pre-installed** | Asgard + Enterprise License (1yr), Qwen 35B MoE | | | |
-| **Best for** | SMB production, multi-tenant, 5-10 users | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **Mac Mini M4 Pro** | 14C CPU, 20C GPU, 48GB RAM, 1TB | **$3,800 (฿133,000)** |
+| **Pre-installed** | Asgard + Enterprise License (1yr), Qwen 35B MoE | |
+| **Best for** | SMB production, multi-tenant, 5-10 users | |
 
 #### 🟣 Tier 3 — Asgard Studio (Power User)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **Mac Studio M4 Max** | 16C CPU, 40C GPU, 128GB RAM, 1TB | ~$3,500 (฿122,500) | **$5,900 (฿206,500)** | $2,400 (41%) |
-| **Pre-installed** | Asgard Enterprise, Qwen 35B + MedGemma, Neo4j, Vault | | | |
-| **Best for** | Healthcare/legal RAG, large knowledge base, 20+ users | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **Mac Studio M4 Max** | 16C CPU, 40C GPU, 128GB RAM, 1TB | **$5,900 (฿206,500)** |
+| **Pre-installed** | Asgard Enterprise, Qwen 35B + MedGemma, Neo4j, Vault | |
+| **Best for** | Healthcare/legal RAG, large knowledge base, 20+ users | |
 
 #### 🟠 Tier 4 — Asgard Ultra (Enterprise)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **Mac Studio M4 Ultra** | 32C CPU, 80C GPU, 192GB RAM, 2TB | ~$5,500 (฿192,500) | **$9,500 (฿332,500)** | $4,000 (42%) |
-| **Pre-installed** | Asgard Enterprise + Custom, multi-agent, full model suite | | | |
-| **Add-ons** | On-site setup, training (2 days), 1-year priority support | | | |
-| **Best for** | Hospital groups, financial institutions, 50+ users | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **Mac Studio M4 Ultra** | 32C CPU, 80C GPU, 192GB RAM, 2TB | **$9,500 (฿332,500)** |
+| **Pre-installed** | Asgard Enterprise + Custom, multi-agent, full model suite | |
+| **Add-ons** | On-site setup, training (2 days), 1-year priority support | |
+| **Best for** | Hospital groups, financial institutions, 50+ users | |
 
 #### 🟡 Tier 5 — Asgard Spark (NVIDIA DGX Spark)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **NVIDIA DGX Spark** | GB10 Blackwell, 128GB unified, 4TB NVMe, 1 PFLOP FP4 | ~$4,700 (฿164,500) | **$7,500 (฿262,500)** | $2,800 (37%) |
-| **Pre-installed** | Asgard Enterprise, DGX OS (Ubuntu), vLLM, models up to 200B inference | | | |
-| **Best for** | AI-first orgs, fine-tune up to 70B, inference 200B, compact desktop | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **NVIDIA DGX Spark** | GB10 Blackwell, 128GB unified, 4TB NVMe, 1 PFLOP FP4 | **$7,500 (฿262,500)** |
+| **Pre-installed** | Asgard Enterprise, DGX OS (Ubuntu), vLLM, models up to 200B inference | |
+| **Best for** | AI-first orgs, fine-tune up to 70B, inference 200B, compact desktop | |
 
 #### 🟡 Tier 6 — Asgard Spark Duo (2x DGX Spark linked)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **2x DGX Spark** | 256GB unified, 8TB NVMe, 2 PFLOP FP4, 100GbE link | ~$9,400 (฿329,000) | **$14,000 (฿490,000)** | $4,600 (33%) |
-| **Pre-installed** | Asgard Enterprise Custom, models up to **405B** (Llama 3.1 405B) | | | |
-| **Add-ons** | On-site setup, networking config, 1-year priority support | | | |
-| **Best for** | Research labs, hospitals needing largest models, R&D teams | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **2x DGX Spark** | 256GB unified, 8TB NVMe, 2 PFLOP FP4, 100GbE link | **$14,000 (฿490,000)** |
+| **Pre-installed** | Asgard Enterprise Custom, models up to **405B** (Llama 3.1 405B) | |
+| **Add-ons** | On-site setup, networking config, 1-year priority support | |
+| **Best for** | Research labs, hospitals needing largest models, R&D teams | |
 
 #### 🔴 Tier 7 — Asgard GPU Server (NVIDIA Discrete GPU)
-| Item | Spec | Hardware Cost | Bundle Price | Margin |
-|:--|:--|:--|:--|:--|
-| **NVIDIA GPU Server** | RTX 4090 (24GB) or A6000 (48GB) | ~$3K-$8K (฿105K-280K) | **$6K-$15K (฿210K-525K)** | $3K-$7K (50%) |
-| **Pre-installed** | Asgard Enterprise, vLLM, CUDA optimized | | | |
-| **Add-ons** | On-site setup, rack mounting, 1-year support | | | |
-| **Best for** | High-throughput inference, training fine-tune, multi-GPU clusters | | | |
+| Item | Spec | Bundle Price |
+|:--|:--|:--|
+| **NVIDIA GPU Server** | RTX 4090 (24GB) or A6000 (48GB) | **$6K-$15K (฿210K-525K)** |
+| **Pre-installed** | Asgard Enterprise, vLLM, CUDA optimized | |
+| **Add-ons** | On-site setup, rack mounting, 1-year support | |
+| **Best for** | High-throughput inference, training fine-tune, multi-GPU clusters | |
 
 ### Pricing Summary
 
-| Tier | Hardware | Bundle Price (USD) | Bundle Price (THB) | Includes |
-|:--|:--|:--|:--|:--|
-| 🟢 **Mini** | Mac Mini M4 Pro 24GB | **$2,500** | **฿87,500** | Community + MLX + 9B model |
-| 🔵 **Pro** | Mac Mini M4 Pro 48GB | **$3,800** | **฿133,000** | Enterprise 1yr + 35B model |
-| 🟣 **Studio** | Mac Studio M4 Max 128GB | **$5,900** | **฿206,500** | Enterprise + Neo4j + Vault |
-| 🟠 **Ultra** | Mac Studio M4 Ultra 192GB | **$9,500** | **฿332,500** | Enterprise Custom + on-site |
-| 🟡 **Spark** | NVIDIA DGX Spark 128GB | **$7,500** | **฿262,500** | Enterprise + DGX OS + 200B inference |
-| 🟡 **Spark Duo** | 2x DGX Spark 256GB | **$14,000** | **฿490,000** | Enterprise Custom + 405B models |
-| 🔴 **GPU Server** | NVIDIA RTX/A6000 | **$6K-$15K** | **฿210K-525K** | Enterprise + vLLM + CUDA |
+> *Redacted from public repository. Detailed price structuring and margins are available under NDA.*
 
 ### Hardware Bundle Strategy
 1. **Apple ARM = primary** — Thailand has Apple reseller network; easy to source
