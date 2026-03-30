@@ -47,6 +47,27 @@
 
 ---
 
+## 🏢 Enterprise Partner Integration Gaps
+
+> **Strategic gaps identified for Tier-1 Enterprise deployments and White-Label (OEM) partnerships. These tasks must be distributed across services to prepare for strict Data Sovereignty PoCs and SI co-implementations.**
+
+### Phase 1: Infrastructure & Data Sovereignty
+| Task | Component | Description | Priority |
+|:--|:--|:--|:--|
+| Air-gapped VPN | ⚡ Infra | Establish secure WireGuard tunnel for strict cross-border GPU infrastructure. | P0 🔴 |
+| Multi-Lingual PII Scrubber | 🛡️ Heimdall | Ensure robust Thai/Japanese/English PII masking is operational before LLM proxying. | P0 🔴 |
+| Mjolnir SLA Load Test | 🔨 Mjolnir | Integrate Mjolnir to stress-test Odin orchestration to prove Enterprise SLA. | P1 🟡 |
+
+### Phase 2: Co-Branding & SI Enablement
+| Task | Component | Description | Priority |
+|:--|:--|:--|:--|
+| OEM Theming Engine | 🧠 Mimir (UI) | Support dynamic logo/theme switching for White-Label client installations. | P1 🟡 |
+| Black-box API Docs | 🏰 Asgard | Generate pristine OpenAPI/Swagger docs for SI Partners to consume securely. | P1 🟡 |
+| CJK Localization | All Services | Ensure prompt pipelines, parsers, and UI support robust UTF-8 CJK encoding. | P2 🟢 |
+| SI Billing Telemetry | 🌳 Yggdrasil | Add tenant-level API usage tracking for Volume-based SaaS revenue models. | P2 🟢 |
+
+---
+
 ### 🐦‍⬛ Huginn — Sprint 1: Foundation
 - [ ] Cargo scaffold (main.rs, config.rs, health.rs, db.rs, models.rs)
 - [ ] Dockerfile + Docker Compose integration
