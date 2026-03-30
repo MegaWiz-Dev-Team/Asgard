@@ -66,6 +66,12 @@
 | CJK Localization | All Services | Ensure prompt pipelines, parsers, and UI support robust UTF-8 CJK encoding. | P2 🟢 |
 | SI Billing Telemetry | 🌳 Yggdrasil | Add tenant-level API usage tracking for Volume-based SaaS revenue models. | P2 🟢 |
 
+### Phase 3: Mimir RAG Engine Enhancements (Backlog)
+| Task | Component | Description | Priority |
+|:--|:--|:--|:--|
+| Pre/Post Tool Hook System | 🧠 Mimir (`rag_engine`) | Implement `PreToolUse` and `PostToolUse` hook middleware inside the `DynamicContextPlugin` trait. Enables PII scrubbing and audit logging to fire **before** context is sent to the LLM — currently delegated to Heimdall but should be enforceable at the RAG layer too. | P1 🟡 |
+| Agent Interrupt / Cancel | 🧠 Mimir (`rag_engine`) | Add graceful cancellation support for long-running `OracleRagAgent::chat()` calls via a `CancellationToken`. Critical for H100 inference workloads where Agent tasks may run 10-45s and users need to abort cleanly without corrupting session state. | P1 🟡 |
+
 ---
 
 ### 🐦‍⬛ Huginn — Sprint 1: Foundation
