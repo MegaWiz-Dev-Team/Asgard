@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bifrost
-  namespace: asgard-services
+  namespace: asgard
   labels:
     app: bifrost
 spec:
@@ -27,12 +27,24 @@ spec:
               value: "0.0.0.0"
             - name: BIFROST_PORT
               value: "8100"
+            - name: DATABASE_URL
+              value: mysql://mimir:mimir_password@mariadb.asgard-infra.svc:3306/mimir
+            - name: QDRANT_URL
+              value: http://qdrant.asgard-infra.svc:6333
+            - name: REDIS_URL
+              value: redis://redis.asgard-infra.svc:6379
+            - name: NEO4J_URI
+              value: bolt://neo4j.asgard-infra.svc:7687
+            - name: NEO4J_USER
+              value: neo4j
+            - name: NEO4J_PASSWORD
+              value: asgard_neo4j_password
             - name: HEIMDALL_URL
-              value: http://host.docker.internal:8080
+              value: http://host.docker.internal:8081/v1
             - name: MIMIR_URL
-              value: http://mimir-api.asgard-services.svc:8080
+              value: http://mimir-api.asgard.svc:8080
             - name: YGGDRASIL_MCP_URL
-              value: http://hermodr.asgard-services.svc:8090/rpc
+              value: http://hermodr.asgard.svc:8090/rpc
             - name: YGGDRASIL_MCP_ENABLED
               value: "true"
             - name: EIR_MCP_URL
@@ -58,6 +70,9 @@ spec:
               port: 8100
             initialDelaySeconds: 5
             periodSeconds: 10
+          volumeMounts:
+            - name: bifrost-data
+              mountPath: /app/data
           resources:
             requests:
               memory: 128Mi
@@ -65,12 +80,16 @@ spec:
             limits:
               memory: 512Mi
               cpu: 500m
+      volumes:
+        - name: bifrost-data
+          persistentVolumeClaim:
+            claimName: bifrost-data-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: bifrost
-  namespace: asgard-services
+  namespace: asgard
 spec:
   selector:
     app: bifrost
@@ -79,3 +98,15 @@ spec:
       targetPort: 8100
       nodePort: 30100
   type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bifrost-data-pvc
+  namespace: asgard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

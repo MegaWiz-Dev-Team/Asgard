@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mimir-api
-  namespace: asgard-services
+  namespace: asgard
   labels:
     app: mimir-api
 spec:
@@ -38,9 +38,19 @@ spec:
             - name: NEO4J_PASSWORD
               value: asgard_neo4j_password
             - name: OLLAMA_API_URL
-              value: http://host.docker.internal:8080/v1
+              value: http://host.docker.internal:8081/v1
             - name: OLLAMA_URL
-              value: http://host.docker.internal:8080
+              value: http://host.docker.internal:8081
+            - name: HEIMDALL_API_URL
+              value: http://host.docker.internal:8081/v1
+            - name: HEIMDALL_API_KEY
+              value: "demo-api-key"
+            - name: EMBEDDING_HOST
+              value: host.docker.internal
+            - name: EMBEDDING_PORT
+              value: "8001"
+            - name: BIFROST_URL
+              value: http://bifrost.asgard.svc:8100
             - name: RUST_LOG
               value: info
           envFrom:
@@ -64,7 +74,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mimir-api
-  namespace: asgard-services
+  namespace: asgard
 spec:
   selector:
     app: mimir-api

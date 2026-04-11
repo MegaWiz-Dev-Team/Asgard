@@ -44,34 +44,51 @@
 | 🤝 [CONTRIBUTING.md](../CONTRIBUTING.md) | How to contribute |
 | 📜 [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | Community standards |
 
+### Roadmap & Multi-Agent Architecture
+
+| Document | Description |
+|:--|:--|
+| 🏥 [Multi-Agent Architecture Plan](roadmap/MultiAgent_Architecture_Plan.md) | Medical AI Agent ecosystem blueprint — 15 sections |
+| 🎨 [Multi-Agent Studio Design](roadmap/MultiAgent_Studio_Design.md) | Visual canvas design for agent team orchestration |
+| 🗓️ [Multi-Agent Sprint Plan](roadmap/MultiAgent_Sprint_Plan.md) | 5 phases × 15 sprints starting April 2026 |
+| 🔍 [Multi-Agent Gap Analysis](roadmap/MultiAgent_Gap_Analysis.md) | Ecosystem readiness metrics and critical path |
+
 ---
 
-## 🏰 Platform Overview
+## 🏰 Platform Overview — Multi-Agent Ecosystem
 
 ```mermaid
-graph LR
-    User["👤 User"] --> Mimir["🧠 Mimir<br/>RAG + Agent Builder"]
-    User --> Bifrost["⚡ Bifrost<br/>Agent Runtime"]
-
-    Bifrost --> |"LLM"| Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
-    Bifrost --> |"MCP"| Mimir
+graph TB
+    User["👤 Physician"] --> Eir["🏥 Eir<br/>FHIR Gateway"]
+    Eir --> Hermodr["📨 Hermóðr<br/>MCP Bridge"]
+    Hermodr --> Bifrost["⚡ Bifrost<br/>Orchestrator (Rust)"]
+    
+    Bifrost --> |"MCP"| Mimir["🧠 Mimir<br/>RAG + GraphRAG"]
     Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
+    Bifrost --> |"LLM"| Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
+    Fenrir --> Ratatoskr["🐿️ Ratatoskr<br/>Headless Browser"]
 
-    Heimdall --> LLM["🍎 MLX · llama.cpp · Ollama · vLLM"]
+    Heimdall --> LLM["🍎 MLX · llama.cpp · Gemini"]
+    Mimir --> VectorDB["📦 Qdrant + Neo4j"]
 
-    Yggdrasil["🌳 Yggdrasil<br/>Auth (Yggdrasil)"] -.-> Heimdall
-    Yggdrasil -.-> Mimir
-    Yggdrasil -.-> Bifrost
+    Odin["🔱 Odin<br/>Supervisor"] -.-> Bifrost
+    Odin -.-> Mimir
+    Vardr["🛡️ Várðr<br/>Observability"] -.-> Bifrost
+    Yggdrasil["🌳 Yggdrasil<br/>Auth"] -.-> Hermodr
 ```
 
-| Component | Description | Tech | Status |
+| Component | Role | Tech | Status |
 |:--|:--|:--|:--|
-| 🛡️ **Heimdall** | LLM Gateway | Rust (Axum) | ✅ Production |
-| 🧠 **Mimir** | RAG + Agent Builder | Rust (Axum) + Next.js 14 | ✅ Sprint 23 Done |
-| ⚡ **Bifrost** | Agent Runtime | Python (FastAPI) | 🚧 Scaffolding |
-| 🐺 **Fenrir** | Computer Use | Python (Browser Use + FHIR) | 📋 Planned |
-| 🏥 **Eir** | Clinic Management | OpenEMR (PHP, GPL v3) | 📋 Planned |
-| 🌳 **Yggdrasil** | Auth Service | Zitadel (Go) | 📋 Planned |
+| ⚡ **Bifrost** | Multi-Agent Orchestrator | **Rust (Axum + rig.rs)** | 🚧 Migrating to Rust |
+| 📨 **Hermóðr** | Universal MCP Sidecar | Rust | ✅ v0.1.0 |
+| 🏥 **Eir** | FHIR Gateway + Context Router | Rust (Axum) | ✅ v0.4.0 |
+| 🧠 **Mimir** | Knowledge Engine (Curator + Researcher) | Rust (Axum) + Next.js | ✅ Sprint 29 |
+| 🐺 **Fenrir** | Computer Use Agent | Rust + Python sidecar | ✅ v0.3.0 |
+| 🐿️ **Ratatoskr** | Shared Headless Browser | Rust (Axum) | ✅ Active |
+| 🛡️ **Heimdall** | LLM Gateway + Step-up Router | Rust (Axum) | ✅ Production |
+| 🌳 **Yggdrasil** | Identity & Auth (SSO/JWT) | Go (Zitadel) | ✅ v0.5.0 |
+| 🔱 **Odin** | Platform Supervisor | Rust (Axum) | 📋 Planned |
+| 🛡️ **Várðr** | Monitoring & Tracing | Rust | 📋 Planned |
 
 ---
 
