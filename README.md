@@ -8,7 +8,7 @@
 
 Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved into a general-purpose AI platform for healthcare, knowledge management, and autonomous workflows.
 
-**📚 [Full Documentation →](docs/README.md)** | **📊 [Platform Review →](docs/strategy/platform-review.md)** | **🎯 [Competitor Analysis →](docs/strategy/competitor-analysis.md)**
+**📚 [Full Documentation →](docs/README.md)** | **🏥 [Architecture Plan →](docs/roadmap/MultiAgent_Architecture_Plan.md)** | **🎨 [Studio Design →](docs/roadmap/MultiAgent_Studio_Design.md)** | **🗓️ [Sprint Plan →](docs/roadmap/MultiAgent_Sprint_Plan.md)** | **🔍 [Gap Analysis →](docs/roadmap/MultiAgent_Gap_Analysis.md)**
 
 ---
 
@@ -59,15 +59,16 @@ graph LR
 |:--|:--|:--|:--|:--|
 | 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
 | 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
-| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Agent Runtime — ReAct, MCP, Skills, Memory, Context | Python (FastAPI) | 146 | ✅ Sprint 35 |
-| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Use + FHIR R4 + Messaging | Python (FastAPI) | 47 | ✅ Sprint 1.5 |
+| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 |
+| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 |
 | 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
 | 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
 | 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
 | 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Python (FastAPI) | — | 🚧 Sprint 1 |
 | 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Python (FastAPI) | — | 🚧 Sprint 1 |
 | 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
-| 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy | — | — | ✅ Active |
+| 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 |
+| 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active |
 
 > **530+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
@@ -160,6 +161,8 @@ Build a **self-hosted AI platform** that enables:
 | **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | Odin's Ravens |
 | **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | Odin's Ravens |
 | **Ratatoskr** | The squirrel on Yggdrasil | Shared Browser Service | Community |
+| **Hermóðr** | Messenger of the gods | Universal MCP Sidecar | Community |
+| **Odin** | The All-Father | Platform Supervisor | Community |
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
