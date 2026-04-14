@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: wazuh
+data:
+  vector.toml: |
+    [sources.kubernetes_logs]
+    type = "kubernetes_logs"
+
+    [sinks.opensearch]
+    type = "elasticsearch"
+    inputs = ["kubernetes_logs"]
+    endpoints = ["https://wazuh-indexer:9200"]
+    mode = "bulk"
+    auth.strategy = "basic"
+    auth.user = "admin"
+    auth.password = "admin"
+    tls.verify_certificate = false
+    tls.verify_hostname = false

@@ -64,6 +64,7 @@ graph LR
 | 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
 | 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
 | 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
+| ⚖️ **[Týr](https://github.com/MegaWiz-Dev-Team/Tyr)** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Active |
 | 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Python (FastAPI) | — | 🚧 Sprint 1 |
 | 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Python (FastAPI) | — | 🚧 Sprint 1 |
 | 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
@@ -119,6 +120,7 @@ Build a **self-hosted AI platform** that enables:
 - [x] Eir — Rust API Gateway + OpenEMR (Sprint 3, 47 tests)
 - [x] Fenrir — Computer-Use Agent scaffold + OpenEMR Messaging (Sprint 1.5, 47 tests)
 - [x] Yggdrasil — Auth Service (Sprint 2, Zitadel + JWT + FastAPI Auth, 31 tests)
+- [x] Týr — Security Information & Event Management (Wazuh SIEM, T7 external scaling, macOS FIM agent)
 - [x] Unified Docker Compose — 10 services, one command
 - [x] AGPL-3.0 licensing + CLA
 - [x] Bifrost Sprint 35 — Skills system, long-term memory, context engineering (146 tests)

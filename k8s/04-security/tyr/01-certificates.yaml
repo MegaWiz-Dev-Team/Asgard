@@ -1,0 +1,65 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-indexer-certs
+  namespace: wazuh
+spec:
+  secretName: indexer-certs
+  duration: 8760h
+  renewBefore: 720h
+  isCA: false
+  commonName: wazuh-indexer.wazuh.svc.cluster.local
+  dnsNames:
+    - wazuh-indexer
+    - wazuh-indexer.wazuh.svc.cluster.local
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS8
+    size: 2048
+  issuerRef:
+    name: asgard-ca-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-manager-certs
+  namespace: wazuh
+spec:
+  secretName: manager-certs
+  duration: 8760h
+  renewBefore: 720h
+  isCA: false
+  commonName: wazuh-manager.wazuh.svc.cluster.local
+  dnsNames:
+    - wazuh-manager
+    - wazuh-manager.wazuh.svc.cluster.local
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS8
+    size: 2048
+  issuerRef:
+    name: asgard-ca-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wazuh-dashboard-certs
+  namespace: wazuh
+spec:
+  secretName: dashboard-certs
+  duration: 8760h
+  renewBefore: 720h
+  isCA: false
+  commonName: wazuh-dashboard.wazuh.svc.cluster.local
+  dnsNames:
+    - wazuh-dashboard
+    - wazuh-dashboard.wazuh.svc.cluster.local
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS8
+    size: 2048
+  issuerRef:
+    name: asgard-ca-issuer
+    kind: ClusterIssuer

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wazuh-indexer
+  namespace: wazuh
+spec:
+  serviceName: wazuh-indexer
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-indexer
+  template:
+    metadata:
+      labels:
+        app: wazuh-indexer
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: wazuh-indexer
+          image: wazuh/wazuh-indexer:4.9.0
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              mkdir -p /usr/share/wazuh-indexer/certs
+              cp -L /tmp/certs/* /usr/share/wazuh-indexer/certs/
+              chmod 400 /usr/share/wazuh-indexer/certs/*
+              sed -i 's|/etc/wazuh-indexer/certs|/usr/share/wazuh-indexer/certs|g' /usr/share/wazuh-indexer/opensearch.yml
+              sed -i 's|CN=node-1,OU=Wazuh,O=Wazuh,L=California,C=US|CN=wazuh-indexer.wazuh.svc.cluster.local|g' /usr/share/wazuh-indexer/opensearch.yml
+              sed -i 's|CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US|CN=wazuh-indexer.wazuh.svc.cluster.local|g' /usr/share/wazuh-indexer/opensearch.yml
+              echo "" >> /usr/share/wazuh-indexer/opensearch.yml
+              echo "bootstrap.system_call_filter: false" >> /usr/share/wazuh-indexer/opensearch.yml
+              exec /entrypoint.sh opensearchwrapper
+          env:
+            - name: "OPENSEARCH_JAVA_OPTS"
+              value: "-Xms2g -Xmx2g"
+            - name: "DISABLE_INSTALL_DEMO_CONFIG"
+              value: "true"
+          ports:
+            - containerPort: 9200
+              name: api
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "3Gi"
+              cpu: "2000m"
+          volumeMounts:
+            - name: indexer-data
+              mountPath: /usr/share/wazuh-indexer/data
+            - name: certs
+              mountPath: /tmp/certs
+              readOnly: true
+      volumes:
+        - name: indexer-data
+          persistentVolumeClaim:
+            claimName: tyr-indexer-pvc
+        - name: certs
+          secret:
+            secretName: indexer-certs
+            defaultMode: 0444
+            items:
+              - key: tls.crt
+                path: indexer.pem
+              - key: tls.key
+                path: indexer-key.pem
+              - key: ca.crt
+                path: root-ca.pem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-indexer
+  namespace: wazuh
+spec:
+  type: NodePort
+  selector:
+    app: wazuh-indexer
+  ports:
+    - name: api
+      port: 9200
+      targetPort: 9200
+      nodePort: 30920
