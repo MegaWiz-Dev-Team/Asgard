@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wazuh-dashboard-config
+  namespace: wazuh
+data:
+  opensearch_dashboards.yml: |
+    server.host: 0.0.0.0
+    server.port: 5601
+    opensearch.hosts: ["https://wazuh-indexer:9200"]
+    opensearch.ssl.verificationMode: certificate
+    opensearch.username: kibanaserver
+    opensearch.password: kibanaserver
+    opensearch.requestHeadersAllowlist: ["securitytenant","Authorization"]
+    opensearch_security.multitenancy.enabled: false
+    opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+    server.ssl.enabled: false
+    #server.ssl.key: "/etc/wazuh-dashboard/certs/dashboard-key.pem"
+    #server.ssl.certificate: "/etc/wazuh-dashboard/certs/dashboard.pem"
+    opensearch.ssl.certificateAuthorities: ["/etc/wazuh-dashboard/certs/root-ca.pem"]
+    uiSettings.overrides.defaultRoute: /app/wz-home
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wazuh-dashboard
+  namespace: wazuh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-dashboard
+  template:
+    metadata:
+      labels:
+        app: wazuh-dashboard
+    spec:
+      containers:
+        - name: wazuh-dashboard
+          image: wazuh/wazuh-dashboard:4.9.0
+          env:
+            - name: WAZUH_API_URL
+              value: "https://wazuh-manager"
+            - name: OPENSEARCH_HOSTS
+              value: "https://wazuh-indexer:9200"
+          ports:
+            - containerPort: 5601
+              name: dashboard
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+              subPath: opensearch_dashboards.yml
+            - name: certs
+              mountPath: /etc/wazuh-dashboard/certs/dashboard.pem
+              subPath: tls.crt
+              readOnly: true
+            - name: certs
+              mountPath: /etc/wazuh-dashboard/certs/dashboard-key.pem
+              subPath: tls.key
+              readOnly: true
+            - name: certs
+              mountPath: /etc/wazuh-dashboard/certs/root-ca.pem
+              subPath: ca.crt
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: wazuh-dashboard-config
+        - name: certs
+          secret:
+            secretName: dashboard-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-dashboard
+  namespace: wazuh
+spec:
+  type: NodePort
+  selector:
+    app: wazuh-dashboard
+  ports:
+    - name: dashboard
+      port: 5601
+      targetPort: 5601
+      nodePort: 30560
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wazuh-dashboard-ingress
+  namespace: wazuh
+  annotations:
+    cert-manager.io/cluster-issuer: "asgard-ca-issuer"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  tls:
+    - hosts:
+        - tyr.asgard.internal
+      secretName: tyr-edge-tls
+  rules:
+    - host: tyr.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wazuh-dashboard
+                port:
+                  number: 5601

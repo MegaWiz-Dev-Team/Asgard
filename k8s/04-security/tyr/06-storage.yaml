@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tyr-logs-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  hostPath:
+    path: "/Volumes/T7 Shield/asgard-data/tyr/logs"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tyr-logs-pvc
+  namespace: wazuh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeName: tyr-logs-pv
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tyr-manager-data-pvc
+  namespace: wazuh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tyr-indexer-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  hostPath:
+    path: "/Volumes/T7 Shield/asgard-data/tyr/indexer"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tyr-indexer-pvc
+  namespace: wazuh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeName: tyr-indexer-pv
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi

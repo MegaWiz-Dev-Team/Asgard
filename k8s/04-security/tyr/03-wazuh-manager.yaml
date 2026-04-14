@@ -1,0 +1,146 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wazuh-manager-init
+  namespace: wazuh
+data:
+  01-custom-init: |
+    #!/usr/bin/with-contenv bash
+    echo "Executing custom Wazuh certificate initiation..."
+    
+    # Configure API Certs
+    cp -L /tmp/secret-certs/tls.crt /var/ossec/api/configuration/ssl/server.crt
+    cp -L /tmp/secret-certs/tls.key /var/ossec/api/configuration/ssl/server.key
+    chown -R 999:999 /var/ossec/api/configuration/ssl/
+    
+    # Configure Filebeat Certs
+    mkdir -p /etc/filebeat/certs
+    cp -L /tmp/secret-certs/ca.crt /etc/filebeat/certs/root-ca.pem
+    cp -L /tmp/secret-certs/tls.crt /etc/filebeat/certs/filebeat.pem
+    cp -L /tmp/secret-certs/tls.key /etc/filebeat/certs/filebeat-key.pem
+    chmod 644 /etc/filebeat/certs/*
+    
+    # Patch Filebeat config to use the CA and credentials
+    sed -i 's|.*ssl.certificate_authorities:.*|  ssl.certificate_authorities: ["/etc/filebeat/certs/root-ca.pem"]|' /etc/filebeat/filebeat.yml
+    sed -i 's|.*ssl.certificate:.*|  ssl.certificate: "/etc/filebeat/certs/filebeat.pem"|' /etc/filebeat/filebeat.yml
+    sed -i 's|.*ssl.key:.*|  ssl.key: "/etc/filebeat/certs/filebeat-key.pem"|' /etc/filebeat/filebeat.yml
+    # Patch the internal wazuh-indexer-connector to use the correct K8s service host
+    sed -i 's|<host>https://0.0.0.0:9200</host>|<host>https://wazuh-indexer:9200</host>|' /var/ossec/etc/ossec.conf
+    sed -i 's|<host>https://localhost:9200</host>|<host>https://wazuh-indexer:9200</host>|' /var/ossec/etc/ossec.conf || true
+
+    sed -i 's|.*#username:.*|  username: "admin"|' /etc/filebeat/filebeat.yml
+    sed -i 's|.*#password:.*|  password: "admin"|' /etc/filebeat/filebeat.yml
+    
+    # Configure Indexer Connector Keystore credentials
+    /var/ossec/bin/wazuh-keystore -f indexer -k username -v admin || true
+    /var/ossec/bin/wazuh-keystore -f indexer -k password -v admin || true
+    
+    # Sync custom Tyr rules and decoders if present
+    if [ -d "/tmp/wazuh-rules" ]; then
+      cp --remove-destination -L /tmp/wazuh-rules/*.xml /var/ossec/etc/rules/ 2>/dev/null || true
+    fi
+    if [ -d "/tmp/wazuh-decoders" ]; then
+      cp --remove-destination -L /tmp/wazuh-decoders/*.xml /var/ossec/etc/decoders/ 2>/dev/null || true
+    fi
+    chown -R wazuh:wazuh /var/ossec/etc/rules /var/ossec/etc/decoders
+    
+    echo "Custom cert init complete!"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wazuh-manager
+  namespace: wazuh
+spec:
+  serviceName: wazuh-manager
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-manager
+  template:
+    metadata:
+      labels:
+        app: wazuh-manager
+    spec:
+      containers:
+        - name: wazuh-manager
+          image: wazuh/wazuh-manager:4.9.0
+          env:
+            - name: INDEXER_URL
+              value: "https://wazuh-indexer:9200"
+          ports:
+            - containerPort: 1514
+              name: agents-tcp
+            - containerPort: 1515
+              name: enrollment
+            - containerPort: 55000
+              name: rest-api
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: manager-data
+              mountPath: /var/ossec/etc
+              subPath: etc
+            - name: manager-data
+              mountPath: /var/ossec/queue
+              subPath: queue
+            - name: manager-data
+              mountPath: /var/ossec/var/multigroups
+              subPath: multigroups
+            - name: certs-secret
+              mountPath: /tmp/secret-certs
+              readOnly: true
+            - name: custom-init
+              mountPath: /etc/cont-init.d/01-custom-init
+              subPath: 01-custom-init
+            - name: wazuh-rules
+              mountPath: /tmp/wazuh-rules
+            - name: wazuh-decoders
+              mountPath: /tmp/wazuh-decoders
+      volumes:
+        - name: manager-data
+          persistentVolumeClaim:
+            claimName: tyr-manager-data-pvc
+        - name: certs-secret
+          secret:
+            secretName: manager-certs
+        - name: custom-init
+          configMap:
+            name: wazuh-manager-init
+            defaultMode: 0755
+        - name: wazuh-rules
+          configMap:
+            name: wazuh-custom-rules
+            optional: true
+        - name: wazuh-decoders
+          configMap:
+            name: wazuh-custom-decoders
+            optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-manager
+  namespace: wazuh
+spec:
+  type: NodePort
+  selector:
+    app: wazuh-manager
+  ports:
+    - name: agents-tcp
+      port: 1514
+      targetPort: 1514
+      nodePort: 31514
+    - name: enrollment
+      port: 1515
+      targetPort: 1515
+      nodePort: 31515
+    - name: rest-api
+      port: 55000
+      targetPort: 55000

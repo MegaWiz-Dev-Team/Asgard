@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hermodr-wazuh-credentials
+  namespace: wazuh
+type: Opaque
+stringData:
+  username: "wazuh"
+  password: "wazuh"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermodr-wazuh
+  namespace: wazuh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hermodr-wazuh
+  template:
+    metadata:
+      labels:
+        app: hermodr-wazuh
+    spec:
+      containers:
+        - name: hermodr
+          image: asgard-hermodr:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SERVICE_NAME
+              value: "wazuh"
+            - name: UPSTREAM_URL
+              value: "https://wazuh-manager.wazuh.svc.cluster.local:55000"
+            - name: WAZUH_AUTH_MODE
+              value: "jwt"
+            - name: WAZUH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: hermodr-wazuh-credentials
+                  key: username
+            - name: WAZUH_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: hermodr-wazuh-credentials
+                  key: password
+          ports:
+            - containerPort: 8090
+              name: rpc
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermodr-wazuh
+  namespace: wazuh
+spec:
+  selector:
+    app: hermodr-wazuh
+  ports:
+    - name: rpc
+      port: 8090
+      targetPort: 8090

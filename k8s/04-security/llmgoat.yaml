@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llmgoat
+  namespace: asgard
+  labels:
+    app: llmgoat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llmgoat
+  template:
+    metadata:
+      labels:
+        app: llmgoat
+    spec:
+      containers:
+        - name: llmgoat
+          image: asgard-llmgoat:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OLLAMA_URL
+              # host.docker.internal works in orbstack to reach the macOS host
+              value: "http://host.docker.internal:11434"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llmgoat
+  namespace: asgard
+spec:
+  type: ClusterIP
+  selector:
+    app: llmgoat
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: llmgoat-ingress
+  namespace: asgard
+  annotations:
+    cert-manager.io/cluster-issuer: "asgard-ca-issuer"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  tls:
+    - hosts:
+        - goat.asgard.internal
+      secretName: llmgoat-tls
+  rules:
+    - host: goat.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: llmgoat
+                port:
+                  number: 8000
