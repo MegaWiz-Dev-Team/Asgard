@@ -14,6 +14,14 @@
 | 🏥 Eir | v0.4.0 | Sprint 4 | 57 | ✅ | ⚠️ OpenEMR image | ✅ JWKS Auth |
 | 🐺 Fenrir | v0.3.0 | Sprint 3 | 63 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
 | 🌳 Yggdrasil | v0.5.0 | Sprint 5 | 45 | ✅ | ✅ Compose | ✅ Yggdrasil Setup |
+| 🛡️ Várðr | v0.1.0 | Sprint 1 | 5 | ✅ | ✅ Compose | ✅ Active |
+| ⚖️ Týr | v4.9.0 | Active | — | ✅ | ✅ K3s | ✅ Active |
+| ⚖️ Forseti | v1.0.0 | Sprint 6 | 147 | ✅ | ✅ Python | ✅ Active |
+| 🔨 Mjölnir | v0.1.0 | Load | — | ✅ | ✅ Cargo | ✅ Active |
+| 🐿️ Ratatoskr | v0.1.0 | Sprint 1 | — | ✅ | ✅ Dockerfile | ✅ Active |
+| 📨 Hermóðr | v0.1.0 | Sprint 1 | — | ✅ | ✅ Dockerfile | ✅ Active |
+| 🐦‍⬛ Huginn | v0.1.0 | Sprint 1 | — | 🚧 | 🚧 WIP | 🚧 In Progress |
+| 🐦 Muninn | v0.1.0 | Sprint 1 | — | 🚧 | 🚧 WIP | 🚧 In Progress |
 | 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
 
 > **537+ tests** across the entire platform

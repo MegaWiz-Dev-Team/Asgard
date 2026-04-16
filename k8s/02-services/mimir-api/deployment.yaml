@@ -38,19 +38,21 @@ spec:
             - name: NEO4J_PASSWORD
               value: asgard_neo4j_password
             - name: OLLAMA_API_URL
-              value: http://host.docker.internal:8081/v1
+              value: http://host.docker.internal:8080/v1
             - name: OLLAMA_URL
-              value: http://host.docker.internal:8081
+              value: http://192.168.1.172:8080
             - name: HEIMDALL_API_URL
-              value: http://host.docker.internal:8081/v1
+              value: http://host.docker.internal:8080/v1
             - name: HEIMDALL_API_KEY
-              value: "demo-api-key"
+              value: "hml-mimir-ffcad30d20ac3b2cbc0643c0874b738517edb4c6ec6c49698e7518ffad5123ff"
             - name: EMBEDDING_HOST
               value: host.docker.internal
             - name: EMBEDDING_PORT
               value: "8001"
             - name: BIFROST_URL
               value: http://bifrost.asgard.svc:8100
+            - name: VAULT_ADDR
+              value: "http://fafnir-vault.asgard.svc.cluster.local:8200"
             - name: RUST_LOG
               value: info
           envFrom:

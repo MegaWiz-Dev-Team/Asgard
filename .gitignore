@@ -18,4 +18,8 @@ data/
 volumes/
 .venv/
 .pytest_cache/
-__pycache__
+__pycache__/
+
+# Rust
+target/
+Cargo.lock

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asgard-portal
+  namespace: asgard
+  labels:
+    app: asgard-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asgard-portal
+  template:
+    metadata:
+      labels:
+        app: asgard-portal
+    spec:
+      containers:
+        - name: asgard-portal
+          image: asgard-portal:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 30005
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: asgard-portal
+  namespace: asgard
+spec:
+  selector:
+    app: asgard-portal
+  ports:
+    - protocol: TCP
+      port: 30005
+      targetPort: 30005

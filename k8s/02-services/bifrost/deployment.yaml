@@ -61,6 +61,8 @@ spec:
               value: info
             - name: AUTH_ENABLED
               value: "false"
+            - name: VAULT_ADDR
+              value: "http://fafnir-vault.asgard.svc.cluster.local:8200"
           envFrom:
             - secretRef:
                 name: asgard-secrets
