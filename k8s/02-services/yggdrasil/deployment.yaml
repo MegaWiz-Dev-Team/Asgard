@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: yggdrasil
-  namespace: asgard-services
+  namespace: asgard
   labels:
     app: yggdrasil
 spec:
@@ -42,11 +42,11 @@ spec:
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE
               value: disable
             - name: ZITADEL_EXTERNALSECURE
-              value: "false"
+              value: "true"
             - name: ZITADEL_EXTERNALDOMAIN
-              value: localhost
+              value: sso.asgard.internal
             - name: ZITADEL_EXTERNALPORT
-              value: "8085"
+              value: "443"
             - name: ZITADEL_FIRSTINSTANCE_ORG_NAME
               value: Asgard
             - name: ZITADEL_MASTERKEY
@@ -71,7 +71,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: yggdrasil
-  namespace: asgard-services
+  namespace: asgard
 spec:
   selector:
     app: yggdrasil

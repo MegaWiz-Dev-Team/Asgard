@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fafnir-vault
+  namespace: asgard
+  labels:
+    app: fafnir-vault
+spec:
+  serviceName: fafnir-vault
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fafnir-vault
+  template:
+    metadata:
+      labels:
+        app: fafnir-vault
+    spec:
+      containers:
+        - name: fafnir-vault
+          image: hashicorp/vault:1.15
+          command:
+            - "sh"
+            - "/vault/config/entrypoint.sh"
+          ports:
+            - containerPort: 8200
+              name: http
+          env:
+            - name: VAULT_ADDR
+              value: "http://127.0.0.1:8200"
+          securityContext:
+            capabilities:
+              add: ["IPC_LOCK"]
+          volumeMounts:
+            - name: fafnir-data
+              mountPath: /vault/file
+            - name: fafnir-config
+              mountPath: /vault/config
+      volumes:
+        - name: fafnir-config
+          configMap:
+            name: fafnir-config
+            defaultMode: 0755
+  volumeClaimTemplates:
+    - metadata:
+        name: fafnir-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi

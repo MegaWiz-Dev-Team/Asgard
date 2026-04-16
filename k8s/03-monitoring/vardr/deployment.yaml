@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vardr
-  namespace: asgard-monitoring
+  namespace: asgard
   labels:
     app: vardr
 spec:
@@ -16,6 +16,7 @@ spec:
       labels:
         app: vardr
     spec:
+      serviceAccountName: vardr-monitor
       containers:
         - name: vardr
           image: asgard-vardr:latest
@@ -40,7 +41,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: vardr
-  namespace: asgard-monitoring
+  namespace: asgard
 spec:
   selector:
     app: vardr

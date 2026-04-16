@@ -24,6 +24,7 @@ graph LR
     Bifrost --> |"MCP"| Mimir
     Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
     Bifrost --> |"MCP"| EirGW
+    Bifrost --> |"MCP"| Huginn["🐦‍⬛ Huginn<br/>Security Scanner"]
 
     Mimir --> |"scrape"| Ratatoskr["🐿️ Ratatoskr<br/>Browser Service"]
     Bifrost --> |"browse"| Ratatoskr
@@ -31,14 +32,14 @@ graph LR
     EirGW --> |"proxy"| Eir["📋 OpenEMR<br/>FHIR R4"]
     Fenrir --> |"Browser"| Eir
 
-    Heimdall --> LLM["🍎 MLX · llama.cpp · Ollama · vLLM"]
+    Heimdall --> LLM["🍎 MLX Backend (LLM)<br/>⚡ ONNX (Embedding)"]
 
     Yggdrasil["🌳 Yggdrasil<br/>Auth (Zitadel)"] -.-> Heimdall
     Yggdrasil -.-> Mimir
     Yggdrasil -.-> Bifrost
 
-    Vardr["🛡️ Várðr<br/>Monitoring"] -.-> |"docker"| Mimir
-    Vardr -.-> |"docker"| Bifrost
+    Vardr["🛡️ Várðr<br/>Monitoring"] -.-> |"Metrics"| K3s["Kubernetes (OrbStack)"]
+    LogShipper["📡 Log Shipper<br/>(macOS Native)"] --> |"Bulk API"| Tyr["⚖️ Týr<br/>(Wazuh SIEM)"]
 
     style Mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
     style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
@@ -49,6 +50,9 @@ graph LR
     style EirGW fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style Yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
     style Vardr fill:#172554,stroke:#3b82f6,color:#bfdbfe
+    style Huginn fill:#020617,stroke:#94a3b8,color:#e2e8f0
+    style Tyr fill:#450a0a,stroke:#f87171,color:#fecaca
+    style LogShipper fill:#450a0a,stroke:#f87171,color:#fecaca
 ```
 
 ---
@@ -57,19 +61,22 @@ graph LR
 
 | Component | Description | Tech Stack | Tests | Status |
 |:--|:--|:--|:--|:--|
-| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 28 |
-| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) | Benchmarked | ✅ Production |
+| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 38 |
+| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) + MLX + fastembed | Benchmarked | ✅ Sprint 38 |
 | ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 |
 | 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 |
 | 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
 | 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
-| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, metrics | Rust (Axum) | 5 | ✅ Sprint 1 |
-| ⚖️ **[Týr](https://github.com/MegaWiz-Dev-Team/Tyr)** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Active |
-| 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Python (FastAPI) | — | 🚧 Sprint 1 |
-| 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Python (FastAPI) | — | 🚧 Sprint 1 |
+| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, native macOS Log Shipper | Rust (Axum) + Python | 5 | ✅ Sprint 38 |
+| ⚖️ **[Týr](https://github.com/MegaWiz-Dev-Team/Tyr)** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Sprint 38 |
+| 🐉 **Fáfnir** | K3s HashiCorp Vault Secrets Manager | Vault / HCL | — | ✅ Sprint 38 |
+| 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Rust (Axum) | 51 | ✅ Active |
+| 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Rust (Axum) | 60 | ✅ Active |
 | 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
 | 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 |
-| 🏰 **Asgard** *(this repo)* | Docker Compose, docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active |
+| ⚖️ **[Forseti](https://github.com/MegaWiz-Dev-Team/Forseti)** | LLM-Powered E2E Testing Service — multi-project, auto-report | Python | 147 | ✅ Sprint 6 |
+| 🔨 **[Mjölnir](https://github.com/MegaWiz-Dev-Team/Mjolnir)** | HTTP Load Testing Service — MCP-compatible, Forseti linked | Rust (Axum) | — | ✅ Active |
+| 🏰 **Asgard** *(this repo)* | K3s Deployment (OrbStack), docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active |
 
 > **530+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
@@ -114,14 +121,15 @@ Build a **self-hosted AI platform** that enables:
 > **[Full Roadmap with Gantt Chart →](docs/strategy/roadmap.md)**
 
 ### Phase 1: Foundation ✅
-- [x] Heimdall — LLM Gateway (v0.4.0, multi-backend, benchmarked)
-- [x] Mimir — RAG Pipeline + Agent Builder + Dashboard (Sprint 28, 255+ tests)
+- [x] Heimdall — LLM Gateway (Sprint 38, Native ONNX + MLX Backend stabilized)
+- [x] Mimir — RAG Pipeline + Agent Builder + Dashboard (Sprint 38, Agentic RAG Telemetry)
 - [x] Bifrost — Agent Runtime (Sprint 4, ReAct + MCP + PSO, 99 tests)
 - [x] Eir — Rust API Gateway + OpenEMR (Sprint 3, 47 tests)
 - [x] Fenrir — Computer-Use Agent scaffold + OpenEMR Messaging (Sprint 1.5, 47 tests)
 - [x] Yggdrasil — Auth Service (Sprint 2, Zitadel + JWT + FastAPI Auth, 31 tests)
-- [x] Týr — Security Information & Event Management (Wazuh SIEM, T7 external scaling, macOS FIM agent)
-- [x] Unified Docker Compose — 10 services, one command
+- [x] Várðr — Monitoring Dashboard (v0.4.0, K3s integration + Native macOS Agent)
+- [x] Týr — Security Information & Event Management (Wazuh SIEM, ISO 27001 Log Archiving, macOS Log Shipper)
+- [x] Unified K3s Cluster Deployment — OrbStack integration for 15+ microservices
 - [x] AGPL-3.0 licensing + CLA
 - [x] Bifrost Sprint 35 — Skills system, long-term memory, context engineering (146 tests)
 - [x] Asgard `skills/` — 5 built-in skills (DeerFlow-compatible SKILL.md format)
@@ -164,6 +172,8 @@ Build a **self-hosted AI platform** that enables:
 | **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | Odin's Ravens |
 | **Ratatoskr** | The squirrel on Yggdrasil | Shared Browser Service | Community |
 | **Hermóðr** | Messenger of the gods | Universal MCP Sidecar | Community |
+| **Forseti** | God of justice & reconciliation | LLM-Powered E2E Testing Service | Community |
+| **Mjölnir** | Thor's hammer | HTTP Load Testing Service | Community |
 | **Odin** | The All-Father | Platform Supervisor | Community |
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**

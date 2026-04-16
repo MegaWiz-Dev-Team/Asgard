@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asgard Launchpad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent: #0ea5e9;
+            --accent-hover: #0284c7;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --ring: rgba(14, 165, 233, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 2rem;
+            background-image: radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.05), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(99, 102, 241, 0.05), transparent 25%);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .category-container {
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 3rem;
+        }
+
+        h2.category-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2.category-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 24px;
+            background-color: var(--accent);
+            border-radius: 4px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 16px;
+            box-shadow: 0 0 0 0 var(--ring);
+            transition: box-shadow 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card:hover::after {
+            box-shadow: 0 0 0 2px var(--accent) inset, 0 0 15px 0 var(--ring);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background-color: rgba(14, 165, 233, 0.1);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 1rem;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .card-url {
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Asgard <span>Launchpad</span></h1>
+        <p class="subtitle">Unified access portal for the Mimir Platform, Security Operations, and Infrastructure routing.</p>
+    </header>
+
+    <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        
+        <!-- Platform Group -->
+        <section class="category-container">
+            <h2 class="category-title">Mimir Platform</h2>
+            <div class="grid">
+                <a href="https://mimir.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🖥️</div>
+                        <div class="card-title">Dashboard UI</div>
+                    </div>
+                    <div class="card-url">mimir.asgard.internal</div>
+                    <div class="card-desc">Primary user interface for tenants, RAG orchestration, and system configurations.</div>
+                </a>
+
+                <a href="https://api.asgard.internal/health" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">⚡</div>
+                        <div class="card-title">Core API</div>
+                    </div>
+                    <div class="card-url">api.asgard.internal</div>
+                    <div class="card-desc">Mimir backend Restful API routing and health endpoints.</div>
+                </a>
+
+                <a href="https://sso.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🔐</div>
+                        <div class="card-title">Identity & SSO</div>
+                    </div>
+                    <div class="card-url">sso.asgard.internal</div>
+                    <div class="card-desc">Authentication provider and Single Sign-On management service.</div>
+                </a>
+
+                <a href="https://ehr.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🏥</div>
+                        <div class="card-title">OpenEMR Sandbox</div>
+                    </div>
+                    <div class="card-url">ehr.asgard.internal</div>
+                    <div class="card-desc">Electronic Health Records simulator for HL7/FHIR testing.</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Security Group -->
+        <section class="category-container">
+            <h2 class="category-title">Security & Simulation</h2>
+            <div class="grid">
+                <a href="https://tyr.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🛡️</div>
+                        <div class="card-title">Tyr (Wazuh)</div>
+                    </div>
+                    <div class="card-url">tyr.asgard.internal</div>
+                    <div class="card-desc">Wazuh Security Dashboard for SIEM, intrusion detection, and active response.</div>
+                </a>
+
+                <a href="https://goat.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🐐</div>
+                        <div class="card-title">LLM Goat</div>
+                    </div>
+                    <div class="card-url">goat.asgard.internal</div>
+                    <div class="card-desc">Vulnerable AI testbed for practicing red-team prompt injections and escapes.</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Infrastructure Group -->
+        <section class="category-container">
+            <h2 class="category-title">Infrastructure Services</h2>
+            <div class="grid">
+                <a href="https://bifrost.asgard.internal/healthz" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🌈</div>
+                        <div class="card-title">Bifrost</div>
+                    </div>
+                    <div class="card-url">bifrost.asgard.internal</div>
+                    <div class="card-desc">Data ingestion layer and ETL pipeline orchestrator.</div>
+                </a>
+
+                <a href="https://fenrir.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🐺</div>
+                        <div class="card-title">Fenrir</div>
+                    </div>
+                    <div class="card-url">fenrir.asgard.internal</div>
+                    <div class="card-desc">Automation engine for scheduling background jobs and sweeps.</div>
+                </a>
+
+                <a href="https://forseti.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">⚖️</div>
+                        <div class="card-title">Forseti</div>
+                    </div>
+                    <div class="card-url">forseti.asgard.internal</div>
+                    <div class="card-desc">Evaluation and Quality Control engine runner.</div>
+                </a>
+
+                <a href="https://vault.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🔐</div>
+                        <div class="card-title">Vault (Fafnir)</div>
+                    </div>
+                    <div class="card-url">vault.asgard.internal</div>
+                    <div class="card-desc">HashiCorp Vault for secrets management and secure integrations.</div>
+                </a>
+
+                <a href="https://monitor.asgard.internal" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">📈</div>
+                        <div class="card-title">Monitor (Grafana)</div>
+                    </div>
+                    <div class="card-url">monitor.asgard.internal</div>
+                    <div class="card-desc">Prometheus metrics and cluster observability dashboards.</div>
+                </a>
+
+                <a href="http://host.docker.internal:8080" target="_blank" class="card">
+                    <div class="card-header">
+                        <div class="icon">🧠</div>
+                        <div class="card-title">Heimdall LLM</div>
+                    </div>
+                    <div class="card-url">host.docker.internal:8080</div>
+                    <div class="card-desc">Local GPU-accelerated LLM proxy and model routing server.</div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>

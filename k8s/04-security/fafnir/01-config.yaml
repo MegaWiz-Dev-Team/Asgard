@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fafnir-config
+  namespace: asgard
+data:
+  vault-config.hcl: |
+    # Fáfnir Server Configuration — File Backend (persistent)
+    storage "file" {
+      path = "/vault/file"
+    }
+    listener "tcp" {
+      address     = "0.0.0.0:8200"
+      tls_disable = 1
+    }
+    disable_mlock = true
+    api_addr = "http://0.0.0.0:8200"
+    ui = true
+
+  entrypoint.sh: |
+    #!/bin/sh
+    # Fáfnir (Vault) Auto-Init & Auto-Unseal Entrypoint
+    VAULT_ADDR="http://127.0.0.1:8200"
+    export VAULT_ADDR
+    KEYS_FILE="/vault/file/init-keys.json"
+
+    json_val() {
+      sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$2" | head -1
+    }
+
+    json_arr_first() {
+      sed -n "/\"$1\"/,/]/p" "$2" | sed -n 's/.*"\([^"]*\)".*/\1/p' | tail -1
+    }
+
+    echo "🔐 Starting Fáfnir (Vault) server..."
+    vault server -config=/vault/config/vault-config.hcl &
+    VAULT_PID=$!
+
+    echo "⏳ Waiting for Fáfnir to start..."
+    for i in $(seq 1 30); do
+      sleep 1
+      wget -q -O /tmp/vault-status "$VAULT_ADDR/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200" 2>/dev/null && break
+    done
+
+    STATUS=$(wget -q -O - "$VAULT_ADDR/v1/sys/health?standbyok=true&sealedcode=200&uninitcode=200" 2>/dev/null || echo '{}')
+    IS_INIT=$(echo "$STATUS" | sed -n 's/.*"initialized":\([a-z]*\).*/\1/p')
+    IS_SEALED=$(echo "$STATUS" | sed -n 's/.*"sealed":\([a-z]*\).*/\1/p')
+
+    if [ "$IS_INIT" != "true" ]; then
+      echo "🆕 First run — initializing Fáfnir..."
+      INIT_RESP=$(wget -q -O - --post-data='{"secret_shares":1,"secret_threshold":1}' \
+        --header="Content-Type: application/json" \
+        "$VAULT_ADDR/v1/sys/init" 2>/dev/null)
+      echo "$INIT_RESP" > "$KEYS_FILE"
+      UNSEAL_KEY=$(echo "$INIT_RESP" | sed 's/.*"keys_base64":\["\([^"]*\)".*/\1/')
+      ROOT_TOKEN=$(echo "$INIT_RESP" | sed 's/.*"root_token":"\([^"]*\)".*/\1/')
+
+      echo "🔓 Unsealing Fáfnir..."
+      wget -q -O /dev/null --post-data="{\"key\":\"$UNSEAL_KEY\"}" \
+        --header="Content-Type: application/json" \
+        "$VAULT_ADDR/v1/sys/unseal" 2>/dev/null
+
+      sleep 1
+      wget -q -O /dev/null --post-data='{"type":"kv","options":{"version":"2"}}' \
+        --header="Content-Type: application/json" \
+        --header="X-Vault-Token: $ROOT_TOKEN" \
+        "$VAULT_ADDR/v1/sys/mounts/secret" 2>/dev/null || true
+
+      cat > "$KEYS_FILE" << EOF
+    {
+      "unseal_keys_b64": [
+        "$UNSEAL_KEY"
+      ],
+      "root_token": "$ROOT_TOKEN"
+    }
+    EOF
+      echo "✅ Fáfnir initialized, unsealed, KV v2 enabled"
+      echo "📁 Keys saved to $KEYS_FILE"
+
+    elif [ "$IS_SEALED" = "true" ]; then
+      echo "🔄 Fáfnir is sealed — auto-unsealing..."
+      if [ -f "$KEYS_FILE" ]; then
+        UNSEAL_KEY=$(json_arr_first "unseal_keys_b64" "$KEYS_FILE")
+        ROOT_TOKEN=$(json_val "root_token" "$KEYS_FILE")
+        wget -q -O /dev/null --post-data="{\"key\":\"$UNSEAL_KEY\"}" \
+          --header="Content-Type: application/json" \
+          "$VAULT_ADDR/v1/sys/unseal" 2>/dev/null
+        echo "🔓 Fáfnir unsealed. Root: $ROOT_TOKEN"
+      else
+        echo "⚠️  No keys file — manual unseal required"
+      fi
+    else
+      echo "✅ Fáfnir is already initialized and unsealed"
+    fi
+
+    echo "🚀 Fáfnir (Vault) is ready! (Storage: file, Data: /vault/file)"
+    wait $VAULT_PID

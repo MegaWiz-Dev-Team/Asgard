@@ -69,11 +69,9 @@ graph TB
         end
     end
 
-    subgraph backends["⚙️ LLM Backends"]
-        MLX["🍎 MLX<br/>mlx_lm · mlx_vlm"]
-        Llama["🦙 llama.cpp<br/>GGUF Models"]
-        Ollama["🐫 Ollama<br/>Managed Models"]
-        VLLM["🟢 vLLM<br/>NVIDIA CUDA"]
+    subgraph backends["⚙️ LLM Backends (macOS Host)"]
+        MLX["🍎 MLX Backend<br/>mlx_lm :8081"]
+        FastEmbed["⚡ Native ONNX<br/>(Built-in Gateway)"]
     end
 
     Dashboard --> mimir
@@ -88,9 +86,7 @@ graph TB
     Browser --> |"Browser"| OpenEMR
 
     heimdall --> MLX
-    heimdall --> Llama
-    heimdall --> Ollama
-    heimdall --> VLLM
+    heimdall --> FastEmbed
 
     yggdrasil -.-> |"JWT"| heimdall
     yggdrasil -.-> |"OIDC"| mimir
@@ -98,7 +94,6 @@ graph TB
 
     vardr -.-> |"docker CLI"| mimir
     vardr -.-> |"docker CLI"| bifrost
-    vardr -.-> |"docker CLI"| heimdall
     vardr -.-> |"docker CLI"| fenrir
     vardr -.-> |"docker CLI"| yggdrasil
     style asgard fill:transparent,stroke:#6366f1,stroke-width:3px
@@ -261,18 +256,14 @@ graph LR
 ```mermaid
 graph LR
     Client["Client Request<br/>/v1/chat/completions"] --> Auth["🔐 Auth<br/>Bearer Token"]
+    ClientEmbed["Client Request<br/>/v1/embeddings"] --> Auth
     Auth --> Router["🔄 Router<br/>Model → Backend"]
-    Router --> MLX["🍎 mlx_lm<br/>:8081"]
-    Router --> VLM["👁️ mlx_vlm<br/>:8082"]
-    Router --> LC["🦙 llama.cpp<br/>:8083"]
-    Router --> OL["🐫 Ollama<br/>:11434"]
-    Router --> VL["🟢 vLLM<br/>:8084"]
+    
+    Router --> MLX["🍎 mlx_lm<br/>:8081 (LLM)"]
+    Router --> FastEmbed["⚡ ONNX fastembed<br/>Internal (Embedding/Rerank)"]
 
     MLX --> Response["📤 Response<br/>(SSE Stream)"]
-    VLM --> Response
-    LC --> Response
-    OL --> Response
-    VL --> Response
+    FastEmbed --> Response
 
     Response --> Metrics["📊 Prometheus<br/>Metrics"]
 
@@ -286,7 +277,7 @@ graph LR
 | **Stack** | Rust (Axum + Tokio) |
 | **Port** | `8080` |
 | **Protocol** | OpenAI-compatible API |
-| **Backends** | MLX, mlx_vlm, llama.cpp, Ollama, vLLM |
+| **Backends** | MLX (LLM), fastembed (ONNX Embeddings) |
 | **Repo** | [MegaWiz-Dev-Team/Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall) |
 
 ---
@@ -449,21 +440,16 @@ graph LR
         I8700["Mjolnir<br/>:8700"]
     end
 
-    subgraph host["💻 Native Host"]
-        P8081["mlx_lm<br/>:8081"]
-        P8082["mlx_vlm<br/>:8082"]
-        P8083["llama.cpp<br/>:8083"]
-        P8084["vLLM<br/>:8084"]
-        P11434["Ollama<br/>:11434"]
-        H8080["Heimdall<br/>:8080"]
+    subgraph host["💻 Native macOS Host (launchd)"]
+        H8080["Heimdall Gateway<br/>:8080"]
+        P8081["MLX Backend<br/>:8081"]
+        VA9091["Vardr Agent<br/>:9091"]
+        LS["Log Shipper<br/>(Python)"]
     end
 
     I8300 --> I80
     H8080 --> P8081
-    H8080 --> P8082
-    H8080 --> P8083
-    H8080 --> P8084
-    H8080 --> P11434
+    LS --> |"Bulk API"| I30920["Wazuh Indexer<br/>:30920"]
     I8100 --> I8200
 
     style exposed fill:#1e293b,stroke:#60a5fa

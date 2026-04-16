@@ -5,15 +5,34 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: asgard-ingress
-  namespace: asgard-services
+  namespace: asgard
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: "asgard-ca-issuer"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
   tls:
-    - hosts: ["*.asgard.local"]
+    - hosts: ["*.asgard.internal", "portal.asgard.internal", "asgard.internal"]
       secretName: asgard-tls-secret
   rules:
-    - host: mimir.asgard.local
+    - host: asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: asgard-portal
+                port: { number: 30005 }
+    - host: portal.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: asgard-portal
+                port: { number: 30005 }
+    - host: mimir.asgard.internal
       http:
         paths:
           - path: /
@@ -22,7 +41,7 @@ spec:
               service:
                 name: mimir-dashboard
                 port: { number: 3000 }
-    - host: api.asgard.local
+    - host: api.asgard.internal
       http:
         paths:
           - path: /
@@ -31,7 +50,7 @@ spec:
               service:
                 name: mimir-api
                 port: { number: 8080 }
-    - host: bifrost.asgard.local
+    - host: bifrost.asgard.internal
       http:
         paths:
           - path: /
@@ -40,7 +59,7 @@ spec:
               service:
                 name: bifrost
                 port: { number: 8100 }
-    - host: fenrir.asgard.local
+    - host: fenrir.asgard.internal
       http:
         paths:
           - path: /
@@ -49,7 +68,7 @@ spec:
               service:
                 name: fenrir
                 port: { number: 8200 }
-    - host: forseti.asgard.local
+    - host: forseti.asgard.internal
       http:
         paths:
           - path: /
@@ -58,16 +77,16 @@ spec:
               service:
                 name: forseti
                 port: { number: 5555 }
-    - host: auth.asgard.local
+    - host: vault.asgard.internal
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: yggdrasil
-                port: { number: 8080 }
-    - host: monitor.asgard.local
+                name: fafnir-vault
+                port: { number: 8200 }
+    - host: monitor.asgard.internal
       http:
         paths:
           - path: /
@@ -76,3 +95,21 @@ spec:
               service:
                 name: vardr
                 port: { number: 9090 }
+    - host: sso.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yggdrasil
+                port: { number: 8080 }
+    - host: ehr.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: eir
+                port: { number: 80 }

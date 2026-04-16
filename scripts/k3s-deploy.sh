@@ -13,6 +13,9 @@
 # ═══════════════════════════════════════════════════════════════
 set -euo pipefail
 
+# Ensure standard OrbStack and Homebrew binary paths are available
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -172,6 +175,36 @@ deploy_dashboard() {
     ok "mimir-dashboard deployed"
 }
 
+# ─── Build & Deploy Portal ──────────────────────────────────────
+build_portal() {
+    step "Building asgard-portal:${TAG}"
+    cd "$ROOT_DIR/packages/asgard-portal"
+    docker build \
+        -t "asgard-portal:${TAG}" \
+        .
+    ok "Built asgard-portal:${TAG}"
+}
+
+deploy_portal() {
+    step "Deploying asgard-portal"
+    # Apply the deployment YAML if it doesn't exist, to ensure it's created
+    kubectl apply -f "$ROOT_DIR/k8s/02-services/asgard-portal/deployment.yaml"
+    
+    if [ "$NO_BUILD" != "--no-build" ]; then
+        kubectl set image "deployment/asgard-portal" \
+            "asgard-portal=asgard-portal:${TAG}" \
+            -n "asgard"
+    else
+        kubectl rollout restart "deployment/asgard-portal" -n "asgard"
+    fi
+    
+    info "Waiting for rollout..."
+    kubectl rollout status "deployment/asgard-portal" \
+        -n "asgard" \
+        --timeout=60s
+    ok "asgard-portal deployed"
+}
+
 # ─── Deploy Tyr ─────────────────────────────────────────────────
 deploy_tyr() {
     step "Deploying Týr (Wazuh SIEM) & Hermóðr Bridge"
@@ -211,6 +244,10 @@ case "$TARGET" in
         if [ "$NO_BUILD" != "--no-build" ]; then build_dashboard; fi
         deploy_dashboard
         ;;
+    portal)
+        if [ "$NO_BUILD" != "--no-build" ]; then build_portal; fi
+        deploy_portal
+        ;;
     bifrost)
         if [ "$NO_BUILD" != "--no-build" ]; then build_bifrost; fi
         deploy_bifrost
@@ -225,14 +262,16 @@ case "$TARGET" in
             build_hermodr
             build_api
             build_dashboard
+            build_portal
         fi
         deploy_bifrost
         deploy_api
         deploy_dashboard
+        deploy_portal
         deploy_tyr
         ;;
     *)
-        fail "Unknown target: $TARGET (use: api, dashboard, bifrost, tyr, or all)"
+        fail "Unknown target: $TARGET (use: api, dashboard, portal, bifrost, tyr, or all)"
         ;;
 esac
 
