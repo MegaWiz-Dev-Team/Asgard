@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laminar-postgres-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-postgres
+  labels: { app: laminar-postgres }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-postgres }
+  template:
+    metadata:
+      labels: { app: laminar-postgres }
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "asgard-role"
+        vault.hashicorp.com/agent-inject-secret-postgres: "secret/data/asgard/laminar"
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_DB, value: "laminar" }
+            - { name: POSTGRES_USER, value: "postgres" }
+            - { name: POSTGRES_PASSWORD, value: {{ .Values.postgres.password | quote }} }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: laminar-postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-postgres
+spec:
+  clusterIP: None
+  selector: { app: laminar-postgres }
+  ports:
+    - port: 5432
+      targetPort: 5432

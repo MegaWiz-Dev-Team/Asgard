@@ -1,0 +1,39 @@
+dependencies:
+- name: infra
+  repository: ""
+  version: 0.1.0
+- name: yggdrasil
+  repository: ""
+  version: 0.1.0
+- name: mimir
+  repository: ""
+  version: 0.1.0
+- name: bifrost
+  repository: ""
+  version: 0.1.0
+- name: fenrir
+  repository: ""
+  version: 0.1.0
+- name: forseti
+  repository: ""
+  version: 0.1.0
+- name: hermodr
+  repository: ""
+  version: 0.1.0
+- name: ratatoskr
+  repository: ""
+  version: 0.1.0
+- name: mjolnir
+  repository: ""
+  version: 0.1.0
+- name: pageindex
+  repository: ""
+  version: 0.1.0
+- name: vardr
+  repository: ""
+  version: 0.1.0
+- name: laminar
+  repository: ""
+  version: 0.1.0
+digest: sha256:7b002efbb7e7a420d003dbb55b52f3e277ef6c3a0e3e5d161b6dc593cc4dec26
+generated: "2026-04-17T12:57:19.862138+07:00"

@@ -51,6 +51,14 @@ spec:
               value: "8001"
             - name: BIFROST_URL
               value: http://bifrost.asgard.svc:8100
+            - name: S3_ENDPOINT
+              value: http://minio.asgard-infra.svc:9000
+            - name: S3_ACCESS_KEY
+              value: minioadmin
+            - name: S3_SECRET_KEY
+              value: minioadmin
+            - name: S3_BUCKET
+              value: mimir-uploads
             - name: VAULT_ADDR
               value: "http://fafnir-vault.asgard.svc.cluster.local:8200"
             - name: RUST_LOG

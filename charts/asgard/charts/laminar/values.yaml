@@ -1,0 +1,37 @@
+# Laminar Observability Stack Values
+
+enabled: true
+
+frontend:
+  image: "ghcr.io/lmnr-ai/frontend:latest"
+  serviceType: ClusterIP
+
+appServer:
+  image: "ghcr.io/lmnr-ai/app-server:latest"
+  serviceType: ClusterIP
+
+queryEngine:
+  image: "ghcr.io/lmnr-ai/query-engine:latest"
+  serviceType: ClusterIP
+
+quickwit:
+  image: "quickwit/quickwit:v0.8.2"
+  serviceType: ClusterIP
+
+clickhouse:
+  image: "clickhouse/clickhouse-server:latest"
+  ports:
+    http: 8123
+    native: 9000
+
+postgres:
+  image: "postgres:16-alpine"
+  password: "asgard_postgres_secret"
+  ports:
+    tcp: 5432
+
+rabbitmq:
+  image: "rabbitmq:3.13-management-alpine"
+
+global:
+  sharedSecretToken: "asgard_laminar_secret_token_placeholder"

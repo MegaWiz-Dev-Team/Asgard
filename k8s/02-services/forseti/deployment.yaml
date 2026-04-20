@@ -43,7 +43,7 @@ spec:
             - name: MIMIR_URL
               value: http://mimir-api.asgard-services.svc:8080
             - name: BIFROST_URL
-              value: http://bifrost.asgard-services.svc:8100
+              value: http://bifrost.asgard.svc:8100
             - name: FENRIR_URL
               value: http://fenrir.asgard-services.svc:8200
             - name: HEIMDALL_URL

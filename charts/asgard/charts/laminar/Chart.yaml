@@ -1,0 +1,6 @@
+apiVersion: v2
+name: laminar
+description: Asgard sub-chart for Laminar Observability Stack (lmnr, ClickHouse, RabbitMQ, Postgres)
+type: application
+version: 0.1.0
+appVersion: "latest"

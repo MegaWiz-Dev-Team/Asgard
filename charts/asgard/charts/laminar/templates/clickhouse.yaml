@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laminar-clickhouse-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-clickhouse
+  labels: { app: laminar-clickhouse }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-clickhouse }
+  template:
+    metadata:
+      labels: { app: laminar-clickhouse }
+    spec:
+      containers:
+        - name: clickhouse
+          image: {{ .Values.clickhouse.image }}
+          ports:
+            - containerPort: 8123
+            - containerPort: 9000
+          env:
+            - { name: CLICKHOUSE_USER, value: "default" }
+            - { name: CLICKHOUSE_PASSWORD, value: "laminar_ck_secret" }
+          resources:
+            requests: { memory: "512Mi" }
+            limits: { memory: "2Gi" }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/clickhouse
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: laminar-clickhouse-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-clickhouse
+spec:
+  clusterIP: None
+  selector: { app: laminar-clickhouse }
+  ports:
+    - name: http
+      port: 8123
+      targetPort: 8123
+    - name: native
+      port: 9000
+      targetPort: 9000
