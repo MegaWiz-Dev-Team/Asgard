@@ -27,6 +27,9 @@ spec:
             - { name: OLLAMA_API_URL, value: "{{ .Values.global.heimdallUrl }}/v1" }
             - { name: OLLAMA_URL, value: {{ .Values.global.heimdallUrl | quote }} }
             - { name: RUST_LOG, value: {{ .Values.global.rustLog | default "info" | quote }} }
+            - { name: YGGDRASIL_ISSUER, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
+            - { name: YGGDRASIL_CLIENT_ID, value: "368876822349333070" }
+            - { name: YGGDRASIL_CLIENT_SECRET, value: "jlQ7malc0cl4Ky0XlvgDqhDxXsK6Ogtv3SfSAoexyU12sMxqrIkMFPI6GOgA0Xy6" }
           readinessProbe:
             httpGet: { path: /healthz, port: 8080 }
             initialDelaySeconds: 10
@@ -68,8 +71,8 @@ spec:
             - { name: MIMIR_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080/api" }
             - { name: NEXT_PUBLIC_YGGDRASIL_URL, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
             - { name: YGGDRASIL_ISSUER, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
-            - { name: YGGDRASIL_CLIENT_ID, value: "365685875977339411" }
-            - { name: YGGDRASIL_CLIENT_SECRET, value: "58zT6R47d3hSvOAceTRrSfMclDnvpAoawvSPC2yK8qPmsEuZDoVkUmG1HbPfWfRt" }
+            - { name: YGGDRASIL_CLIENT_ID, value: "368876822349333070" }
+            - { name: YGGDRASIL_CLIENT_SECRET, value: "jlQ7malc0cl4Ky0XlvgDqhDxXsK6Ogtv3SfSAoexyU12sMxqrIkMFPI6GOgA0Xy6" }
           resources:
             requests: { memory: 128Mi, cpu: 100m }
             limits: { memory: 512Mi, cpu: 500m }

@@ -19,6 +19,7 @@ secrets:
 # ── Infrastructure ──
 infra:
   enabled: true
+  laminarApiKey: "UZfUPh7uU6Z75uQeeVpuED3HpjcJM3BBL7UnYIlkd18AseLjvrjIVnU9MoXGptVC"
   mariadb:
     rootPassword: root
     database: mimir
@@ -34,9 +35,6 @@ infra:
     enabled: true
   qdrant:
     storage: 10Gi
-  neo4j:
-    auth: neo4j/asgard_neo4j_password
-    storage: 5Gi
 
 # ── Auth ──
 yggdrasil:
@@ -96,10 +94,11 @@ mjolnir:
   image: asgard-mjolnir:latest
   storage: 1Gi
 
-# ── RAG Sidecar ──
-pageindex:
+
+
+# ── Laminar ──
+laminar:
   enabled: true
-  image: asgard-pageindex:latest
 
 # ── Monitoring ──
 vardr:

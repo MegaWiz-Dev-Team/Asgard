@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laminar-quickwit-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-quickwit
+  labels: { app: laminar-quickwit }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-quickwit }
+  template:
+    metadata:
+      labels: { app: laminar-quickwit }
+    spec:
+      containers:
+        - name: quickwit
+          image: {{ .Values.quickwit.image }}
+          ports:
+            - containerPort: 7280
+            - containerPort: 7281
+          args: [ "run" ]
+          env:
+            - { name: QW_DATA_DIR, value: "/quickwit/qwdata" }
+          resources:
+            requests: { memory: "512Mi" }
+            limits: { memory: "2Gi" }
+          volumeMounts:
+            - name: data
+              mountPath: /quickwit/qwdata
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: laminar-quickwit-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-quickwit
+spec:
+  selector: { app: laminar-quickwit }
+  ports:
+    - name: http
+      port: 7280
+      targetPort: 7280
+    - name: grpc
+      port: 7281
+      targetPort: 7281
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-query-engine
+  labels: { app: laminar-query-engine }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-query-engine }
+  template:
+    metadata:
+      labels: { app: laminar-query-engine }
+    spec:
+      containers:
+        - name: query-engine
+          image: {{ .Values.queryEngine.image }}
+          ports:
+            - containerPort: 8903
+          env:
+            - { name: PORT, value: "8903" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-query-engine
+spec:
+  selector: { app: laminar-query-engine }
+  ports:
+    - name: http
+      port: 8903
+      targetPort: 8903
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-app-server
+  labels: { app: laminar-app-server }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-app-server }
+  template:
+    metadata:
+      labels: { app: laminar-app-server }
+    spec:
+      containers:
+        - name: app-server
+          image: {{ .Values.appServer.image }}
+          ports:
+            - containerPort: 8000
+            - containerPort: 8001
+            - containerPort: 8002
+          env:
+            - { name: PORT, value: "8000" }
+            - { name: GRPC_PORT, value: "8001" }
+            - { name: DATABASE_URL, value: "postgres://postgres:{{ .Values.postgres.password }}@laminar-postgres:5432/laminar" }
+            - { name: SHARED_SECRET_TOKEN, value: {{ .Values.global.sharedSecretToken | quote }} }
+            - { name: CLICKHOUSE_URL, value: "http://laminar-clickhouse:8123" }
+            - { name: CLICKHOUSE_USER, value: "default" }
+            - { name: CLICKHOUSE_PASSWORD, value: "laminar_ck_secret" }
+            - { name: CLICKHOUSE_RO_USER, value: "default" }
+            - { name: CLICKHOUSE_RO_PASSWORD, value: "laminar_ck_secret" }
+            - { name: ENVIRONMENT, value: "LITE" }
+            - { name: QUERY_ENGINE_URL, value: "http://laminar-query-engine:8903" }
+            - { name: QUICKWIT_SEARCH_URL, value: "http://laminar-quickwit:7280" }
+            - { name: QUICKWIT_INGEST_URL, value: "http://laminar-quickwit:7281" }
+            - { name: QUICKWIT_SPANS_INDEX_ID, value: "spans_v2" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-app-server
+spec:
+  selector: { app: laminar-app-server }
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+    - name: grpc
+      port: 8001
+      targetPort: 8001
+    - name: rt
+      port: 8002
+      targetPort: 8002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-frontend
+  labels: { app: laminar-frontend }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-frontend }
+  template:
+    metadata:
+      labels: { app: laminar-frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.frontend.image }}
+          ports:
+            - containerPort: 5667
+          env:
+            - { name: DATABASE_URL, value: "postgres://postgres:{{ .Values.postgres.password }}@laminar-postgres:5432/laminar" }
+            - { name: PORT, value: "5667" }
+            - { name: BACKEND_URL, value: "http://laminar-app-server:8000" }
+            - { name: BACKEND_RT_URL, value: "http://laminar-app-server:8002" }
+            - { name: SHARED_SECRET_TOKEN, value: {{ .Values.global.sharedSecretToken | quote }} }
+            - { name: NEXTAUTH_URL, value: "https://laminar.asgard.internal" }
+            - { name: NEXTAUTH_SECRET, value: "laminar_asgard_secret" }
+            - { name: NEXT_PUBLIC_URL, value: "https://laminar.asgard.internal" }
+            - { name: ENVIRONMENT, value: "LITE" }
+            - { name: CLICKHOUSE_URL, value: "http://laminar-clickhouse:8123" }
+            - { name: CLICKHOUSE_USER, value: "default" }
+            - { name: CLICKHOUSE_PASSWORD, value: "laminar_ck_secret" }
+            - { name: CLICKHOUSE_RO_USER, value: "default" }
+            - { name: CLICKHOUSE_RO_PASSWORD, value: "laminar_ck_secret" }
+            - { name: QUICKWIT_SEARCH_URL, value: "http://laminar-quickwit:7280" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-frontend
+spec:
+  selector: { app: laminar-frontend }
+  ports:
+    - name: http
+      port: 5667
+      targetPort: 5667
+

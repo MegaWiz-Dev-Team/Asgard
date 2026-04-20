@@ -21,7 +21,7 @@ metadata:
 data:
   HEIMDALL_URL: "http://host.docker.internal:8080"
   MIMIR_URL: "http://mimir-api.asgard-services.svc:8080"
-  BIFROST_URL: "http://bifrost.asgard-services.svc:8100"
+  BIFROST_URL: "http://bifrost.asgard.svc:8100"
   FENRIR_URL: "http://fenrir.asgard-services.svc:8200"
   FORSETI_URL: "http://forseti.asgard-services.svc:5555"
   YGGDRASIL_URL: "http://yggdrasil.asgard-services.svc:8080"

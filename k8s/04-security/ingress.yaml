@@ -23,6 +23,15 @@ spec:
               service:
                 name: asgard-portal
                 port: { number: 30005 }
+    - host: launchpad.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: asgard-portal
+                port: { number: 30005 }
     - host: portal.asgard.internal
       http:
         paths:
@@ -113,3 +122,12 @@ spec:
               service:
                 name: eir
                 port: { number: 80 }
+    - host: laminar.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: laminar-frontend
+                port: { number: 5667 }

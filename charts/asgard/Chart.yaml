@@ -33,9 +33,10 @@ dependencies:
   - name: mjolnir
     version: 0.1.0
     condition: mjolnir.enabled
-  - name: pageindex
-    version: 0.1.0
-    condition: pageindex.enabled
+
   - name: vardr
     version: 0.1.0
     condition: vardr.enabled
+  - name: laminar
+    version: 0.1.0
+    condition: laminar.enabled

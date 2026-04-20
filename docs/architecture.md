@@ -411,6 +411,36 @@ graph LR
 
 ---
 
+### 👁️ Laminar — LLM Observability (Trace & MLOps)
+
+```mermaid
+graph LR
+    subgraph laminar["👁️ Laminar System"]
+        UI["🖥️ Dashboard<br/>Traces · Evaluations"]
+        LmnrAPI["📡 API/Ingest<br/>Rust Backend"]
+        ClickHouse["🗄️ ClickHouse<br/>OLAP Traces"]
+        Postgres["💾 Postgres<br/>OLTP Configs"]
+        RabbitMQ["🐇 RabbitMQ<br/>Span Queue"]
+    end
+
+    OTel["📤 OTel Collector"] --> |"gRPC :4317"| LmnrAPI
+    LmnrAPI --> ClickHouse
+    LmnrAPI --> Postgres
+    LmnrAPI --> RabbitMQ
+
+    style laminar fill:#451a03,stroke:#fb923c
+```
+
+| Feature | Description |
+|:--|:--|
+| **Stack** | Rust (App) + ClickHouse + PostgreSQL + RabbitMQ |
+| **Port** | `5667` (UI) / `8001` (gRPC / OTLP) |
+| **Protocol** | OpenTelemetry (OTLP) via Global Collector |
+| **Data Scope** | Tree of Thoughts, Agent Tool Calls, Provider Latencies |
+| **Reference** | See [observability_stack.md](architecture/observability_stack.md) for full OTel routing details. |
+
+---
+
 ## Network Map
 
 ```mermaid

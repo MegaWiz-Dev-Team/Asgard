@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laminar-rabbitmq-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laminar-rabbitmq
+  labels: { app: laminar-rabbitmq }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: laminar-rabbitmq }
+  template:
+    metadata:
+      labels: { app: laminar-rabbitmq }
+    spec:
+      containers:
+        - name: rabbitmq
+          image: {{ .Values.rabbitmq.image }}
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+          env:
+            - { name: RABBITMQ_DEFAULT_USER, value: "guest" }
+            - { name: RABBITMQ_DEFAULT_PASS, value: "guest" }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/rabbitmq
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: laminar-rabbitmq-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: laminar-rabbitmq
+spec:
+  clusterIP: None
+  selector: { app: laminar-rabbitmq }
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: management
+      port: 15672
+      targetPort: 15672
