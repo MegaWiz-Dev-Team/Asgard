@@ -1,28 +1,29 @@
-# 🏰 Asgard Sprint Planning — March 2026
+# 🏰 Asgard Sprint Planning — April 2026
 
 > Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.
 
 ---
 
-## 📊 Current Status (as of 2026-03-15)
+## 📊 Current Status (as of 2026-04-22, Sprint 38 — v1.2-alpha release)
 
-| Component | Version | Sprint | Tests | ISO Docs | Docker | Status |
+| Component | Version | Sprint | Tests | ISO Docs | Docker/K8s | Status |
 |:--|:--|:--|:--|:--|:--|:--|
-| 🛡️ Heimdall | v0.4.0 | — | Benchmarked | ✅ | ⚠️ Host only | ✅ Production |
-| 🧠 Mimir | v0.29.0 | Sprint 29 | 255+ | ✅ | ✅ Infra compose | ✅ Active |
-| ⚡ Bifrost | v0.7.0 | Sprint 7 | 133 | ✅ | ✅ Dockerfile | ✅ Mimir Sync |
-| 🏥 Eir | v0.4.0 | Sprint 4 | 57 | ✅ | ⚠️ OpenEMR image | ✅ JWKS Auth |
-| 🐺 Fenrir | v0.3.0 | Sprint 3 | 63 | ✅ | ✅ Dockerfile | ✅ JWT Auth |
-| 🌳 Yggdrasil | v0.5.0 | Sprint 5 | 45 | ✅ | ✅ Compose | ✅ Yggdrasil Setup |
-| 🛡️ Várðr | v0.1.0 | Sprint 1 | 5 | ✅ | ✅ Compose | ✅ Active |
-| ⚖️ Týr | v4.9.0 | Active | — | ✅ | ✅ K3s | ✅ Active |
-| ⚖️ Forseti | v1.0.0 | Sprint 6 | 147 | ✅ | ✅ Python | ✅ Active |
-| 🔨 Mjölnir | v0.1.0 | Load | — | ✅ | ✅ Cargo | ✅ Active |
-| 🐿️ Ratatoskr | v0.1.0 | Sprint 1 | — | ✅ | ✅ Dockerfile | ✅ Active |
-| 📨 Hermóðr | v0.1.0 | Sprint 1 | — | ✅ | ✅ Dockerfile | ✅ Active |
-| 🐦‍⬛ Huginn | v0.1.0 | Sprint 1 | — | 🚧 | 🚧 WIP | 🚧 In Progress |
-| 🐦 Muninn | v0.1.0 | Sprint 1 | — | 🚧 | 🚧 WIP | 🚧 In Progress |
-| 🏰 Asgard | v1.0-α | — | — | ✅ PM | ✅ Unified | ✅ Active |
+| 🛡️ Heimdall | v0.5.0 | — | Benchmarked | ✅ | ⚠️ Host only (MLX) | ✅ Production |
+| 🧠 Mimir (bridge) | v1.2.0 | Sprint 29 | 255+ | ✅ | ✅ K8s | ✅ Active |
+| 🖥️ Mimir Dashboard | v1.2.0 | Sprint 29 | — | ✅ | ✅ K8s | ✅ Active |
+| ⚡ Bifrost | v0.2.0 | Sprint 7 | 133 | ✅ | ✅ K8s | ✅ Mimir Sync |
+| 🏥 Eir | v0.3.0 | Sprint 4 | 57 | ✅ | ⚠️ OpenEMR image | ✅ JWKS Auth |
+| 🐺 Fenrir | v0.2.0 | Sprint 3 | 63 | ✅ | ✅ K8s | ✅ JWT Auth |
+| 🌳 Yggdrasil | v0.2.0 | Sprint 5 | 45 | ✅ | ✅ K8s (Zitadel) | ✅ Yggdrasil Setup |
+| 🛡️ Várðr | v0.5.0 | Sprint 1 | 5 | ✅ | ✅ K8s | ✅ Active |
+| ⚖️ Týr | v4.9.0 | Active | — | ✅ | ✅ K3s (Wazuh) | ✅ Active |
+| ⚖️ Forseti | v0.2.0 | Sprint 6 | 147 | ✅ | ✅ K8s | ✅ Active |
+| 🔨 Mjölnir | v0.2.0 | Load | — | ✅ | ✅ K8s | ✅ Active |
+| 🐿️ Ratatoskr | v0.2.0 | Sprint 1 | — | ✅ | ✅ K8s | ✅ Active |
+| 📨 Hermóðr | v0.2.0 | Sprint 1 | — | ✅ | ✅ K8s | ✅ Active |
+| 🐦‍⬛ Huginn | v0.3.0 | Sprint 1 | — | 🚧 | 🚧 Not deployed | 🚧 In Progress |
+| 🐦 Muninn | v0.3.0 | Sprint 1 | — | 🚧 | 🚧 Not deployed | 🚧 In Progress |
+| 🏰 Asgard (chart) | v0.2.0 (appVersion 0.38.0) | — | — | ✅ PM | ✅ Umbrella Helm | ✅ Active |
 
 > **537+ tests** across the entire platform
 

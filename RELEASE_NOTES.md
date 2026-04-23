@@ -1,5 +1,47 @@
 # Release Notes — Asgard AI Platform
 
+## v1.2-alpha — Sprint 38 Release (2026-04-22)
+
+> Unified platform bump aligning all 14 services, 11 Helm sub-charts, and the umbrella chart to a single consistent release on top of the OrbStack K8s migration delivered in Sprints 37–38.
+
+### 🧩 Umbrella
+- Helm umbrella `charts/asgard` — `version 0.1.0 → 0.2.0`, `appVersion 0.37.0 → 0.38.0`
+- All 11 sub-charts bumped `0.1.0 → 0.2.0`
+
+### 📦 Service bumps (+0.1.0 minor)
+
+| Component | From | To | Manifest |
+|:--|:--|:--|:--|
+| 🛡️ Heimdall | 0.4.0 | **0.5.0** | `gateway/Cargo.toml` |
+| 🧠 Mimir bridge | 1.1.0 | **1.2.0** | `ro-ai-bridge/Cargo.toml` |
+| 🖥️ Mimir Dashboard | 1.1.0 | **1.2.0** | `ro-ai-dashboard/package.json` |
+| ⚡ Bifrost | 0.1.0 | **0.2.0** | `Cargo.toml` |
+| 🏥 Eir | 0.2.0 | **0.3.0** | `package.json` |
+| 🐺 Fenrir | 0.1.0 | **0.2.0** | `pyproject.toml` |
+| 🌳 Yggdrasil | 0.1.0 | **0.2.0** | `pyproject.toml` |
+| 🛡️ Várðr | 0.4.0 | **0.5.0** | `Cargo.toml` |
+| ⚖️ Forseti | 0.1.0 | **0.2.0** | `pyproject.toml` |
+| 🔨 Mjölnir | 0.1.0 | **0.2.0** | `Cargo.toml` |
+| 🐿️ Ratatoskr | 0.1.0 | **0.2.0** | `Cargo.toml` |
+| 📨 Hermóðr | 0.1.0 | **0.2.0** | `Cargo.toml` |
+| 🐦‍⬛ Huginn | 0.2.1 | **0.3.0** | `Cargo.toml` |
+| 🐦 Muninn | 0.2.0 | **0.3.0** | `Cargo.toml` |
+
+### 🏗️ Delivered in this release cycle (Sprints 37–38)
+- **K3s + Helm + CI/CD** production deployment on Mac Mini (Sprint 37)
+- **OrbStack migration** — Colima retired; launchd host now runs Heimdall Gateway + MLX backend + Várðr agent only (Sprint 38)
+- **ISO 27001 log pipeline** — launchd `log-shipper` + `log-archiver` → Wazuh Indexer (Týr) with 365-day retention on T7 Shield
+
+### 📊 Live K8s footprint (asgard namespace)
+27 pods Running across 14 services; all `/healthz` probes green. Heimdall runs native on host (MLX).
+
+### 🎯 Next (Phase 1 "Shield Wall", Apr 2026)
+- ⚡ **Bifrost S8** — AI Guardrails (Thai PII filter, kill switch, hallucination check, handover queue)
+- 📦 **Package Extract** — `@asgard/line-connector`, Gmail, TTS, BigQuery NLQ
+- 👁️ **Syn** — new OCR/eKYC service (`:8600`)
+
+---
+
 ## v1.1-alpha — Várðr & Docker Verified (2026-03-13)
 
 ### 🛡️ New Component: Várðr
