@@ -58,12 +58,20 @@ Asgard is a **complete, modular, self-hosted AI platform**:
 
 ### Target Segments (Priority Order)
 
-| Segment | Why | Willingness to Pay |
-|:--|:--|:--|
-| 🏥 **Healthcare (Thailand)** | PDPA compliance, medical data sensitivity | High ($2K-5K/mo) |
-| 🎮 **Game Studios (SEA)** | NPC AI, content generation, local inference | Medium ($500-2K/mo) |
-| ⚖️ **Legal Firms** | Document analysis, confidentiality requirements | High ($2K-5K/mo) |
-| 🏦 **Financial Services** | Risk analysis, regulatory compliance | Very High ($5K+/mo) |
+| Tier | Segment | Why | WTP (Annual) |
+|:--|:--|:--|:--|
+| 1 | 🏥 **Healthcare** | PDPA, medical data sensitivity, FHIR built-in | $24K–60K |
+| 1 | 🏦 **Financial Services** | Risk analysis, regulatory compliance, audit trail | $60K+ |
+| 1 | ⚖️ **Legal Firms** | Document confidentiality, contract review RAG | $24K–60K |
+| 1 | 🎮 **Game Studios (SEA)** | NPC AI, content generation, IP protection | $6K–24K |
+| 2 | 🛡️ **Insurance** | Claims automation, PDPA, policy Q&A, OIC compliance | $120K–600K |
+| 2 | 📡 **Telco** | Data residency, local LLM cost reduction at scale | $600K–2.4M |
+| 2 | ⚡ **Energy/Utilities** | Air-gapped ops, safety docs, กกพ./EGAT compliance | $600K–2.4M |
+| 2 | 🏗️ **Large Conglomerates** | Multi-BU multi-tenant, contract/HR/procurement agents | $240K–1.2M |
+| 2 | 📊 **Consulting / Big 4** | Client data isolation, due diligence & research agents | $60K–240K |
+| 3 | 🏭 **Manufacturing** | Air-gapped production floor, ISO 55001 docs | $60K–240K |
+| 3 | 🏛️ **Government** | Sovereignty mandate, e-service agents | $120K–600K |
+| 3 | 🎓 **University** | Multi-tenant, research RAG, free community entry | $12K–60K |
 
 ---
 
