@@ -42,16 +42,22 @@ spec:
               value: '["apoc"]'
             - name: NEO4J_server_config_strict__validation_enabled
               value: "false"
+            - name: NEO4J_server_memory_heap_initial__size
+              value: "2G"
+            - name: NEO4J_server_memory_heap_max__size
+              value: "4G"
+            - name: NEO4J_server_memory_pagecache_size
+              value: "2G"
           volumeMounts:
             - name: data
               mountPath: /data
           resources:
             requests:
-              memory: 256Mi
-              cpu: 100m
-            limits:
-              memory: 1Gi
+              memory: 2Gi
               cpu: 500m
+            limits:
+              memory: 7Gi
+              cpu: 2000m
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -65,10 +71,13 @@ metadata:
 spec:
   selector:
     app: neo4j
+  type: NodePort
   ports:
     - name: browser
       port: 7474
       targetPort: 7474
+      nodePort: 30474
     - name: bolt
       port: 7687
       targetPort: 7687
+      nodePort: 30687

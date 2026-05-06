@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mimir-dashboard
-  namespace: asgard-services
+  namespace: asgard
   labels:
     app: mimir-dashboard
 spec:
@@ -24,9 +24,9 @@ spec:
             - containerPort: 3000
           env:
             - name: NEXT_PUBLIC_API_URL
-              value: http://mimir-api.asgard-services.svc:8080
+              value: http://mimir-api.asgard.svc:8080
             - name: NEXT_PUBLIC_YGGDRASIL_URL
-              value: http://yggdrasil.asgard-services.svc:8080
+              value: http://yggdrasil.asgard.svc:8080
           resources:
             requests:
               memory: 128Mi
@@ -39,7 +39,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mimir-dashboard
-  namespace: asgard-services
+  namespace: asgard
 spec:
   selector:
     app: mimir-dashboard

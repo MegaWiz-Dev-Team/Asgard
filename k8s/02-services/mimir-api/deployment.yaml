@@ -37,6 +37,8 @@ spec:
               value: neo4j
             - name: NEO4J_PASSWORD
               value: REDACTED-PW
+            - name: USE_NEO4J_GRAPH
+              value: "true"
             - name: OLLAMA_API_URL
               value: http://host.docker.internal:8080/v1
             - name: OLLAMA_URL
