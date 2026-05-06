@@ -50,8 +50,9 @@
 ### Week 3 (P2 — Nice to Have)
 | Task | Component | Description | Status |
 |:--|:--|:--|:--|
-| Fenrir + Heimdall LLM | 🐺🛡️ | Browser Use + NL → actions |
-| Eir FHIR extensions | 🏥 | Encounter create, Medication request |
+| Fenrir + Heimdall LLM | 🐺🛡️ | Browser Use + NL → actions | 📝 Planned |
+| Eir FHIR extensions | 🏥 | Encounter create, Medication request | 📝 Planned |
+| Eir Multi-Agent Architecture | 🏥 Eir | Design & implement 19 Eir Agents (13 Medical + 6 Allied Health) for Multi-tenant deployment — see [`Eir/docs/Eir_Agents_Architecture.md`](../../Eir/docs/Eir_Agents_Architecture.md) | 📝 Planned (design ✅ 2026-05-05) |
 | Cross-component JWT | All | All services validate Yggdrasil tokens | ✅ Done (Bifrost+Fenrir) |
 
 ---

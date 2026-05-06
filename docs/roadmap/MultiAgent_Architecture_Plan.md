@@ -102,7 +102,7 @@
 | Agent | Codename | บทบาท | Runtime | MCP Strategy | Allowlisted Tools |
 |-------|----------|-------|---------|--------------|-------------------|
 | ⚡ **Bifrost** | หัวหน้าทีม | Orchestrator — รับคำถาม วิเคราะห์เจตนา มอบหมายงาน ประกอบคำตอบ | **Rust (Axum + rig.rs)** | MCP Client | `delegate_*`, `route_*` |
-| 📨 **Hermóðr** | ผู้ส่งสาร | Universal MCP Sidecar — Bridge ระหว่าง MCP Protocol กับ Legacy REST | Rust (standalone) | MCP Server | N/A (Proxy) |
+| 📨 **Hermóðr** | ผู้ส่งสาร | Universal MCP Sidecar — Bridge MCP↔Legacy REST + Home ของ Category B/C tools (external API wrappers + stateless utilities) — ดู §11 Hybrid Tool Placement | Rust (standalone) | MCP Server | `pubmed_*`, `clinical_trials_*`, `fda_*`, `icd10_lookup`, `drug_interaction_*`, `web_fetch`, `medcalc` |
 | 🏥 **Eir** | ผู้รักษา | FHIR Gateway — ดึง/เขียนข้อมูลคนไข้จาก OpenEMR | Rust (Axum) | via Hermóðr | `read_fhir`, `write_clinical_note`, `book_appointment` |
 | 🧠 **Mimir** | ผู้จัดการความรู้ | Dual-Role: Curator (Batch Ingest) + Researcher (RAG Query) | Rust (Axum) | Native MCP | `search_knowledge`, `search_primekg`, `ingest_pubmed` |
 | 🐺 **Fenrir** | ผู้ช่วยธุรการ | Computer Use — AI Agent สั่ง Browser ด้วย LLM (ใช้ Ratatoskr เป็น Engine) | **Rust (Axum) + Python sidecar** (browser-use) | Native MCP | `navigate_browser`, `click_element`, `fill_form` |
@@ -386,6 +386,65 @@
 | **Transport** | JSON-RPC over SSE |
 | **การใช้งาน** | Bifrost (Client) → Hermóðr / Mimir / Fenrir (Server) |
 | **ขอบเขต** | เรียก Tool เดี่ยวๆ เช่น `search_knowledge`, `fill_form` |
+
+### Hybrid Tool Placement — Mimir vs Hermóðr (decided 2026-05-05, Sprint 42)
+
+> [!IMPORTANT]
+> ก่อนสร้าง Tool ใหม่ทุกครั้ง ต้องตัดสินใจก่อนว่าจะอยู่ที่ **Mimir** (in-process) หรือ
+> **Hermóðr** (sidecar). Asgard ใช้ **hybrid pattern**: Mimir เก็บ tools ที่ผูกกับ
+> stateful pools (Qdrant / Neo4j / MariaDB) — Hermóðr ห่อ external API + tools
+> ที่ stateless ทั้งหมด แล้ว Mimir's MCP server ดึง tools จาก Hermóðr มา
+> รวมใน `tools/list` เดียวกัน เพื่อให้ Eir/Bifrost เห็น tool catalog เป็นแถวเดียว
+
+#### Decision Matrix
+
+| สมบัติของ Tool | Mimir (in-process) | Hermóðr (sidecar) |
+|---|---|---|
+| ใช้ Qdrant / Neo4j / MariaDB pool ของ Mimir | ✅ ที่นี่ | ❌ |
+| เรียก external HTTP API (PubMed, FDA, RxNav, …) | ❌ | ✅ ที่นี่ |
+| Pure compute (calculator, formula) | ❌ (avoid extra crate) | ✅ ที่นี่ |
+| ต้องการ rate-limit per upstream แยก | ❌ | ✅ (1 deployment per upstream) |
+| Latency-critical (<5ms) ต้องอยู่ใน hot path | ✅ | ❌ |
+| มี state ที่ต้อง warm-up (model load, embedding cache) | ✅ | ❌ |
+
+#### Tool Categories (Sprint 42 baseline)
+
+| Category | Examples | Home |
+|---|---|---|
+| **A — Stateful in-process** | `vector_search`, `graph_search`, `primekg_search`, `clinical_kb_search`, `memvid_search`, `sql_query` | **Mimir** |
+| **B — Stateless utility** | `medcalc` (CHADS2/MELD/Wells/eGFR/CrCl/BMI/BSA), `icd10_lookup` | **Hermóðr** |
+| **C — External API wrapper** | `pubmed_search`, `pubmed_fetch`, `clinical_trials_search`, `fda_drug_search`, `drug_interaction_check`, `rxcui_lookup`, `web_fetch` | **Hermóðr** |
+
+#### Deployment Pattern
+
+Hermóðr รัน **หนึ่ง instance ต่อ upstream** — แต่ละ instance เห็นเฉพาะ tool ของตัวเอง
+ผ่าน `SERVICE_NAME` env var:
+
+```
+hermodr-pubmed     SERVICE_NAME=eir_medical UPSTREAM_URL=https://eutils.ncbi.nlm.nih.gov
+hermodr-trials     SERVICE_NAME=eir_medical UPSTREAM_URL=https://clinicaltrials.gov
+hermodr-fda        SERVICE_NAME=eir_medical UPSTREAM_URL=https://api.fda.gov
+hermodr-rxnav      SERVICE_NAME=eir_medical UPSTREAM_URL=https://rxnav.nlm.nih.gov
+hermodr-webfetch   SERVICE_NAME=eir_medical UPSTREAM_URL=  (proxy mode)
+hermodr-medcalc    SERVICE_NAME=eir_medical UPSTREAM_URL=  (internal handler)
+```
+
+**ผลที่ได้:** rate-limit budget แยก, scale แต่ละ upstream อิสระ, fault domain แยก
+(NCBI ล่ม → ct.gov ยังทำงานได้)
+
+#### Mimir-side Wiring
+
+| Component | Role |
+|---|---|
+| `mimir-core-ai/services/hermodr.rs` | Hermóðr client + endpoint discovery from `HERMODR_*_URL` env vars |
+| `routes/mcp.rs` `handle_tools_list` | Append remote Hermóðr tools to local `list_tools()` output |
+| `mcp_server::dispatch_tool_call` | Route remote tool name → `hermodr::call_tool(ep, name, args)` |
+
+#### Decision Rule for New Tools (Sprint 42+)
+
+> ถ้า tool ไม่ผูกกับ pool ของ Mimir อยู่แล้ว → สร้างที่ **Hermóðr** ก่อน. การย้าย
+> tool จาก Hermóðr ไป Mimir ทีหลังคือเปลี่ยน 1 บรรทัดในตาราง routing.
+> การย้ายขากลับ (Mimir → Hermóðr) คือการ refactor.
 
 ### A2A: Agent ↔ Agent (แผนเฟส 3)
 | ลักษณะ | รายละเอียด |
