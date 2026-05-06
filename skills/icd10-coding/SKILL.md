@@ -236,5 +236,16 @@ turnaround expected.
 - Sprint plan: [`Mimir/docs/03_implementation_plans/03_14_Local_LLM_Optimization_Sprints.md` Sprint 48](../../../Mimir/docs/03_implementation_plans/03_14_Local_LLM_Optimization_Sprints.md)
 - Eir Agents: [`Eir/docs/Eir_Agents_Architecture.md`](../../../Eir/docs/Eir_Agents_Architecture.md)
 - Hermodr architecture (TBD): when Hermodr repo reaches doc parity
+- License request letter: [`Asgard/legal/2026-05-07_MoPH_ICD-10-TM_License_Request.md`](../../legal/2026-05-07_MoPH_ICD-10-TM_License_Request.md) — Sprint 48 B-48a critical-path
 - WHO ICD-10: https://www.who.int/standards/classifications/classification-of-diseases
-- MoPH ICD-10-TM (Thai): TBD — public link after license confirmation
+- WHO ICD-10 Browser API (free, public-domain): https://icd.who.int/browse10/
+
+### Known Thai sources reviewed
+
+| Source | URL | Status | Use |
+|---|---|---|---|
+| **Bureau of Health Information / กองยุทธศาสตร์และแผนงาน** (central MoPH) | TBD via license letter | 🟡 pending B-48a | **target master source** |
+| สสจ.หนองคาย — กลุ่มงานพัฒนายุทธศาสตร์สาธารณสุข (Phoca Downloads) | https://wwwnko2.moph.go.th/nk_downloads/index.php/component/phocadownload/category/11-icd10tm | ✅ public, but provincial · PDF · PCU subset only · no explicit license | **reference + Phase A bootstrap only** — 4 PDF volumes (PCU v1-4) + coding-rules image, useful for dev study + 50 test cases (B-48j) curation, but NOT master dataset (PDF parsing lossy + subset) |
+| drg.thainh.go.th (สำนักงาน DRG) | TBD | 🟡 to verify | DRG mapping authoritative |
+| thcc.or.th (Thai Health Coding Center) | TBD | 🟡 to verify | coordination body |
+| สบส. (HA Accreditation Institute) | TBD | 🟡 to verify | HA standard alignment |
