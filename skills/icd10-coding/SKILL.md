@@ -17,6 +17,17 @@ Single-source-of-truth ICD-10 code lookup for all Eir Agents — supporting:
 - **DRG mapping** (สปสช. v6) for reimbursement-ready output
 - **Bilingual semantic search** — Thai ↔ English ↔ code
 
+## Implementation surfaces
+
+| Surface | Status | Role |
+|---|---|---|
+| **Rust route** `/api/v1/icd10/*` (ro-ai-bridge) | ✅ deployed | **Production path** — all Eir agents + clients call this |
+| **Qdrant collection** `icd10-th` | ✅ 15,376 vectors | Semantic search backend (Ollama nomic-embed-text) |
+| **MariaDB** `icd10_codes` table | ✅ 15,376 rows | Master reference data, exact/prefix/naive search |
+| Python CLI `icd10_lookup.py` | 🟡 dev tool | Test convenience — NOT production. Will be deprecated as Rust route stabilizes |
+| Python ETL `icd10_tm_anamai_ingest.py` | 🟡 one-shot | Used once for Phase A bootstrap — replace with Rust ingest if dataset refresh needs scheduling |
+| Python `icd10_embed_qdrant.py` | 🟡 one-shot | Used once to populate Qdrant — Sprint 45 Mimir Batch API will Rust-ize for ongoing re-embed |
+
 ---
 
 ## Why this exists
