@@ -22,23 +22,28 @@ fi
 
 mkdir -p "$VECTOR_CONFIG_DIR"
 
+: "${HEIMDALL_LOG_DIR:?Set HEIMDALL_LOG_DIR to the absolute path of Heimdall's logs/ directory}"
+: "${INDEXER_ENDPOINT:=https://localhost:30920}"
+: "${INDEXER_USER:?Set INDEXER_USER for the OpenSearch/Wazuh indexer}"
+: "${INDEXER_PASSWORD:?Set INDEXER_PASSWORD for the OpenSearch/Wazuh indexer}"
+
 echo "📝 Generating Heimdall Vector Config..."
-cat << 'EOF' > "$VECTOR_CONFIG_DIR/vector.toml"
+cat << EOF > "$VECTOR_CONFIG_DIR/vector.toml"
 [sources.heimdall_logs]
 type = "file"
 include = [
-  "/Users/mimir/Developer/Heimdall/logs/*.log"
+  "${HEIMDALL_LOG_DIR}/*.log"
 ]
 read_from = "beginning"
 
 [sinks.opensearch]
 type = "elasticsearch"
 inputs = ["heimdall_logs"]
-endpoints = ["https://localhost:30920"]
+endpoints = ["${INDEXER_ENDPOINT}"]
 mode = "bulk"
 auth.strategy = "basic"
-auth.user = "admin"
-auth.password = "admin"
+auth.user = "${INDEXER_USER}"
+auth.password = "${INDEXER_PASSWORD}"
 tls.verify_certificate = false
 tls.verify_hostname = false
 EOF
@@ -46,4 +51,4 @@ EOF
 echo "🚀 Restarting Vector macOS Service..."
 brew services restart vector
 
-echo "✅ Heimdall Log Streaming configured! Logs are flowing to Týr (localhost:30920)."
+echo "✅ Heimdall Log Streaming configured! Logs are flowing to ${INDEXER_ENDPOINT}."

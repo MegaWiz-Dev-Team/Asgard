@@ -5,9 +5,8 @@ After all tests complete, results are:
 2. Posted to Fenrir's /api/test-results endpoint
 3. Printed as a summary table
 
-Usage:
-  cd /Users/mimir/Developer/Asgard
-  PYTHONPATH=/Users/mimir/Developer/Bifrost:/Users/mimir/Developer/Fenrir:/Users/mimir/Developer/Forseti/src \
+Usage (from the Asgard repo root):
+  PYTHONPATH=$BIFROST_ROOT:$FENRIR_ROOT:$FORSETI_ROOT/src \
     python -m pytest tests/test_e2e_all_services.py -v
 """
 
@@ -141,7 +140,9 @@ class ForsetiReporter:
         """Save results to Forseti's SQLite database."""
         try:
             from forseti.db.results_db import ResultsDB
-            db = ResultsDB(db_path="/Users/mimir/Developer/Forseti/forseti_results.db")
+            forseti_root = os.environ.get("FORSETI_ROOT")
+            db_path = os.path.join(forseti_root, "forseti_results.db") if forseti_root else "forseti_results.db"
+            db = ResultsDB(db_path=db_path)
             run_id = db.save_run(
                 suite_name=report["suite_name"],
                 phase="e2e",
@@ -199,7 +200,8 @@ class ForsetiReporter:
     def _save_json_artifact(self, report: dict):
         """Save JSON result file to Forseti results directory."""
         try:
-            results_dir = Path("/Users/mimir/Developer/Forseti/results")
+            forseti_root = os.environ.get("FORSETI_ROOT")
+            results_dir = Path(forseti_root) / "results" if forseti_root else Path("results")
             results_dir.mkdir(parents=True, exist_ok=True)
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             path = results_dir / f"e2e_all_services_{ts}.json"
@@ -252,13 +254,16 @@ class ForsetiReporter:
         print("═" * 60 + "\n")
 
 
+_ASGARD_ROOT = Path(__file__).resolve().parent.parent
+
+
 def _git_info(cmd: str) -> str:
     """Get git info safely."""
     try:
         return subprocess.check_output(
             f"git {cmd}",
             shell=True,
-            cwd="/Users/mimir/Developer/Asgard",
+            cwd=str(_ASGARD_ROOT),
             text=True,
         ).strip()
     except Exception:

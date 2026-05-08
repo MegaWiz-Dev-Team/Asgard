@@ -3,7 +3,7 @@
 Tests all 12 services' core functionality with mock-based unit tests.
 For live integration testing, use the bash scripts in Asgard/scripts/e2e/.
 
-Run: cd /Users/mimir/Developer/Asgard && python -m pytest tests/test_e2e_all_services.py -v
+Run from the Asgard repo root: `python -m pytest tests/test_e2e_all_services.py -v`
 
 Service Map:
   1. Mimir      (4200) — Knowledge Base

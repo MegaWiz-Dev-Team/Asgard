@@ -8,7 +8,7 @@
 
 ## UI Mockup
 
-![Multi-Agent Studio Concept](/Users/mimir/.gemini/antigravity/brain/ffc0ac2a-73ed-49f7-8120-d65a5443dc71/multi_agent_studio_1775840677539.png)
+> _UI mockup omitted from public docs._
 
 ---
 

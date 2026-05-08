@@ -8,10 +8,12 @@ Validates the Mimir→Heimdall migration:
   5. Credential resolution (all providers → Heimdall key)
   6. E2E request flow: Gateway → LLM backend
 
-Run:
-  cd /Users/mimir/Developer/Asgard
-  PYTHONPATH=/Users/mimir/Developer/Bifrost:/Users/mimir/Developer/Forseti/src \
+Run from the Asgard repo root:
+  PYTHONPATH=$BIFROST_ROOT:$FORSETI_ROOT/src \
     python -m pytest tests/test_e2e_heimdall_migration.py -v
+
+Set MIMIR_ROOT and HEIMDALL_ROOT env vars to point at sibling checkouts of
+those repos (defaults assume `../Mimir` and `../Heimdall` next to Asgard).
 
 Results recorded to Forseti via conftest.py reporter.
 """
@@ -24,8 +26,10 @@ from pathlib import Path
 import pytest
 
 # ── Paths ────────────────────────────────────────────────────────
-MIMIR_ROOT = Path("/Users/mimir/Developer/Mimir/ro-ai-bridge")
-HEIMDALL_ROOT = Path("/Users/mimir/Developer/Heimdall")
+ASGARD_ROOT = Path(__file__).resolve().parent.parent
+SIBLINGS = ASGARD_ROOT.parent
+MIMIR_ROOT = Path(os.environ.get("MIMIR_ROOT", SIBLINGS / "Mimir" / "ro-ai-bridge"))
+HEIMDALL_ROOT = Path(os.environ.get("HEIMDALL_ROOT", SIBLINGS / "Heimdall"))
 CORE_AI = MIMIR_ROOT / "mimir-core-ai"
 DOMAIN_GAME = MIMIR_ROOT / "ro-ai-domain-game"
 

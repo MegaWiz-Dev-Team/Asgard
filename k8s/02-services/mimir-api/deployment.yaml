@@ -46,7 +46,10 @@ spec:
             - name: HEIMDALL_API_URL
               value: http://host.docker.internal:8080/v1
             - name: HEIMDALL_API_KEY
-              value: "hml-REDACTED"
+              valueFrom:
+                secretKeyRef:
+                  name: mimir-api-secrets
+                  key: heimdall-api-key
             - name: EMBEDDING_HOST
               value: host.docker.internal
             - name: EMBEDDING_PORT
@@ -56,9 +59,15 @@ spec:
             - name: S3_ENDPOINT
               value: http://minio.asgard-infra.svc:9000
             - name: S3_ACCESS_KEY
-              value: minioadmin
+              valueFrom:
+                secretKeyRef:
+                  name: mimir-api-secrets
+                  key: s3-access-key
             - name: S3_SECRET_KEY
-              value: minioadmin
+              valueFrom:
+                secretKeyRef:
+                  name: mimir-api-secrets
+                  key: s3-secret-key
             - name: S3_BUCKET
               value: mimir-uploads
             - name: VAULT_ADDR
