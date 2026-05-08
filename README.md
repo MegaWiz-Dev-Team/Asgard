@@ -1,6 +1,11 @@
 # 🏰 Asgard AI Platform
 
-> **Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.** 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![Commercial License](https://img.shields.io/badge/Commercial-Available-success.svg)](COMMERCIAL.md)
+[![Code of Conduct](https://img.shields.io/badge/Contributor_Covenant-2.1-purple.svg)](CODE_OF_CONDUCT.md)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-red.svg)](SECURITY.md)
+
+> **Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.**
 
 > *The realm of the gods — a self-hosted AI agent platform built on Apple Silicon & NVIDIA GPU*
 
