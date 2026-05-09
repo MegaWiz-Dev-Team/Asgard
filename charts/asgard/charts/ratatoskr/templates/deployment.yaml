@@ -11,10 +11,14 @@ spec:
     metadata:
       labels: { app: ratatoskr }
     spec:
+      {{- with .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
       containers:
         - name: ratatoskr
-          image: {{ .Values.image | default "asgard-ratatoskr:latest" }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          image: {{ .Values.image | default "ghcr.io/megawiz-dev-team/ratatoskr:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
           ports: [{ containerPort: 9200 }]
           env:
             - { name: PORT, value: "9200" }
