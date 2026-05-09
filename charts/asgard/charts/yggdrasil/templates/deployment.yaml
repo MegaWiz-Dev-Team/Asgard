@@ -15,10 +15,10 @@ spec:
         - name: yggdrasil
           image: {{ .Values.image | default "ghcr.io/zitadel/zitadel:v2.71.6" }}
           imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
-          args: ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "disabled"]
+          args: ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "{{ .Values.tlsMode | default `disabled` }}"]
           ports: [{ containerPort: 8080 }]
           env:
-            - { name: ZITADEL_DATABASE_POSTGRES_HOST, value: postgres.{{ .Release.Namespace }}.svc }
+            - { name: ZITADEL_DATABASE_POSTGRES_HOST, value: postgres.{{ .Values.global.infraNamespace | default .Release.Namespace }}.svc }
             - { name: ZITADEL_DATABASE_POSTGRES_PORT, value: "5432" }
             - { name: ZITADEL_DATABASE_POSTGRES_DATABASE, value: zitadel }
             - { name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME, value: postgres }
@@ -27,15 +27,15 @@ spec:
             - { name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME, value: postgres }
             - { name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD, value: yggdrasil-secret }
             - { name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE, value: disable }
-            - { name: ZITADEL_EXTERNALSECURE, value: "false" }
-            - { name: ZITADEL_EXTERNALDOMAIN, value: localhost }
-            - { name: ZITADEL_EXTERNALPORT, value: "{{ .Values.nodePort | default 30085 }}" }
+            - { name: ZITADEL_EXTERNALSECURE, value: {{ .Values.externalSecure | default "false" | quote }} }
+            - { name: ZITADEL_EXTERNALDOMAIN, value: {{ .Values.externalDomain | default "localhost" | quote }} }
+            - { name: ZITADEL_EXTERNALPORT, value: {{ .Values.externalPort | default (toString (.Values.nodePort | default 30085)) | quote }} }
             - { name: ZITADEL_FIRSTINSTANCE_ORG_NAME, value: Asgard }
             - { name: ZITADEL_MASTERKEY, value: {{ .Values.masterKey | default "yggdrasil-masterkey-change-me-ok" | quote }} }
             - { name: ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER, value: "false" }
           readinessProbe:
             httpGet:
-              path: /debug/ready
+              path: {{ .Values.readinessPath | default "/debug/ready" }}
               port: 8080
               scheme: HTTP
             initialDelaySeconds: 30
