@@ -96,9 +96,11 @@ mjolnir:
 
 
 
-# ── Laminar ──
+# ── Laminar (Sága) ──
+# Disabled in umbrella chart — managed by separate `laminar` Helm release.
+# Re-enabling requires migrating ownership of 45 laminar resources first.
 laminar:
-  enabled: true
+  enabled: false
 
 # ── Monitoring ──
 vardr:
