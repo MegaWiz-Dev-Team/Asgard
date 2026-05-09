@@ -1,18 +1,29 @@
 # values-dev.yaml — Local development overrides
 global:
   imagePullPolicy: Never
-  heimdallUrl: http://host.docker.internal:8080
+  infraNamespace: asgard-infra
+  heimdallUrl: http://host.docker.internal:8080/v1
+  ollamaUrl: http://192.168.1.172:8080
 
 bifrost:
   defaultModel: mlx-community/Qwen3.5-9B-MLX-4bit
   maxIterations: 10
 
+# Match current PVC capacity in cluster (k8s forbids shrinking bound PVCs)
 infra:
   mariadb:
-    storage: 5Gi
+    storage: 10Gi
   postgres:
-    storage: 2Gi
-  qdrant:
     storage: 5Gi
+  qdrant:
+    storage: 10Gi
   neo4j:
     storage: 2Gi
+
+# Yggdrasil (Zitadel) running in TLS-external mode behind ingress sso.asgard.internal
+yggdrasil:
+  externalSecure: "true"
+  externalDomain: sso.asgard.internal
+  externalPort: "443"
+  tlsMode: external
+  readinessPath: /debug/healthz

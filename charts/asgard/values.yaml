@@ -3,8 +3,10 @@
 
 global:
   namespace: asgard
+  infraNamespace: asgard-infra  # mariadb/postgres/qdrant/redis/neo4j live here
   imagePullPolicy: Never  # local images; change to IfNotPresent for registry
-  heimdallUrl: http://host.docker.internal:8080
+  heimdallUrl: http://host.docker.internal:8080/v1  # OpenAI-compat path required for bifrost
+  ollamaUrl: http://host.docker.internal:8080  # legacy ollama path (no /v1)
   rustLog: info
   logLevel: info
 
@@ -42,6 +44,11 @@ yggdrasil:
   image: ghcr.io/zitadel/zitadel:v2.71.6
   masterKey: yggdrasil-masterkey-change-me-ok
   nodePort: 30085
+  externalSecure: "false"
+  externalDomain: localhost
+  externalPort: "30085"
+  tlsMode: disabled
+  readinessPath: /debug/ready
 
 # ── Knowledge Platform ──
 mimir:
