@@ -4,7 +4,13 @@
 global:
   namespace: asgard
   infraNamespace: asgard-infra  # mariadb/postgres/qdrant/redis/neo4j live here
-  imagePullPolicy: Never  # local images; change to IfNotPresent for registry
+  # CI-driven image flow: pulls from ghcr.io built by Build-and-Push workflow
+  imageRegistry: ghcr.io/megawiz-dev-team
+  imagePullPolicy: IfNotPresent
+  # Optional: name of pre-existing imagePullSecret if ghcr.io packages are private.
+  # Create with: kubectl create secret docker-registry ghcr-secret \
+  #   --docker-server=ghcr.io --docker-username=<user> --docker-password=<PAT> -n <ns>
+  imagePullSecret: ""
   heimdallUrl: http://host.docker.internal:8080/v1  # OpenAI-compat path required for bifrost
   ollamaUrl: http://host.docker.internal:8080  # legacy ollama path (no /v1)
   rustLog: info
@@ -54,19 +60,19 @@ yggdrasil:
 mimir:
   enabled: true
   api:
-    image: asgard-mimir-api:latest
+    image: ghcr.io/megawiz-dev-team/mimir-api:latest
     nodePort: 30000
     resources:
       requests: { memory: 256Mi, cpu: 200m }
       limits: { memory: 1Gi, cpu: "1" }
   dashboard:
-    image: asgard-mimir-dashboard:latest
+    image: ghcr.io/megawiz-dev-team/mimir-dashboard:latest
     nodePort: 30001
 
 # ── Agent Runtime ──
 bifrost:
   enabled: true
-  image: asgard-bifrost:latest
+  image: ghcr.io/megawiz-dev-team/bifrost:latest
   nodePort: 30100
   defaultModel: mlx-community/Qwen3.5-9B-MLX-4bit
   maxIterations: 10
@@ -75,30 +81,30 @@ bifrost:
 # ── Computer-Use Agent ──
 fenrir:
   enabled: true
-  image: asgard-fenrir:latest
+  image: ghcr.io/megawiz-dev-team/fenrir:latest
   nodePort: 30200
 
 # ── E2E Testing ──
 forseti:
   enabled: true
-  image: asgard-forseti:latest
+  image: ghcr.io/megawiz-dev-team/forseti:latest
   nodePort: 30555
   storage: 1Gi
 
 # ── MCP Sidecar ──
 hermodr:
   enabled: true
-  image: asgard-hermodr-yggdrasil:latest
+  image: ghcr.io/megawiz-dev-team/hermodr-yggdrasil:latest
 
 # ── Browser Service ──
 ratatoskr:
   enabled: true
-  image: asgard-ratatoskr:latest
+  image: ghcr.io/megawiz-dev-team/ratatoskr:latest
 
 # ── Load Testing ──
 mjolnir:
   enabled: true
-  image: asgard-mjolnir:latest
+  image: ghcr.io/megawiz-dev-team/mjolnir:latest
   storage: 1Gi
 
 
@@ -112,5 +118,5 @@ laminar:
 # ── Monitoring ──
 vardr:
   enabled: true
-  image: asgard-vardr:latest
+  image: ghcr.io/megawiz-dev-team/vardr:latest
   nodePort: 30090
