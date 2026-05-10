@@ -15,9 +15,11 @@ spec:
       labels:
         app: asgard-portal
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: asgard-portal
-          image: asgard-portal:latest
+          image: ghcr.io/megawiz-dev-team/asgard-portal:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 30005

@@ -33,7 +33,7 @@ jobs:
         name: Detect changed services
         run: |
           if [ "${{ github.event.inputs.service }}" = "all" ] || [ -z "${{ github.event.inputs.service }}" ]; then
-            echo 'services=[{"name":"mimir-api","repo":"Mimir","context":"./_service","dockerfile":"./_service/ro-ai-bridge/Dockerfile"},{"name":"mimir-dashboard","repo":"Mimir","context":"./_service/ro-ai-dashboard","dockerfile":"./_service/ro-ai-dashboard/Dockerfile"},{"name":"bifrost","repo":"Bifrost","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"fenrir","repo":"Fenrir","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"forseti","repo":"Forseti","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"hermodr-yggdrasil","repo":"Hermodr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"ratatoskr","repo":"Ratatoskr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"mjolnir","repo":"Mjolnir","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"vardr","repo":"Vardr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"eir-gateway","repo":"Eir","context":"./_service","dockerfile":"./_service/Dockerfile.gateway"}]' >> $GITHUB_OUTPUT
+            echo 'services=[{"name":"mimir-api","repo":"Mimir","context":"./_service","dockerfile":"./_service/ro-ai-bridge/Dockerfile"},{"name":"mimir-dashboard","repo":"Mimir","context":"./_service/ro-ai-dashboard","dockerfile":"./_service/ro-ai-dashboard/Dockerfile"},{"name":"bifrost","repo":"Bifrost","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"fenrir","repo":"Fenrir","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"forseti","repo":"Forseti","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"hermodr-yggdrasil","repo":"Hermodr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"ratatoskr","repo":"Ratatoskr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"mjolnir","repo":"Mjolnir","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"vardr","repo":"Vardr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"eir-gateway","repo":"Eir","context":"./_service","dockerfile":"./_service/Dockerfile.gateway"},{"name":"asgard-portal","repo":"Asgard","context":"./packages/asgard-portal","dockerfile":"./packages/asgard-portal/Dockerfile"}]' >> $GITHUB_OUTPUT
           else
             # Extremely basic manual trigger filter for simplicity
             echo 'services=[{"name":"mimir-api","repo":"Mimir","context":"./_service","dockerfile":"./_service/ro-ai-bridge/Dockerfile"}]' >> $GITHUB_OUTPUT
@@ -55,6 +55,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout service repo
+        if: ${{ matrix.service.repo != 'Asgard' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ env.ORG }}/${{ matrix.service.repo }}
