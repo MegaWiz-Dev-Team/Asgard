@@ -109,9 +109,10 @@ jobs:
     # Bypass macOS Keychain (-25308 "User interaction is not allowed") on the
     # self-hosted Mac mini runner — docker login defaults to osxkeychain
     # credstore, which is locked when no GUI session is unlocked.
-    # Pointing DOCKER_CONFIG at a fresh tmp dir forces file-based config.json.
+    # Pointing DOCKER_CONFIG at /tmp forces file-based config.json.
+    # Note: `runner.temp` is not available in job-level env, so use literal /tmp.
     env:
-      DOCKER_CONFIG: ${{ runner.temp }}/.docker-${{ github.run_id }}-${{ matrix.service.name }}
+      DOCKER_CONFIG: /tmp/.docker-${{ github.run_id }}-${{ matrix.service.name }}
 
     steps:
       - name: Checkout Asgard
