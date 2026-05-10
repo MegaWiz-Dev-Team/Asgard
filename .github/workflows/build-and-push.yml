@@ -106,6 +106,12 @@ jobs:
     permissions:
       contents: read
       packages: write
+    # Bypass macOS Keychain (-25308 "User interaction is not allowed") on the
+    # self-hosted Mac mini runner — docker login defaults to osxkeychain
+    # credstore, which is locked when no GUI session is unlocked.
+    # Pointing DOCKER_CONFIG at a fresh tmp dir forces file-based config.json.
+    env:
+      DOCKER_CONFIG: ${{ runner.temp }}/.docker-${{ github.run_id }}-${{ matrix.service.name }}
 
     steps:
       - name: Checkout Asgard
@@ -118,6 +124,9 @@ jobs:
           repository: ${{ env.ORG }}/${{ matrix.service.repo }}
           path: _service
           token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Prepare DOCKER_CONFIG dir (avoids osxkeychain)
+        run: mkdir -p "$DOCKER_CONFIG"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
