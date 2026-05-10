@@ -92,6 +92,55 @@ Enterprise customers should pin to specific `:v1.X` (LTS) per their support cont
 - ❌ No force-push, no branch deletion
 - ❌ No bypass except for documented emergencies (audit-logged)
 
+### CI / Build pattern (polyrepo)
+
+Asgard uses **per-repo build workflows** (polyrepo CI). Each service repo
+owns its own `.github/workflows/build.yml` that builds + pushes its image
+to `ghcr.io/megawiz-dev-team/<service>:{sha,latest}`. The umbrella Asgard
+repo's CI only builds `asgard-portal` (since its source lives at
+`packages/asgard-portal/`) and runs the Helm Deploy.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Service repos (Bifrost, Mimir, Fenrir, Hermodr, ...)     │
+│   .github/workflows/build.yml                             │
+│     ├─ on: push to main + paths-ignore docs/**            │
+│     ├─ build multi-arch (linux/amd64 + linux/arm64)       │
+│     └─ push ghcr.io/megawiz-dev-team/<svc>:{sha,latest}   │
+└─────────────────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────────────────┐
+│ Asgard umbrella repo                                      │
+│   .github/workflows/                                      │
+│     ├─ build-and-push.yml  ← only builds asgard-portal    │
+│     └─ deploy.yml          ← Helm upgrade pulls fresh ghcr│
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Adding a new service to Asgard
+
+When you add a new service that needs an image in the cluster:
+
+1. **In the new service repo:** copy `.github/workflows/build.yml` from
+   any existing service (e.g. Forseti, Mjolnir, Vardr — all use the same
+   template) and adjust:
+   - `env.IMAGE` → service name (this becomes the ghcr.io tag)
+   - `file:` if Dockerfile path differs from `./Dockerfile`
+   - For matrix builds (multi-image services like Mimir api+dashboard),
+     see Mimir's workflow as reference.
+
+2. **In Asgard chart values:** add image reference
+   `ghcr.io/megawiz-dev-team/<svc>:latest` + the `imagePullSecrets:
+   [ghcr-secret]` block.
+
+3. **In cluster:** ensure the `ghcr-secret` exists in the target namespace.
+   See [PR #16](https://github.com/MegaWiz-Dev-Team/Asgard/pull/16) for
+   the secret-creation pattern.
+
+4. **Don't add to Asgard's matrix.** That centralized model has been
+   retired (see [PR #27](https://github.com/MegaWiz-Dev-Team/Asgard/pull/27),
+   [PR #28](https://github.com/MegaWiz-Dev-Team/Asgard/pull/28)).
+
 ### Hotfix flow (security/critical)
 
 1. Branch from `release/v1.0` → `hotfix/v1.0.x-<short>`
