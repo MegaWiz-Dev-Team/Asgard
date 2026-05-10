@@ -1,12 +1,25 @@
 # values-prod.yaml — Production overrides
+#
+# 🔐 Secrets handling:
+#   In prod, the asgard-secrets K8s Secret is managed by Vault Agent
+#   Injector / External Secrets Operator — NOT by Helm. We set
+#   `secrets.create: false` so the chart references the Secret without
+#   owning it. Operator pre-creates `asgard-secrets` in the release ns.
+#
+#   To bootstrap a fresh prod cluster (no operator yet), temporarily
+#   set `secrets.create: true` and pass values via --set-file:
+#     helm upgrade asgard ./charts/asgard -n asgard \
+#       -f values-prod.yaml \
+#       --set secrets.create=true \
+#       --set-file secrets.yggdrasil.masterKey=./prod-secrets/masterkey \
+#       --set-file secrets.yggdrasil.clientSecret=./prod-secrets/oidc-secret \
+#       (and so on for all `required` keys)
 global:
   imagePullPolicy: IfNotPresent
   heimdallUrl: http://heimdall.asgard.internal:8080
 
 secrets:
-  heimdallApiKey: ""  # Set via --set or external-secrets
-  jwtSecret: ""
-  geminiApiKey: ""
+  create: false  # Externally-managed (Vault / ESO / sealed-secrets)
 
 bifrost:
   image: ghcr.io/megawiz-dev-team/bifrost:latest

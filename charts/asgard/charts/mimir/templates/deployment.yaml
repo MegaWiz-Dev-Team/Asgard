@@ -22,18 +22,22 @@ spec:
           ports: [{ containerPort: 8080 }]
           env:
             - { name: PORT, value: "8080" }
-            - { name: DATABASE_URL, value: "mysql://mimir:mimir_password@mariadb.{{ .Values.global.infraNamespace | default .Release.Namespace }}.svc:3306/mimir" }
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: MIMIR_DATABASE_URL } }
             - { name: QDRANT_URL, value: "http://qdrant.{{ .Values.global.infraNamespace | default .Release.Namespace }}.svc:6333" }
             - { name: REDIS_URL, value: "redis://redis.{{ .Values.global.infraNamespace | default .Release.Namespace }}.svc:6379" }
             - { name: NEO4J_URI, value: "bolt://neo4j.{{ .Values.global.infraNamespace | default .Release.Namespace }}.svc:7687" }
             - { name: NEO4J_USER, value: neo4j }
-            - { name: NEO4J_PASSWORD, value: REDACTED-PW }
+            - name: NEO4J_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: NEO4J_PASSWORD } }
             - { name: OLLAMA_API_URL, value: "{{ .Values.global.heimdallUrl }}" }
             - { name: OLLAMA_URL, value: {{ .Values.global.ollamaUrl | default .Values.global.heimdallUrl | quote }} }
             - { name: RUST_LOG, value: {{ .Values.global.rustLog | default "info" | quote }} }
-            - { name: YGGDRASIL_ISSUER, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
-            - { name: YGGDRASIL_CLIENT_ID, value: "368876822349333070" }
-            - { name: YGGDRASIL_CLIENT_SECRET, value: "jlQ7malc0cl4Ky0XlvgDqhDxXsK6Ogtv3SfSAoexyU12sMxqrIkMFPI6GOgA0Xy6" }
+            - { name: YGGDRASIL_ISSUER, value: {{ .Values.global.yggdrasilIssuerUrl | default (printf "http://yggdrasil.%s.svc:8080" .Release.Namespace) | quote }} }
+            - name: YGGDRASIL_CLIENT_ID
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_CLIENT_ID } }
+            - name: YGGDRASIL_CLIENT_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_CLIENT_SECRET } }
           readinessProbe:
             httpGet: { path: /healthz, port: 8080 }
             initialDelaySeconds: 10
@@ -77,10 +81,12 @@ spec:
           env:
             - { name: NEXT_PUBLIC_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
             - { name: MIMIR_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080/api" }
-            - { name: NEXT_PUBLIC_YGGDRASIL_URL, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
-            - { name: YGGDRASIL_ISSUER, value: "http://yggdrasil.{{ .Release.Namespace }}.svc:8080" }
-            - { name: YGGDRASIL_CLIENT_ID, value: "368876822349333070" }
-            - { name: YGGDRASIL_CLIENT_SECRET, value: "jlQ7malc0cl4Ky0XlvgDqhDxXsK6Ogtv3SfSAoexyU12sMxqrIkMFPI6GOgA0Xy6" }
+            - { name: NEXT_PUBLIC_YGGDRASIL_URL, value: {{ .Values.global.yggdrasilIssuerUrl | default (printf "http://yggdrasil.%s.svc:8080" .Release.Namespace) | quote }} }
+            - { name: YGGDRASIL_ISSUER, value: {{ .Values.global.yggdrasilIssuerUrl | default (printf "http://yggdrasil.%s.svc:8080" .Release.Namespace) | quote }} }
+            - name: YGGDRASIL_CLIENT_ID
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_CLIENT_ID } }
+            - name: YGGDRASIL_CLIENT_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_CLIENT_SECRET } }
           resources:
             requests: { memory: 128Mi, cpu: 100m }
             limits: { memory: 512Mi, cpu: 500m }

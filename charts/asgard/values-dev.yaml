@@ -1,4 +1,15 @@
 # values-dev.yaml — Local development overrides
+#
+# 🔐 Secrets handling:
+#   Dev uses Helm-managed secrets (`secrets.create: true`, the chart default).
+#   Set strong-but-non-prod values for the required keys via:
+#     helm upgrade asgard ./charts/asgard -n asgard \
+#       -f values-dev.yaml \
+#       --set-file secrets.yggdrasil.masterKey=./dev-secrets/masterkey \
+#       (and so on)
+#
+#   To skip per-key flags, drop a values-dev-secrets.yaml (gitignored)
+#   alongside this file with all the `required` values populated.
 global:
   imagePullPolicy: IfNotPresent  # pull from ghcr.io if not present locally
   imagePullSecret: ghcr-secret   # private ghcr.io packages — secret pre-created in asgard ns

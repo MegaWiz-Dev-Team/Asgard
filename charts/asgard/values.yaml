@@ -4,6 +4,10 @@
 global:
   namespace: asgard
   infraNamespace: asgard-infra  # mariadb/postgres/qdrant/redis/neo4j live here
+  # Name of the K8s Secret that subcharts reference via secretKeyRef.
+  # Default "asgard-secrets" — overridable for multi-tenant or
+  # per-env Secret naming (e.g. ESO + cluster-scoped Secret store).
+  secretsName: asgard-secrets
   # CI-driven image flow: pulls from ghcr.io built by Build-and-Push workflow
   imageRegistry: ghcr.io/megawiz-dev-team
   imagePullPolicy: IfNotPresent
@@ -17,26 +21,73 @@ global:
   logLevel: info
 
 # ── Shared Secrets ──
+# All secrets are stored in a central K8s Secret resource named
+# `asgard-secrets`. Subcharts reference values via secretKeyRef.
+#
+# Two modes:
+#   • create: true   — Helm manages the Secret from values below (dev/test).
+#                      Provide values via --set, --set-file, or values-*.yaml.
+#                      Plaintext defaults are intentionally absent so empty
+#                      strings/missing values fail fast via `required`.
+#   • create: false  — Operator pre-creates a Secret with the same name
+#                      "asgard-secrets" in the release namespace (prod /
+#                      Vault Agent Injector / Sealed Secrets / ESO).
+#
+# To rotate any secret in the running cluster:
+#   1. Update the upstream system (Zitadel admin UI, Postgres, etc.)
+#   2. kubectl create secret generic asgard-secrets --from-literal=... \
+#        --dry-run=client -o yaml | kubectl apply -f - -n asgard
+#   3. Restart consumers: kubectl rollout restart deploy -n asgard
+#
+# See docs/security/SECRETS.md for the full rotation runbook.
 secrets:
+  create: true
+
+  # Yggdrasil / Zitadel OIDC
+  yggdrasil:
+    masterKey: ""           # ZITADEL_MASTERKEY (rotation invalidates all sessions)
+    postgresPassword: ""    # ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+    clientId: ""            # OIDC client ID (registered in Zitadel)
+    clientSecret: ""        # OIDC client secret (regen in Zitadel admin UI)
+
+  # Infra databases
+  mariadb:
+    rootPassword: ""
+    password: ""            # mimir DB user password
+  neo4j:
+    password: ""
+
+  # Optional — external services
   heimdallApiKey: ""
   jwtSecret: ""
   geminiApiKey: ""
   geminiBaseUrl: ""
   geminiModel: ""
 
+  # Eir (OpenEMR + Asgard agent integration)
+  eir:
+    clientId: ""
+    clientSecret: ""
+
+  # Laminar (Sága) — disabled in umbrella; kept for completeness.
+  laminar:
+    apiKey: ""
+    postgresPassword: ""
+    clickhousePassword: ""
+    clickhouseRoPassword: ""
+    nextauthSecret: ""
+
 # ── Infrastructure ──
+# DB credentials are NOT defined here — see `secrets:` section above.
+# Only non-sensitive structural config (sizes, db names, storage) below.
 infra:
   enabled: true
-  laminarApiKey: "UZfUPh7uU6Z75uQeeVpuED3HpjcJM3BBL7UnYIlkd18AseLjvrjIVnU9MoXGptVC"
   mariadb:
-    rootPassword: root
     database: mimir
     user: mimir
-    password: REDACTED-PW
     storage: 10Gi
   postgres:
     user: postgres
-    password: yggdrasil-secret
     database: zitadel
     storage: 5Gi
   redis:
@@ -45,10 +96,10 @@ infra:
     storage: 10Gi
 
 # ── Auth ──
+# masterKey + postgres password come from the asgard-secrets K8s Secret.
 yggdrasil:
   enabled: true
   image: ghcr.io/zitadel/zitadel:v2.71.6
-  masterKey: yggdrasil-masterkey-change-me-ok
   nodePort: 30085
   externalSecure: "false"
   externalDomain: localhost
