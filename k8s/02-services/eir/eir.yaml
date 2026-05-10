@@ -27,10 +27,12 @@ spec:
       labels:
         app: eir
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       initContainers:
         - name: prep-sites
           image: ghcr.io/megawiz-dev-team/asgard-eir:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command:
             - sh
             - -c
@@ -86,7 +88,7 @@ spec:
       containers:
         - name: eir
           image: ghcr.io/megawiz-dev-team/asgard-eir:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
             - containerPort: 443
@@ -184,10 +186,12 @@ spec:
       labels:
         app: eir-gateway
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: gateway
           image: ghcr.io/megawiz-dev-team/eir-gateway:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8300
           env:
@@ -243,10 +247,12 @@ spec:
       labels:
         app: hermodr-eir
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: hermodr
           image: ghcr.io/megawiz-dev-team/asgard-hermodr:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: NODE_ENV
               value: "production"
