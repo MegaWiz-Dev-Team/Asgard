@@ -1,12 +1,18 @@
-# 🏰 Asgard — Build & Push Docker Images to ghcr.io
+# 🏰 Asgard — Build & Push asgard-portal image to ghcr.io
 #
-# Multi-arch via QEMU on ubuntu-latest. Slower than native (8-15 min/svc
-# instead of 3-5 min) but works without depending on a self-hosted runner.
+# After Sprint 51d polyrepo migration: Asgard repo only owns asgard-portal
+# (source lives at packages/asgard-portal/). All other services build in
+# their own repos via .github/workflows/build.yml. See CONTRIBUTING.md
+# branching/CI section + the open-core journey blog post for context.
 #
-# History: PR #19 split arm64 to a self-hosted Mac mini runner for native
-# speed, but the Mac mini's launchd-managed runner can't access osxkeychain
-# (-25308 errors during docker login). Reverted to QEMU until the runner
-# is reconfigured with file-based docker credstore (or non-keychain login).
+# History:
+# - PR #17: multi-arch QEMU
+# - PR #18: add asgard-portal to matrix
+# - PR #19/22/23: split-arch experiment (reverted — keychain issues on self-hosted)
+# - PR #24: bifrost cross-repo workaround
+# - PR #25/26: governance + ci-success
+# - PR #27: forseti+vardr removed (first polyrepo migration)
+# - This PR: 8 more services removed → matrix has only asgard-portal
 
 name: Build and Push
 
@@ -14,92 +20,33 @@ on:
   push:
     branches: [main]
     paths:
+      - 'packages/asgard-portal/**'
       - 'charts/**'
       - 'k8s/**'
       - 'docker-compose.yml'
   workflow_dispatch:
-    inputs:
-      service:
-        description: 'Service to build (all, mimir, bifrost, fenrir, forseti, hermodr, ratatoskr, mjolnir, vardr, pageindex)'
-        required: false
-        default: 'all'
 
 env:
   REGISTRY: ghcr.io
   ORG: megawiz-dev-team
+  IMAGE: asgard-portal
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      services: ${{ steps.changes.outputs.services }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - id: changes
-        name: Detect changed services
-        run: |
-          if [ "${{ github.event.inputs.service }}" = "all" ] || [ -z "${{ github.event.inputs.service }}" ]; then
-            echo 'services=[{"name":"mimir-api","repo":"Mimir","context":"./_service","dockerfile":"./_service/ro-ai-bridge/Dockerfile"},{"name":"mimir-dashboard","repo":"Mimir","context":"./_service/ro-ai-dashboard","dockerfile":"./_service/ro-ai-dashboard/Dockerfile"},{"name":"bifrost","repo":"Bifrost","context":".","dockerfile":"./Bifrost/Dockerfile"},{"name":"fenrir","repo":"Fenrir","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"hermodr-yggdrasil","repo":"Hermodr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"ratatoskr","repo":"Ratatoskr","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"mjolnir","repo":"Mjolnir","context":"./_service","dockerfile":"./_service/Dockerfile"},{"name":"eir-gateway","repo":"Eir","context":"./_service","dockerfile":"./_service/Dockerfile.gateway"},{"name":"asgard-portal","repo":"Asgard","context":"./packages/asgard-portal","dockerfile":"./packages/asgard-portal/Dockerfile"}]' >> $GITHUB_OUTPUT
-          else
-            # Extremely basic manual trigger filter for simplicity
-            echo 'services=[{"name":"mimir-api","repo":"Mimir","context":"./_service","dockerfile":"./_service/ro-ai-bridge/Dockerfile"}]' >> $GITHUB_OUTPUT
-          fi
-
   build:
-    needs: detect-changes
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
-      fail-fast: false
     permissions:
       contents: read
       packages: write
-
     steps:
-      - name: Checkout Asgard
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Checkout service repo
-        if: ${{ matrix.service.repo != 'Asgard' && matrix.service.name != 'bifrost' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.ORG }}/${{ matrix.service.repo }}
-          path: _service
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-
-      # Bifrost has a relative-path Cargo workspace dep on Mimir/ro-ai-bridge —
-      # see Bifrost issue #11. Until refactored, mirror the local sibling
-      # layout in CI: Bifrost/ + Mimir/ at the workspace root.
-      - name: Checkout Bifrost (sibling layout)
-        if: ${{ matrix.service.name == 'bifrost' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.ORG }}/Bifrost
-          path: Bifrost
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-
-      - name: Checkout Mimir for Bifrost build (sibling layout)
-        if: ${{ matrix.service.name == 'bifrost' }}
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.ORG }}/Mimir
-          path: Mimir
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
-
-      - name: Set up QEMU (arm64 emulation)
-        uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to ghcr.io
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -108,33 +55,23 @@ jobs:
       - name: Build and Push (multi-arch)
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.service.context }}
-          file: ${{ matrix.service.dockerfile }}
+          context: ./packages/asgard-portal
+          file: ./packages/asgard-portal/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:latest
-          cache-from: type=gha,scope=${{ matrix.service.name }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  # Stable summary job — single check name for branch protection rules.
-  # `build` matrix names are dynamic per-service; this aggregates them
-  # into one fixed check `ci-success` that GitHub Settings → Branch protection
-  # can require directly.
   ci-success:
-    needs: [detect-changes, build]
+    needs: build
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Verify required jobs succeeded
-        run: |
-          if [ "${{ needs.detect-changes.result }}" != "success" ]; then
-            echo "❌ detect-changes failed: ${{ needs.detect-changes.result }}"
-            exit 1
-          fi
+      - run: |
           if [ "${{ needs.build.result }}" != "success" ]; then
-            echo "❌ build matrix failed: ${{ needs.build.result }}"
-            exit 1
+            echo "❌ build failed: ${{ needs.build.result }}"; exit 1
           fi
-          echo "✅ detect-changes + all matrix builds passed"
+          echo "✅ build passed"
