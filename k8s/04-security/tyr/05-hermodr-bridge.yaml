@@ -23,10 +23,12 @@ spec:
       labels:
         app: hermodr-wazuh
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: hermodr
-          image: asgard-hermodr:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/megawiz-dev-team/asgard-hermodr:latest
+          imagePullPolicy: Always
           env:
             - name: SERVICE_NAME
               value: "wazuh"

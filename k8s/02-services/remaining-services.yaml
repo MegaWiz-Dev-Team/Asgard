@@ -16,10 +16,12 @@ spec:
       labels:
         app: hermodr
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: hermodr
-          image: asgard-hermodr-yggdrasil:latest
-          imagePullPolicy: Never
+          image: ghcr.io/megawiz-dev-team/hermodr-yggdrasil:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8090
           env:
