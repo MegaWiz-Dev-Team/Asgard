@@ -1,0 +1,46 @@
+# Asgard CODEOWNERS — auto-request review for PRs touching specific paths
+# Lines later in the file override earlier rules.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# Format: <path-glob>  <@github-username | @org/team>
+#
+# Catch-all — everyone needs at least one approval from a maintainer.
+
+* @megacare-dev
+
+# ── CI/CD pipeline ─────────────────────────────────────────────
+# Workflow changes affect every Build and Deploy. Review carefully.
+/.github/workflows/                    @megacare-dev
+/.github/CODEOWNERS                    @megacare-dev
+/scripts/k3s-deploy.sh                 @megacare-dev
+
+# ── Helm charts ────────────────────────────────────────────────
+# Chart changes are deployed to all clusters. Require maintainer review.
+/charts/                               @megacare-dev
+/charts/asgard/values.yaml             @megacare-dev
+/charts/asgard/values-dev.yaml         @megacare-dev
+/charts/asgard/values-prod.yaml        @megacare-dev
+
+# ── K8s manifests (kubectl-applied, not Helm) ──────────────────
+/k8s/                                  @megacare-dev
+
+# ── Business / strategy docs ──────────────────────────────────
+# Sensitive: pricing, business plan, go-to-market. Require explicit owner sign-off.
+/docs/business/                        @megacare-dev
+/docs/strategy/                        @megacare-dev
+
+# ── Architecture decisions ────────────────────────────────────
+/docs/architecture/                    @megacare-dev
+
+# ── In-repo packages ──────────────────────────────────────────
+/packages/asgard-portal/               @megacare-dev
+/packages/email_service/               @megacare-dev
+/packages/line_connector/              @megacare-dev
+/packages/tts_service/                 @megacare-dev
+
+# ── Security policy ───────────────────────────────────────────
+/SECURITY.md                           @megacare-dev
+/CODE_OF_CONDUCT.md                    @megacare-dev
+/CONTRIBUTING.md                       @megacare-dev
+/LICENSE                               @megacare-dev
+/LICENSE-COMMERCIAL.md                 @megacare-dev
