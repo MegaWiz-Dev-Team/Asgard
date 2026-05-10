@@ -11,6 +11,10 @@ spec:
     metadata:
       labels: { app: yggdrasil }
     spec:
+      {{- with .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
       containers:
         - name: yggdrasil
           image: {{ .Values.image | default "ghcr.io/zitadel/zitadel:v2.71.6" }}
