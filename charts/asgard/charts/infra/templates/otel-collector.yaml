@@ -15,6 +15,13 @@ data:
 
     exporters:
       # Export to Laminar Backend
+      # NOTE: laminar API key was previously plaintext-rendered here from
+      # .Values.infra.laminarApiKey. Removed in Sprint 51e security refactor.
+      # Since laminar is disabled in the umbrella chart by default, this
+      # exporter ships with a placeholder Bearer token; traces drop until
+      # operator sets .Values.infra.laminarApiKey explicitly OR re-wires
+      # this to read from the asgard-secrets Secret via envFrom on the
+      # collector pod (TODO: Sprint 51e+1).
       otlp/laminar:
         endpoint: "laminar-app-server.{{ .Release.Namespace }}.svc:8001"
         tls:
