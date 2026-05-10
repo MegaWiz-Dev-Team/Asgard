@@ -23,3 +23,5 @@ __pycache__/
 # Rust
 target/
 Cargo.lock
+# Binary crates: track Cargo.lock for reproducible builds (CI Dockerfile expects it)
+!packages/asgard-portal/Cargo.lock
