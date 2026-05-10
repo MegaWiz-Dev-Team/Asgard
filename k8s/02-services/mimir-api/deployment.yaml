@@ -48,8 +48,8 @@ spec:
             - name: HEIMDALL_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: mimir-api-secrets
-                  key: heimdall-api-key
+                  name: asgard-secrets
+                  key: HEIMDALL_API_KEY
             - name: EMBEDDING_HOST
               value: host.docker.internal
             - name: EMBEDDING_PORT

@@ -32,7 +32,8 @@ spec:
           env:
             - { name: POSTGRES_DB, value: "laminar" }
             - { name: POSTGRES_USER, value: "postgres" }
-            - { name: POSTGRES_PASSWORD, value: {{ .Values.postgres.password | quote }} }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_POSTGRES_PASSWORD } }
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
