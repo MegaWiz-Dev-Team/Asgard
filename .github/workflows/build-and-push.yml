@@ -126,8 +126,12 @@ jobs:
           path: _service
           token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Prepare DOCKER_CONFIG dir (avoids osxkeychain)
-        run: mkdir -p "$DOCKER_CONFIG"
+      - name: Prepare DOCKER_CONFIG (override osxkeychain credstore)
+        run: |
+          mkdir -p "$DOCKER_CONFIG"
+          # Empty config.json with NO credsStore — forces docker login to
+          # write auth blob to file instead of macOS Keychain (-25308 fix)
+          echo '{}' > "$DOCKER_CONFIG/config.json"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
