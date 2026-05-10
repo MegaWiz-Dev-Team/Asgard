@@ -7,7 +7,11 @@ spec:
   containers:
   - name: init
     image: alpine
-    command: ["sh", "-c", "mkdir -p /mnt/default && cat <<EOF > /mnt/default/sqlconf.php\n<?php\n\\$host = 'mariadb.asgard-infra.svc';\n\\$port = '3306';\n\\$login = 'openemr';\n\\$pass = 'openemr';\n\\$dbase = 'openemr';\n\\$sqlconf = array();\n\\$sqlconf['host'] = \\$host;\n\\$sqlconf['port'] = \\$port;\n\\$sqlconf['login'] = \\$login;\n\\$sqlconf['pass'] = \\$pass;\n\\$sqlconf['dbase'] = \\$dbase;\n\\$sqlsetup = '1';\n\nEOF\nchmod 666 /mnt/default/sqlconf.php\n"]
+    # IDEMPOTENT: only seed sqlconf.php on a fresh PVC. If the file already
+    # exists (post-install OpenEMR has $config = 1), DO NOT overwrite —
+    # otherwise the install wizard reappears and offers to re-init the DB,
+    # which would destroy patient data on next "Proceed" click.
+    command: ["sh", "-c", "mkdir -p /mnt/default; if [ -f /mnt/default/sqlconf.php ]; then echo 'sqlconf.php already exists — preserving (post-install state)'; exit 0; fi; cat <<EOF > /mnt/default/sqlconf.php\n<?php\n\\$host = 'mariadb.asgard-infra.svc';\n\\$port = '3306';\n\\$login = 'openemr';\n\\$pass = 'openemr';\n\\$dbase = 'openemr';\n\\$sqlconf = array();\n\\$sqlconf['host'] = \\$host;\n\\$sqlconf['port'] = \\$port;\n\\$sqlconf['login'] = \\$login;\n\\$sqlconf['pass'] = \\$pass;\n\\$sqlconf['dbase'] = \\$dbase;\n\\$sqlsetup = '1';\n\nEOF\nchmod 666 /mnt/default/sqlconf.php\n"]
     volumeMounts:
     - name: eir-sites
       mountPath: /mnt
