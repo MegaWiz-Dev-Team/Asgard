@@ -1,6 +1,7 @@
 # values-dev.yaml — Local development overrides
 global:
-  imagePullPolicy: Never
+  imagePullPolicy: IfNotPresent  # pull from ghcr.io if not present locally
+  imagePullSecret: ghcr-secret   # private ghcr.io packages — secret pre-created in asgard ns
   infraNamespace: asgard-infra
   heimdallUrl: http://host.docker.internal:8080/v1
   ollamaUrl: http://192.168.1.172:8080
