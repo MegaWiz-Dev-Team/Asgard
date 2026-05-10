@@ -13,6 +13,10 @@ global:
   imagePullSecret: ""
   heimdallUrl: http://host.docker.internal:8080/v1  # OpenAI-compat path required for bifrost
   ollamaUrl: http://host.docker.internal:8080  # legacy ollama path (no /v1)
+  # OIDC issuer URL — must be browser-reachable since Yggdrasil/Zitadel
+  # bakes it into redirects (see Sprint 51d hotfix). Override per env in
+  # values-dev.yaml / values-prod.yaml.
+  yggdrasilIssuerUrl: https://sso.asgard.internal
   rustLog: info
   logLevel: info
 
