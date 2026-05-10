@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
         - name: hermodr
-          image: asgard-hermodr-yggdrasil:latest
-          imagePullPolicy: Never
+          image: ghcr.io/megawiz-dev-team/hermodr-yggdrasil:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8090
           env:
