@@ -1,4 +1,15 @@
 # 🏰 Asgard — Build & Push Docker Images to ghcr.io
+#
+# Architecture (Path C optimization):
+#   1. detect-changes → emit service matrix
+#   2. build-amd64    → ubuntu-latest (native x86)        — push :sha-amd64 / :latest-amd64
+#   3. build-arm64    → self-hosted Mac mini (native ARM) — push :sha-arm64 / :latest-arm64
+#   4. merge-manifest → ubuntu-latest                     — combine into multi-arch :sha + :latest
+#
+# Why split: each arch builds NATIVE on the right host (no QEMU emulation),
+# 3-5× faster than the prior "QEMU on x86" approach. The merge step creates
+# OCI manifest lists so consumers see one image with both linux/amd64 + linux/arm64.
+
 name: Build and Push
 
 on:
@@ -39,7 +50,7 @@ jobs:
             echo 'services=[{"name":"mimir-api","repo":"Mimir","context":"./_service","dockerfile":"./_service/ro-ai-bridge/Dockerfile"}]' >> $GITHUB_OUTPUT
           fi
 
-  build:
+  build-amd64:
     needs: detect-changes
     runs-on: ubuntu-latest
     strategy:
@@ -62,10 +73,50 @@ jobs:
           path: _service
           token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU (multi-arch emulation)
-        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
         with:
-          platforms: arm64
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push (amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:${{ github.sha }}-amd64
+            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:latest-amd64
+          cache-from: type=gha,scope=${{ matrix.service.name }}-amd64
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}-amd64
+
+  build-arm64:
+    needs: detect-changes
+    runs-on: [self-hosted, ARM64]
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Asgard
+        uses: actions/checkout@v4
+
+      - name: Checkout service repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ORG }}/${{ matrix.service.repo }}
+          path: _service
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -77,15 +128,51 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push
+      - name: Build and Push (arm64 native)
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.dockerfile }}
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           tags: |
-            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:${{ github.sha }}-arm64
+            ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:latest-arm64
+          cache-from: type=gha,scope=${{ matrix.service.name }}-arm64
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}-arm64
+
+  merge-manifest:
+    needs: [detect-changes, build-amd64, build-arm64]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifest list (sha + latest)
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}"
+          docker buildx imagetools create \
+            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:latest" \
+            "$IMAGE:${{ github.sha }}-amd64" \
+            "$IMAGE:${{ github.sha }}-arm64"
+
+      - name: Verify manifest
+        run: |
+          docker buildx imagetools inspect \
+            "${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:latest"
