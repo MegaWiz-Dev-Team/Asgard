@@ -117,3 +117,24 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}:latest
           cache-from: type=gha,scope=${{ matrix.service.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+
+  # Stable summary job — single check name for branch protection rules.
+  # `build` matrix names are dynamic per-service; this aggregates them
+  # into one fixed check `ci-success` that GitHub Settings → Branch protection
+  # can require directly.
+  ci-success:
+    needs: [detect-changes, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs succeeded
+        run: |
+          if [ "${{ needs.detect-changes.result }}" != "success" ]; then
+            echo "❌ detect-changes failed: ${{ needs.detect-changes.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "❌ build matrix failed: ${{ needs.build.result }}"
+            exit 1
+          fi
+          echo "✅ detect-changes + all matrix builds passed"
