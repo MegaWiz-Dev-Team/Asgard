@@ -283,12 +283,6 @@ data:
   default.conf: |
     server {
         listen 8080;
-        location / {
-            proxy_pass http://127.0.0.1:80;
-            proxy_set_header Host $host;
-        }
-    }
-    server {
         listen 8443 ssl;
         ssl_certificate /tmp/ssl-secret/tls.crt;
         ssl_certificate_key /tmp/ssl-secret/tls.key;
@@ -311,10 +305,10 @@ data:
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # Disable Upstream Compression for sub_filter to work
             proxy_set_header Accept-Encoding "";
-            
+
             # Inject Chat Widget Script
             sub_filter '</body>' '<script>window.EIR_GATEWAY_URL=window.location.origin;</script><script src="/eir-chat-widget.js" defer></script></body>';
             sub_filter_once on;
