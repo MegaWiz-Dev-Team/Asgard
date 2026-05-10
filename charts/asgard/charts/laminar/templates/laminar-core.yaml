@@ -110,13 +110,16 @@ spec:
           env:
             - { name: PORT, value: "8000" }
             - { name: GRPC_PORT, value: "8001" }
-            - { name: DATABASE_URL, value: "postgres://postgres:{{ .Values.postgres.password }}@laminar-postgres:5432/laminar" }
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_POSTGRES_URL } }
             - { name: SHARED_SECRET_TOKEN, value: {{ .Values.global.sharedSecretToken | quote }} }
             - { name: CLICKHOUSE_URL, value: "http://laminar-clickhouse:8123" }
             - { name: CLICKHOUSE_USER, value: "default" }
-            - { name: CLICKHOUSE_PASSWORD, value: "laminar_ck_secret" }
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_CLICKHOUSE_PASSWORD } }
             - { name: CLICKHOUSE_RO_USER, value: "default" }
-            - { name: CLICKHOUSE_RO_PASSWORD, value: "laminar_ck_secret" }
+            - name: CLICKHOUSE_RO_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_CLICKHOUSE_RO_PASSWORD } }
             - { name: ENVIRONMENT, value: "LITE" }
             - { name: QUERY_ENGINE_URL, value: "http://laminar-query-engine:8903" }
             - { name: QUICKWIT_SEARCH_URL, value: "http://laminar-quickwit:7280" }
@@ -159,20 +162,24 @@ spec:
           ports:
             - containerPort: 5667
           env:
-            - { name: DATABASE_URL, value: "postgres://postgres:{{ .Values.postgres.password }}@laminar-postgres:5432/laminar" }
+            - name: DATABASE_URL
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_POSTGRES_URL } }
             - { name: PORT, value: "5667" }
             - { name: BACKEND_URL, value: "http://laminar-app-server:8000" }
             - { name: BACKEND_RT_URL, value: "http://laminar-app-server:8002" }
             - { name: SHARED_SECRET_TOKEN, value: {{ .Values.global.sharedSecretToken | quote }} }
             - { name: NEXTAUTH_URL, value: "https://laminar.asgard.internal" }
-            - { name: NEXTAUTH_SECRET, value: "laminar_asgard_secret" }
+            - name: NEXTAUTH_SECRET
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_NEXTAUTH_SECRET } }
             - { name: NEXT_PUBLIC_URL, value: "https://laminar.asgard.internal" }
             - { name: ENVIRONMENT, value: "LITE" }
             - { name: CLICKHOUSE_URL, value: "http://laminar-clickhouse:8123" }
             - { name: CLICKHOUSE_USER, value: "default" }
-            - { name: CLICKHOUSE_PASSWORD, value: "laminar_ck_secret" }
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_CLICKHOUSE_PASSWORD } }
             - { name: CLICKHOUSE_RO_USER, value: "default" }
-            - { name: CLICKHOUSE_RO_PASSWORD, value: "laminar_ck_secret" }
+            - name: CLICKHOUSE_RO_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_CLICKHOUSE_RO_PASSWORD } }
             - { name: QUICKWIT_SEARCH_URL, value: "http://laminar-quickwit:7280" }
 ---
 apiVersion: v1

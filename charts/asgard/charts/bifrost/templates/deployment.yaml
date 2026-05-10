@@ -24,6 +24,11 @@ spec:
             - { name: BIFROST_HOST, value: "0.0.0.0" }
             - { name: BIFROST_PORT, value: "8100" }
             - { name: HEIMDALL_URL, value: {{ .Values.global.heimdallUrl | quote }} }
+            - name: HEIMDALL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.secretsName | default "asgard-secrets" }}
+                  key: HEIMDALL_API_KEY
             - { name: MIMIR_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
             - { name: YGGDRASIL_MCP_URL, value: "http://hermodr.{{ .Release.Namespace }}.svc:8090/rpc" }
             - { name: YGGDRASIL_MCP_ENABLED, value: "true" }

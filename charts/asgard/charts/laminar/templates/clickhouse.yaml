@@ -29,7 +29,8 @@ spec:
             - containerPort: 9000
           env:
             - { name: CLICKHOUSE_USER, value: "default" }
-            - { name: CLICKHOUSE_PASSWORD, value: "laminar_ck_secret" }
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: LAMINAR_CLICKHOUSE_PASSWORD } }
           resources:
             requests: { memory: "512Mi" }
             limits: { memory: "2Gi" }

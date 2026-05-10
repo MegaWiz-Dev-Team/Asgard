@@ -196,9 +196,21 @@ spec:
             - name: OPENEMR_URL
               value: "https://eir.asgard.svc"
             - name: CLIENT_ID
-              value: "YUeXbce0jptSbSk2vM3TiWNPe98EvJG9gh1Znt_8DdU"
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_CLIENT_ID
             - name: CLIENT_SECRET
-              value: "xWVKMnOb3LAb5-lF83Pdxfxu2uCsSF3iimB56BpCPt8eu1Ml1AOJKuyTxSqzcdLiSAOKYvvXYiABPIlLsD4HJQ"
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_CLIENT_SECRET
+            - name: TENANT_ID
+              value: "asgard_medical"
+            - name: DEFAULT_AGENT_ID
+              value: "28"
+            - name: BIFROST_URL
+              value: "http://bifrost:8100"
 ---
 apiVersion: v1
 kind: Service

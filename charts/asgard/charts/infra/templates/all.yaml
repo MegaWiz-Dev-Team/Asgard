@@ -29,10 +29,12 @@ spec:
           image: mariadb:11
           ports: [{ containerPort: 3306 }]
           env:
-            - { name: MYSQL_ROOT_PASSWORD, value: {{ .Values.mariadb.rootPassword | quote }} }
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: MARIADB_ROOT_PASSWORD } }
             - { name: MYSQL_DATABASE, value: {{ .Values.mariadb.database | quote }} }
             - { name: MYSQL_USER, value: {{ .Values.mariadb.user | quote }} }
-            - { name: MYSQL_PASSWORD, value: {{ .Values.mariadb.password | quote }} }
+            - name: MYSQL_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: MARIADB_PASSWORD } }
           volumeMounts:
             - { name: data, mountPath: /var/lib/mysql }
           readinessProbe:
@@ -87,7 +89,8 @@ spec:
           ports: [{ containerPort: 5432 }]
           env:
             - { name: POSTGRES_USER, value: {{ .Values.postgres.user | quote }} }
-            - { name: POSTGRES_PASSWORD, value: {{ .Values.postgres.password | quote }} }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_POSTGRES_PASSWORD } }
             - { name: POSTGRES_DB, value: {{ .Values.postgres.database | quote }} }
           volumeMounts:
             - { name: data, mountPath: /var/lib/postgresql/data }

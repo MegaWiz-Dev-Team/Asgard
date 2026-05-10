@@ -32,13 +32,19 @@ spec:
             - name: ZITADEL_DATABASE_POSTGRES_USER_USERNAME
               value: postgres
             - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
-              value: yggdrasil-secret
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_POSTGRES_PASSWORD
             - name: ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE
               value: disable
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME
               value: postgres
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD
-              value: yggdrasil-secret
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_POSTGRES_PASSWORD
             - name: ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE
               value: disable
             - name: ZITADEL_EXTERNALSECURE
@@ -50,7 +56,10 @@ spec:
             - name: ZITADEL_FIRSTINSTANCE_ORG_NAME
               value: Asgard
             - name: ZITADEL_MASTERKEY
-              value: yggdrasil-masterkey-change-me-ok
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_MASTERKEY
             - name: ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER
               value: "false"
           readinessProbe:
