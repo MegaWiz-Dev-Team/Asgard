@@ -11,10 +11,14 @@ spec:
     metadata:
       labels: { app: mimir-api }
     spec:
+      {{- with .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
       containers:
         - name: mimir-api
-          image: {{ .Values.api.image | default "asgard-mimir-api:latest" }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          image: {{ .Values.api.image | default "ghcr.io/megawiz-dev-team/mimir-api:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
           ports: [{ containerPort: 8080 }]
           env:
             - { name: PORT, value: "8080" }
@@ -61,10 +65,14 @@ spec:
     metadata:
       labels: { app: mimir-dashboard }
     spec:
+      {{- with .Values.global.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
       containers:
         - name: mimir-dashboard
-          image: {{ .Values.dashboard.image | default "asgard-mimir-dashboard:latest" }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "Never" }}
+          image: {{ .Values.dashboard.image | default "ghcr.io/megawiz-dev-team/mimir-dashboard:latest" }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
           ports: [{ containerPort: 3000 }]
           env:
             - { name: NEXT_PUBLIC_API_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
