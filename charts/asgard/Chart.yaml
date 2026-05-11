@@ -2,8 +2,8 @@ apiVersion: v2
 name: asgard
 description: 🏰 Asgard AI Platform — Umbrella Helm Chart
 type: application
-version: 0.2.0
-appVersion: "0.38.0"
+version: 0.3.0
+appVersion: "0.50.0"
 
 dependencies:
   - name: infra
