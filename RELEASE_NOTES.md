@@ -1,5 +1,71 @@
 # Release Notes — Asgard AI Platform
 
+## v1.3-alpha — Sprint 50 OCR Foundation (2026-05-11)
+
+> Document OCR becomes a first-class capability across the platform. Clinicians can upload an image or PDF; Mimir extracts text via Syn's 4-tier smart-router (Path A), audits the call, enforces a per-tenant monthly cost cap, and surfaces everything in a new dashboard tab. Bifrost picks up an image-bearing chat path so any agent can ground on the document without explicit tool-calling. Cloud tiers remain hard-gated on PHI strict + Sprint 50b Skuggi PII guardrail.
+
+### 🧩 Umbrella
+- Helm umbrella `charts/asgard` — `version 0.2.0 → 0.3.0`, `appVersion 0.38.0 → 0.50.0`
+- Sub-chart versions unchanged at this umbrella cut (per-service Helm bumps land on each service's own merge — same pattern as v1.2-alpha aligned all at once; this is a partial-roll release until Lane A merges)
+
+### 📦 Service bumps (Sprint 50)
+
+| Component | From | To | Manifest | Highlight |
+|:--|:--|:--|:--|:--|
+| 👁️ Syn (OCR) | 0.1.0 | **0.2.0** | `services/api/Cargo.toml` | B-50h.0 benchmark harness (Syn #5) — PII regex baseline F1 ≥ 0.91 |
+| 🧠 Mimir bridge | 1.2.0 | **1.3.0** | `ro-ai-bridge/Cargo.toml` | B-50e audit, B-50b Path A, B-50m cost guard, admin endpoints |
+| 🖥️ Mimir Dashboard | 1.2.0 | **1.3.0** | `ro-ai-dashboard/package.json` | B-50i `/playground` upload, OCR Cost Guard tab, Recent OCR Calls table |
+| ⚡ Bifrost | 0.2.0 | **0.3.0** | `Cargo.toml` | B-50d transparent OCR path (Bifrost #13) |
+| 🏰 Asgard docs | — | — | `docs/technical/e2e-ocr-lab-icd10.md` (NEW) + `scripts/e2e/lab_icd10.sh` (NEW) | B-50j E2E runbook + smoke script |
+
+### 🏗️ Sprint 50 Lane A — what landed
+
+- **B-50a/a.2/a.3** — 4-tier → 3-tier OCR stack (chandra retired; PaddleOCR + Typhoon-OCR + Gemini Flash/Pro)
+- **B-50e** Mimir `ocr_documents` audit writer + per-tenant policy reader (Mimir #264)
+- **B-50b** Path A — Mimir `/ocr/extract` delegates to Syn's 6-rule smart router (Mimir #265)
+- **B-50c** REST endpoint with full request/response shape
+- **B-50m** Cost guard middleware — pre-call USD estimate, monthly cap enforcement, PHI strict hard-block (Mimir #266)
+- **B-50l** Tenant settings backend + admin policy GET/PATCH endpoints (Mimir #266/#267/#268)
+- **B-50g** `ocr_extract` tool added to 5 clinical Eir variants (Mimir #269); insurance Sprint 52 tool seed pre-staged (B-50g+)
+- **B-50d** Bifrost transparent OCR — `RunAgentRequest.image_base64` → Syn → marker-block prepend before swarm (Bifrost #13)
+- **B-50i** Dashboard `/playground` drag-drop upload with editable OCR preview + engine/cost badges (Mimir #270)
+- **B-50j** E2E runbook + bash smoke script chaining Syn OCR → Mimir agent chat → ICD-10 verification (Asgard #35)
+- **B-50h.0** Initial OCR + PII benchmark harness — 30 Thai medical certificate cases, regex PII baseline F1 ≥ 0.91 (Syn #5)
+
+### 🔒 Cloud tier remains gated
+
+Tier 2 Gemini Flash and Tier 3 Gemini Pro implementations exist (B-50k partial) but every tenant ships with `ocr_phi_strict = true` and the cost guard hard-blocks cloud regardless of opt-in. Cloud OCR unlocks only when:
+1. Sprint 50b Skuggi PII guardrail is in production
+2. Tenant explicitly opts-in via the new admin policy endpoint
+3. Monthly cloud budget > 0
+
+This matches the insurance Sprint 54 gate (see `Mimir/docs/03_implementation_plans/03_16_Asgard_Insurance_Sprint_Plan.md`).
+
+### 🩺 Privacy posture
+
+- `Syn/data/` fixture set (30 Thai medical certificate cases incl. 10 image-backed) stays gitignored
+- Derived gold-label JSON artifacts also gitignored
+- B-50e audit table stores image_sha256 fingerprint, not raw bytes
+- 3 gold-labeling bugs surfaced in the source CSV (T015/T019/T020); flagged for data owner correction before B-50h.1 (clinician partner data) lands
+
+### 🚧 Sprint 50 not-yet-shipped (Lane B / follow-ups)
+
+- **B-50f** Mimir Curator OCR review extension (clinician marks errors → corrections corpus)
+- **B-50h.1** Clinician-partner test set (50-100 real medical documents under Vault mount)
+- **B-50k** Gemini cloud adapter wire-up — implementable; gated on Skuggi ship
+- **Sprint 50b** Skuggi PII guardrail (parallel sprint; gates B-50k + insurance v2)
+
+### 📊 Open review train (Sprint 50 Lane A)
+
+10 PRs across 4 repos: Mimir #264, #265, #266, #267, #268, #269, #270 · Bifrost #13 · Asgard #35 · Syn #5. Stacked review intentionally — Mimir #264 (audit row writer) is the root; subsequent PRs depend on its base schema.
+
+### 🎯 Next (Sprint 51 / 50b / 52)
+
+- **Sprint 50b** — Skuggi PII guardrail (Heimdall middleware; Thai PII regex + OpenCV face/text blur)
+- **Sprint 52** — `asgard_insurance` foundation (parallel tenant + cross-tenant Hermodr gateway skeleton). See `Mimir/docs/03_implementation_plans/03_16_Asgard_Insurance_Sprint_Plan.md`.
+
+---
+
 ## v1.2-alpha — Sprint 38 Release (2026-04-22)
 
 > Unified platform bump aligning all 14 services, 11 Helm sub-charts, and the umbrella chart to a single consistent release on top of the OrbStack K8s migration delivered in Sprints 37–38.
