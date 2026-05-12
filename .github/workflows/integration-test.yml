@@ -86,6 +86,11 @@ jobs:
         continue-on-error: true
         env:
           BIFROST_REPO: ${{ env.ASGARD_DEV_ROOT }}/Bifrost
+          # mimir-core-ai (Mimir path dep) uses sqlx::query! macros that
+          # require either a live DATABASE_URL or pre-computed query metadata
+          # in .sqlx/. Force offline mode so cargo test doesn't try to
+          # connect to a DB during compilation.
+          SQLX_OFFLINE: "true"
         # Bifrost was Python until Sprint 38; the rewrite is now Rust
         # (`Cargo.toml` v0.3.0+). The old `pytest tests/` step failed
         # with ModuleNotFoundError since the tests imported from
