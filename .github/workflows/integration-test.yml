@@ -17,9 +17,6 @@ on:
   workflow_dispatch:
 
 env:
-  # actions/setup-python defaults to /Users/runner/hostedtoolcache; the runner
-  # is user `mimir`, so we redirect the toolcache into the runner workspace.
-  AGENT_TOOLSDIRECTORY: /Users/mimir/Developer/actions-runner/_work/_tool
   ASGARD_DEV_ROOT: /Users/mimir/Developer
   FORSETI_URL: http://localhost:30555
 
@@ -31,13 +28,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Resolve Python interpreters
+        id: py
+        # actions/setup-python@v5 hardcodes /Users/runner/hostedtoolcache on
+        # macOS and ignores AGENT_TOOLSDIRECTORY — broken on this self-hosted
+        # runner (user is `mimir`). Each sibling repo manages its own .venv,
+        # so we just verify they exist and surface paths for later steps.
+        run: |
+          FORSETI_PY="${ASGARD_DEV_ROOT}/Forseti/.venv/bin/python"
+          BIFROST_PY="${ASGARD_DEV_ROOT}/Bifrost/.venv/bin/python"
+          SYSTEM_PY=$(command -v python3.11 || command -v python3)
 
-      - name: Install test dependencies
-        run: pip install httpx pytest pytest-asyncio
+          for v in "$FORSETI_PY" "$BIFROST_PY"; do
+            if [ ! -x "$v" ]; then
+              echo "::error::missing venv interpreter: $v — bootstrap with 'python3 -m venv .venv && .venv/bin/pip install -r requirements.txt'"
+              exit 1
+            fi
+          done
+          echo "forseti_py=$FORSETI_PY" >> "$GITHUB_OUTPUT"
+          echo "bifrost_py=$BIFROST_PY" >> "$GITHUB_OUTPUT"
+          echo "system_py=$SYSTEM_PY" >> "$GITHUB_OUTPUT"
+
+          echo "Forseti  $($FORSETI_PY --version)"
+          echo "Bifrost  $($BIFROST_PY --version)"
+          echo "System   $($SYSTEM_PY --version 2>/dev/null || echo missing)"
 
       - name: Wait for services
         run: |
@@ -65,7 +79,7 @@ jobs:
           set -o pipefail
           cd "$FORSETI_REPO"
           # run_e2e.py auto-posts each project's run into Forseti's own DB.
-          python run_e2e.py --project bifrost-api
+          "${{ steps.py.outputs.forseti_py }}" run_e2e.py --project bifrost-api
 
       - name: Run Bifrost pytest
         id: bifrost_pytest
@@ -79,7 +93,7 @@ jobs:
           # Always export the junit path so the push step can ingest results even on failure.
           echo "junit=$JUNIT" >> "$GITHUB_OUTPUT"
           set +e
-          .venv/bin/python -m pytest tests/ -v --tb=short --junitxml="$JUNIT"
+          "${{ steps.py.outputs.bifrost_py }}" -m pytest tests/ -v --tb=short --junitxml="$JUNIT"
           PYTEST_EXIT=$?
           echo "exit_code=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
           exit $PYTEST_EXIT
@@ -89,7 +103,7 @@ jobs:
         env:
           FORSETI_REPO: ${{ env.ASGARD_DEV_ROOT }}/Forseti
         run: |
-          python "$FORSETI_REPO/scripts/junit_to_forseti.py" \
+          "${{ steps.py.outputs.forseti_py }}" "$FORSETI_REPO/scripts/junit_to_forseti.py" \
             --junit "${{ steps.bifrost_pytest.outputs.junit }}" \
             --suite bifrost-pytest \
             --phase SIT \
