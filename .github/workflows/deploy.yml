@@ -37,70 +37,75 @@ jobs:
       - name: Helm dependency update
         run: helm dependency update ${{ env.CHART_PATH }}
 
-      - name: Read deployed secrets from K8s (or fall back to GitHub repo secrets)
-        # Self-hosted runner = same Mac Mini as the K3s cluster. Existing
-        # `asgard-secrets` (Sprint 51e rotated values) is the source of truth
-        # for already-deployed clusters; reading from K8s avoids duplicating
-        # secrets to GitHub repo settings and keeps rotation localized.
+      - name: Verify existing K8s secret (no Helm management needed)
+        # Self-hosted runner = same Mac Mini as the K3s cluster. The deployed
+        # `asgard-secrets` (Sprint 51e rotated values, plus operator-added
+        # MARIADB_ROOT_PASSWORD) is the source of truth. Helm does NOT manage
+        # this Secret — chart subcharts only reference it via secretKeyRef.
         #
-        # Bootstrap fallback: if a key isn't present in K8s yet (first
-        # deploy), use the matching GitHub repo secret. Templates `required`
-        # function still fails loudly if BOTH are empty.
-        id: read_secrets
+        # `secrets.create: false` is passed to Helm so the umbrella's
+        # `templates/secrets.yaml` is skipped entirely (it's gated by
+        # `{{- if .Values.secrets.create }}`). That avoids the
+        # `invalid ownership metadata` error from trying to "adopt" the
+        # operator-created Secret, and means individual key values never
+        # have to leave K8s.
+        #
+        # Bootstrap path (first-ever deploy with no Secret yet): operator
+        # creates the Secret manually beforehand using rotation script.
         run: |
           NS="${{ steps.env.outputs.namespace }}"
           SECRET_NAME="asgard-secrets"
+          if ! kubectl -n "$NS" get secret "$SECRET_NAME" >/dev/null 2>&1; then
+            echo "❌ Secret $NS/$SECRET_NAME does not exist."
+            echo ""
+            echo "Bootstrap a new cluster by creating it first, e.g.:"
+            echo "  kubectl -n $NS create secret generic $SECRET_NAME \\"
+            echo "    --from-literal=YGGDRASIL_MASTERKEY=\"\$(openssl rand -base64 24 | tr -d '+/=' | head -c 32)\" \\"
+            echo "    --from-literal=YGGDRASIL_POSTGRES_PASSWORD=\"\$(openssl rand -base64 32 | tr -d '+/=')\" \\"
+            echo "    --from-literal=YGGDRASIL_CLIENT_ID=\"<from Zitadel admin UI>\" \\"
+            echo "    --from-literal=YGGDRASIL_CLIENT_SECRET=\"<from Zitadel admin UI>\" \\"
+            echo "    --from-literal=MARIADB_ROOT_PASSWORD=\"\$(openssl rand -base64 30 | tr -d '+/=')\" \\"
+            echo "    --from-literal=MARIADB_PASSWORD=\"\$(openssl rand -base64 30 | tr -d '+/=')\" \\"
+            echo "    --from-literal=NEO4J_PASSWORD=\"\$(openssl rand -base64 30 | tr -d '+/=')\" \\"
+            echo "    --from-literal=HEIMDALL_API_KEY=\"<from Heimdall admin>\""
+            echo ""
+            echo "Then re-run this workflow."
+            exit 1
+          fi
+          echo "✓ Secret $NS/$SECRET_NAME exists; chart will reference it via secretKeyRef."
 
-          read_one() {
-            local key="$1" gh_fallback="$2"
-            local val
-            val=$(kubectl -n "$NS" get secret "$SECRET_NAME" -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d 2>/dev/null || true)
+          # Sanity check: every key required by deployment manifests is present.
+          REQUIRED=(YGGDRASIL_MASTERKEY YGGDRASIL_POSTGRES_PASSWORD YGGDRASIL_CLIENT_ID YGGDRASIL_CLIENT_SECRET MARIADB_ROOT_PASSWORD MARIADB_PASSWORD NEO4J_PASSWORD HEIMDALL_API_KEY)
+          MISSING=()
+          for k in "${REQUIRED[@]}"; do
+            val=$(kubectl -n "$NS" get secret "$SECRET_NAME" -o jsonpath="{.data.${k}}" 2>/dev/null | base64 -d 2>/dev/null || true)
             if [[ -z "$val" ]]; then
-              val="$gh_fallback"
-            fi
-            # GitHub secrets masking — never echo the value, only the source
-            if [[ -n "$val" ]]; then
-              echo "::add-mask::$val"
-              echo "$key=$val" >> "$GITHUB_OUTPUT"
-              echo "  $key: ✓ (length=${#val})"
+              MISSING+=("$k")
+              echo "  $k: ⚠ MISSING"
             else
-              echo "  $key: ⚠ EMPTY (no K8s value, no GitHub fallback)"
+              echo "  $k: ✓ (length=${#val})"
             fi
-          }
-
-          echo "Reading secrets from $NS/$SECRET_NAME (with GitHub repo-secret fallback):"
-          read_one YGGDRASIL_MASTERKEY              "${{ secrets.YGGDRASIL_MASTERKEY }}"
-          read_one YGGDRASIL_POSTGRES_PASSWORD      "${{ secrets.YGGDRASIL_POSTGRES_PASSWORD }}"
-          read_one YGGDRASIL_CLIENT_ID              "${{ secrets.YGGDRASIL_CLIENT_ID }}"
-          read_one YGGDRASIL_CLIENT_SECRET          "${{ secrets.YGGDRASIL_CLIENT_SECRET }}"
-          read_one MARIADB_ROOT_PASSWORD            "${{ secrets.MARIADB_ROOT_PASSWORD }}"
-          read_one MARIADB_PASSWORD                 "${{ secrets.MARIADB_PASSWORD }}"
-          read_one NEO4J_PASSWORD                   "${{ secrets.NEO4J_PASSWORD }}"
-          read_one HEIMDALL_API_KEY                 "${{ secrets.HEIMDALL_API_KEY }}"
-          read_one JWT_SECRET                       "${{ secrets.JWT_SECRET }}"
-          read_one GEMINI_API_KEY                   "${{ secrets.GEMINI_API_KEY }}"
+          done
+          if (( ${#MISSING[@]} > 0 )); then
+            echo ""
+            echo "❌ Missing keys: ${MISSING[*]}"
+            echo "Patch them in with:"
+            echo "  kubectl -n $NS patch secret $SECRET_NAME --type=merge -p '{\"stringData\":{\"KEY\":\"VALUE\"}}'"
+            exit 1
+          fi
 
       - name: Deploy with Helm
-        # Secrets sourced from "Read deployed secrets" step above:
-        #   1. existing K8s asgard-secrets (preferred — Sprint 51e rotation lives there)
-        #   2. GitHub repo secrets (bootstrap fallback)
-        # Template `required` calls still fail loudly if a key is empty on both paths.
+        # `--set secrets.create=false` tells the chart NOT to render
+        # templates/secrets.yaml. Subcharts only consume via secretKeyRef
+        # pointing at the operator-created asgard-secrets. No value
+        # plumbing through `--set` needed — secrets stay in K8s.
         run: |
           helm upgrade --install asgard ${{ env.CHART_PATH }} \
             --namespace ${{ steps.env.outputs.namespace }} \
             --create-namespace \
             -f ${{ env.CHART_PATH }}/values.yaml \
             -f ${{ env.CHART_PATH }}/${{ steps.env.outputs.values_file }} \
-            --set secrets.yggdrasil.masterKey="${{ steps.read_secrets.outputs.YGGDRASIL_MASTERKEY }}" \
-            --set secrets.yggdrasil.postgresPassword="${{ steps.read_secrets.outputs.YGGDRASIL_POSTGRES_PASSWORD }}" \
-            --set secrets.yggdrasil.clientId="${{ steps.read_secrets.outputs.YGGDRASIL_CLIENT_ID }}" \
-            --set secrets.yggdrasil.clientSecret="${{ steps.read_secrets.outputs.YGGDRASIL_CLIENT_SECRET }}" \
-            --set secrets.mariadb.rootPassword="${{ steps.read_secrets.outputs.MARIADB_ROOT_PASSWORD }}" \
-            --set secrets.mariadb.password="${{ steps.read_secrets.outputs.MARIADB_PASSWORD }}" \
-            --set secrets.neo4j.password="${{ steps.read_secrets.outputs.NEO4J_PASSWORD }}" \
-            --set secrets.heimdallApiKey="${{ steps.read_secrets.outputs.HEIMDALL_API_KEY }}" \
-            --set secrets.jwtSecret="${{ steps.read_secrets.outputs.JWT_SECRET }}" \
-            --set secrets.geminiApiKey="${{ steps.read_secrets.outputs.GEMINI_API_KEY }}" \
+            --set secrets.create=false \
             --wait --timeout 5m
 
       - name: Verify deployment
