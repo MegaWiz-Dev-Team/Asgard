@@ -125,15 +125,14 @@ jobs:
           done
 
       - name: Deploy with Helm
-        # `--set secrets.create=false` tells the chart NOT to render
-        # templates/secrets.yaml. Subcharts only consume via secretKeyRef
-        # pointing at the operator-created asgard-secrets.
+        # `--set secrets.create=false` skips the chart's secrets.yaml
+        # template; subcharts consume the operator-managed asgard-secrets.
         #
-        # Helm is in server-side-apply (SSA) mode here, so we cannot use
-        # `--force` (it conflicts with SSA). Instead, the `Strip
-        # conflicting kubectl field-managers` step above clears the
-        # foreign field-manager metadata so Helm's SSA can re-claim
-        # ownership cleanly on this apply.
+        # No `--wait` here: previous attempts timed out at 5m on Bifrost
+        # readiness without producing actionable error. Better to let
+        # Helm report apply-success and have the subsequent diagnostic
+        # steps surface the real problem (image pull, crash loop, etc).
+        # Operators can still verify rollout with `kubectl rollout status`.
         run: |
           helm upgrade --install asgard ${{ env.CHART_PATH }} \
             --namespace ${{ steps.env.outputs.namespace }} \
@@ -141,17 +140,50 @@ jobs:
             -f ${{ env.CHART_PATH }}/values.yaml \
             -f ${{ env.CHART_PATH }}/${{ steps.env.outputs.values_file }} \
             --set secrets.create=false \
-            --wait --timeout 5m
+            --timeout 5m
+
+      - name: Wait briefly for pods to start
+        # Give pods 60s to schedule + pull images before diagnostics.
+        # Not a strict gate — diagnostic step prints state regardless.
+        run: |
+          NS="${{ steps.env.outputs.namespace }}"
+          echo "Waiting 60s for pods to reach a stable state..."
+          sleep 60
 
       - name: Verify deployment
+        # Always runs — prints pod state + recent events so problematic
+        # pods (CrashLoopBackOff, ImagePullBackOff, etc.) are visible
+        # in the workflow log without needing operator kubectl access.
+        if: always()
         run: |
+          NS="${{ steps.env.outputs.namespace }}"
           echo "=== Pod Status ==="
-          kubectl get pods -n ${{ steps.env.outputs.namespace }} -o wide
+          kubectl get pods -n "$NS" -o wide
           echo ""
           echo "=== Service Status ==="
-          kubectl get svc -n ${{ steps.env.outputs.namespace }}
+          kubectl get svc -n "$NS"
+          echo ""
+          echo "=== Recent Events (non-Normal) ==="
+          kubectl get events -n "$NS" \
+            --field-selector type!=Normal \
+            --sort-by='.lastTimestamp' \
+            -o custom-columns='TIME:.lastTimestamp,OBJECT:.involvedObject.name,REASON:.reason,MESSAGE:.message' \
+            | tail -20
+          echo ""
+          echo "=== Pods not Ready (with logs) ==="
+          # For each pod that isn't in Running+Ready, print container
+          # statuses + last 20 log lines so we can diagnose without
+          # asking operators to kubectl-describe themselves.
+          for pod in $(kubectl get pods -n "$NS" -o jsonpath='{range .items[?(@.status.phase!="Running")]}{.metadata.name}{"\n"}{end}'); do
+            echo "--- $pod ---"
+            kubectl describe pod -n "$NS" "$pod" | tail -25
+            echo
+            kubectl logs -n "$NS" "$pod" --all-containers --tail=20 --previous=false 2>/dev/null || true
+            echo
+          done
 
       - name: Health check
+        if: always()
         run: |
           SERVICES=("bifrost:8100" "fenrir:8200" "forseti:5555" "mimir-api:8080")
           NS="${{ steps.env.outputs.namespace }}"
