@@ -1,8 +1,10 @@
-# E2E — Lab Report Image → Eir → ICD-10
+# E2E — Lab Report Image → Eir → ICD-10-TM
 
 **Sprint 50 B-50j operational verification.**
 
-Validates the full Phase A path lands: clinician uploads a lab report image, Eir extracts the diagnoses, calls Hermodr's `icd10_lookup` for code mapping, and returns ICD-10 codes grounded in the document. This isn't a unit test — it spans Mimir, Bifrost, Syn, Hermodr, Heimdall, plus the deployed MariaDB. Run it as a smoke test after deploying the Sprint 50 stack to OrbStack / staging.
+Validates the full Phase A path lands: clinician uploads a lab report image, Eir extracts the diagnoses, calls Hermodr's **`icd10_tm_lookup`** for **Thai ICD-10-TM** code mapping, and returns codes grounded in the document. This isn't a unit test — it spans Mimir, Bifrost, Syn, Hermodr, Heimdall, plus the deployed MariaDB. Run it as a smoke test after deploying the Sprint 50 stack to OrbStack / staging.
+
+**Why Thai ICD-10-TM (not ICD-10-CM)?** The original draft pointed at Hermodr's `icd10_lookup` (NLM US Clinical Tables — English ICD-10-CM). That's wrong for Thai clinical workflows where claims go to สปสช./HOSxP/MoPH and need the Thai Modification. Sprint 48 (`icd10_codes` table seeded from MoPH anamai-moph-2010, bilingual th+en, Qdrant `icd10-th` with BGE-M3 embeddings) supports Thai correctly; the new Hermodr tool `icd10_tm_lookup` proxies to that. ICD-10-CM tool stays available for international research use.
 
 ## Prerequisites
 
@@ -52,19 +54,27 @@ TEXT=$(jq -r '.extracted_text' /tmp/ocr.json)
 AUDIT=$(jq -r '.audit_id' /tmp/ocr.json)
 ENGINE=$(jq -r '.engine_used' /tmp/ocr.json)
 
-# 4) Ask Eir for ICD-10 codes — message body uses the same marker
+# 4) Ask Eir for ICD-10-TM codes — message body uses the same marker
 # format the B-50i dashboard uses, so the agent treats document text and
-# query separately.
+# query separately. NOTE: prompt asks for icd10_tm_lookup (Thai), not
+# the international icd10_lookup (NLM CM).
 PROMPT="[Attached Document — extracted via ${ENGINE} (audit_id=${AUDIT})]
 ${TEXT}
 [End of document]
 
-Identify all clinical findings in this lab report and return matching ICD-10-CM codes. Use the icd10_lookup tool. Output as a markdown table with columns: finding | code | description."
+Identify all clinical findings in this lab report and return matching ICD-10-TM codes (Thai Modification — MoPH anamai source). Use the icd10_tm_lookup tool — it accepts Thai or English queries and returns th_label + en_label + DRG mapping. Output as a markdown table with columns: finding | code | th_label | en_label."
 
 curl -s -X POST https://mimir.asgard.internal/api/v1/agents/chat \
   -H "X-Tenant-Id: asgard_medical" \
   -H "Content-Type: application/json" \
   -d "$(jq -n --arg msg "$PROMPT" '{tier: 2, message: $msg, persona: "eir"}')"
+
+# Or call Mimir's Thai ICD-10-TM endpoint directly to spot-check coverage:
+curl -s -G https://mimir.asgard.internal/api/v1/icd10/lookup \
+  -H "X-Tenant-Id: asgard_medical" \
+  --data-urlencode "q=ไข้หวัดใหญ่" \
+  --data-urlencode "locale=both" \
+  --data-urlencode "limit=5"
 ```
 
 Look for `[A-Z][0-9]{2}(\.[0-9]+)?` patterns in `content`.
@@ -73,11 +83,12 @@ Look for `[A-Z][0-9]{2}(\.[0-9]+)?` patterns in `content`.
 
 > B-50j — End-to-end test: lab report image → Eir-medtech → ICD-10 codes (chains B-48h FHIR)
 
-Practical interpretation, given the actual agent roster:
+Practical interpretation, given the actual agent roster + Thai ICD-10-TM coding (not ICD-10-CM):
 
 - [ ] Image → `extracted_text` returned by Syn (any engine) — verifies B-50a/c/e
-- [ ] Agent response contains ≥1 ICD-10-shaped code — verifies B-50g (allowlist) + Hermodr `icd10_lookup` + B-48h ICD-10 backend
-- [ ] Laminar shows the span tree: Bifrost → Mimir → Syn → engine, then Bifrost → Heimdall → Eir → Hermodr `icd10_lookup` calls
+- [ ] Agent response contains ≥1 ICD-10-shaped code AND the agent actually invoked `icd10_tm_lookup` (Thai), not `icd10_lookup` (CM) — verifies B-50g (allowlist) + Sprint 48 ICD-10-TM backend
+- [ ] Laminar shows the span tree: Bifrost → Mimir → Syn → engine, then Bifrost → Heimdall → Eir → Hermodr `icd10_tm_lookup` calls
+- [ ] Returned codes have a `th_label` field populated (Thai ICD-10-TM source-version `anamai-moph-2010` carries bilingual labels)
 - [ ] If `cloud_flash_enabled=true` and budget headroom: cost_usd > 0 visible on dashboard `/analytics/llm` Recent OCR Calls table (post-#268)
 
 ## What this test does NOT cover
