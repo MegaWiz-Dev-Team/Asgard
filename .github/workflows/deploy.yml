@@ -124,12 +124,11 @@ jobs:
         # templates/secrets.yaml. Subcharts only consume via secretKeyRef
         # pointing at the operator-created asgard-secrets.
         #
-        # `--force` permits resource recreate on irreconcilable conflict —
-        # safe for dev clusters; Sprint 51e hand-patches that landed in
-        # the chart proper get superseded by the canonical chart state.
-        # Combined with the `Strip conflicting kubectl field-managers`
-        # step above, hand-patches that AREN'T in the chart yet are
-        # silently lost (intended behaviour — chart is source of truth).
+        # Helm is in server-side-apply (SSA) mode here, so we cannot use
+        # `--force` (it conflicts with SSA). Instead, the `Strip
+        # conflicting kubectl field-managers` step above clears the
+        # foreign field-manager metadata so Helm's SSA can re-claim
+        # ownership cleanly on this apply.
         run: |
           helm upgrade --install asgard ${{ env.CHART_PATH }} \
             --namespace ${{ steps.env.outputs.namespace }} \
@@ -137,7 +136,6 @@ jobs:
             -f ${{ env.CHART_PATH }}/values.yaml \
             -f ${{ env.CHART_PATH }}/${{ steps.env.outputs.values_file }} \
             --set secrets.create=false \
-            --force \
             --wait --timeout 5m
 
       - name: Verify deployment
