@@ -111,16 +111,24 @@ jobs:
           else
             cargo test --release --no-fail-fast 2>&1 | tee /tmp/bifrost-cargo-test.log
             EXIT=${PIPESTATUS[0]}
-            # Synthesize a single-row junit so the push step works
-            STATUS=$([ "$EXIT" = "0" ] && echo "" || echo '<failure message="cargo test exit $EXIT"/>')
-            cat > "$JUNIT" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="bifrost-cargo-test" tests="1" failures="$([ "$EXIT" = "0" ] && echo 0 || echo 1)">
-    <testcase classname="bifrost" name="cargo_test">$STATUS</testcase>
-  </testsuite>
-</testsuites>
-EOF
+            # Synthesize a single-row junit so the push step works.
+            # Avoid YAML-breaking heredoc: build the XML with echo lines
+            # so every line stays inside the `run: |` block scalar's indent.
+            if [ "$EXIT" = "0" ]; then
+              FAILURES=0
+              CASE='<testcase classname="bifrost" name="cargo_test"/>'
+            else
+              FAILURES=1
+              CASE="<testcase classname=\"bifrost\" name=\"cargo_test\"><failure message=\"cargo test exit $EXIT\"/></testcase>"
+            fi
+            {
+              echo '<?xml version="1.0" encoding="UTF-8"?>'
+              echo '<testsuites>'
+              echo "  <testsuite name=\"bifrost-cargo-test\" tests=\"1\" failures=\"$FAILURES\">"
+              echo "    $CASE"
+              echo '  </testsuite>'
+              echo '</testsuites>'
+            } > "$JUNIT"
           fi
           echo "exit_code=$EXIT" >> "$GITHUB_OUTPUT"
           exit $EXIT
