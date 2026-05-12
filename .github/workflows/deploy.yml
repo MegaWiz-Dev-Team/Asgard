@@ -38,12 +38,31 @@ jobs:
         run: helm dependency update ${{ env.CHART_PATH }}
 
       - name: Deploy with Helm
+        # Required GitHub repo secrets (chart `secrets.yaml` template enforces
+        # via `required` — empty values fail the template with a clear message):
+        #   YGGDRASIL_MASTERKEY            ZITADEL masterkey (rotating invalidates sessions)
+        #   YGGDRASIL_POSTGRES_PASSWORD    Zitadel's Postgres user password
+        #   YGGDRASIL_CLIENT_ID            OIDC client id registered in Zitadel
+        #   YGGDRASIL_CLIENT_SECRET        OIDC client secret (regen in Zitadel admin UI)
+        #   MARIADB_ROOT_PASSWORD          MariaDB root password
+        #   MARIADB_PASSWORD               mimir DB user password
+        #   NEO4J_PASSWORD                 Mimir RAG breaks silently if empty
+        #   HEIMDALL_API_KEY               Bifrost cannot call Heimdall without it
+        # Optional (have safe defaults in chart):
+        #   JWT_SECRET, GEMINI_API_KEY
         run: |
           helm upgrade --install asgard ${{ env.CHART_PATH }} \
             --namespace ${{ steps.env.outputs.namespace }} \
             --create-namespace \
             -f ${{ env.CHART_PATH }}/values.yaml \
             -f ${{ env.CHART_PATH }}/${{ steps.env.outputs.values_file }} \
+            --set secrets.yggdrasil.masterKey="${{ secrets.YGGDRASIL_MASTERKEY }}" \
+            --set secrets.yggdrasil.postgresPassword="${{ secrets.YGGDRASIL_POSTGRES_PASSWORD }}" \
+            --set secrets.yggdrasil.clientId="${{ secrets.YGGDRASIL_CLIENT_ID }}" \
+            --set secrets.yggdrasil.clientSecret="${{ secrets.YGGDRASIL_CLIENT_SECRET }}" \
+            --set secrets.mariadb.rootPassword="${{ secrets.MARIADB_ROOT_PASSWORD }}" \
+            --set secrets.mariadb.password="${{ secrets.MARIADB_PASSWORD }}" \
+            --set secrets.neo4j.password="${{ secrets.NEO4J_PASSWORD }}" \
             --set secrets.heimdallApiKey="${{ secrets.HEIMDALL_API_KEY }}" \
             --set secrets.jwtSecret="${{ secrets.JWT_SECRET }}" \
             --set secrets.geminiApiKey="${{ secrets.GEMINI_API_KEY }}" \
