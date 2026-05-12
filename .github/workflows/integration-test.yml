@@ -1,4 +1,12 @@
 # 🏰 Asgard — Integration Tests (post-deploy)
+#
+# Runs on the self-hosted Mac mini runner. The runner has the full Asgard dev
+# tree under /Users/mimir/Developer, so we orchestrate against sibling repos
+# (Forseti, Bifrost) at their canonical paths rather than re-cloning each one.
+#
+# Forseti is the system of record: every test run — its own YAML scenarios and
+# Bifrost's pytest output — is POSTed to /api/runs and shown on the dashboard
+# at http://forseti.asgard.internal:30555.
 name: Integration Tests
 
 on:
@@ -7,6 +15,13 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+
+env:
+  # actions/setup-python defaults to /Users/runner/hostedtoolcache; the runner
+  # is user `mimir`, so we redirect the toolcache into the runner workspace.
+  AGENT_TOOLSDIRECTORY: /Users/mimir/Developer/actions-runner/_work/_tool
+  ASGARD_DEV_ROOT: /Users/mimir/Developer
+  FORSETI_URL: http://localhost:30555
 
 jobs:
   e2e-tests:
@@ -22,46 +37,96 @@ jobs:
           python-version: '3.11'
 
       - name: Install test dependencies
-        run: |
-          pip install httpx pytest pytest-asyncio
+        run: pip install httpx pytest pytest-asyncio
 
       - name: Wait for services
         run: |
-          echo "⏳ Waiting for services to be ready..."
+          echo "⏳ Waiting for k8s services to settle..."
           sleep 30
           kubectl get pods -n asgard --field-selector=status.phase=Running
 
-      - name: Run Forseti E2E tests
+      - name: Verify Forseti reachable
+        id: forseti_up
         run: |
-          cd ../Forseti
-          python run_e2e.py --target k8s 2>&1 || true
+          if curl -sf "${FORSETI_URL}/api/runs?limit=1" > /dev/null; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Forseti dashboard reachable at ${FORSETI_URL}"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "⚠️  Forseti unreachable — results will not be ingested into dashboard"
+          fi
 
-      - name: Run Bifrost tests
+      - name: Run Forseti YAML scenarios (bifrost-api)
+        id: forseti_scenarios
+        continue-on-error: true
+        env:
+          FORSETI_REPO: ${{ env.ASGARD_DEV_ROOT }}/Forseti
         run: |
-          cd ../Bifrost
-          .venv/bin/python -m pytest tests/ -v --tb=short 2>&1
+          set -o pipefail
+          cd "$FORSETI_REPO"
+          # run_e2e.py auto-posts each project's run into Forseti's own DB.
+          python run_e2e.py --project bifrost-api
 
-      - name: Push results to Forseti
+      - name: Run Bifrost pytest
+        id: bifrost_pytest
+        continue-on-error: true
+        env:
+          BIFROST_REPO: ${{ env.ASGARD_DEV_ROOT }}/Bifrost
+        run: |
+          cd "$BIFROST_REPO"
+          mkdir -p .test-results
+          JUNIT="$BIFROST_REPO/.test-results/bifrost-pytest.xml"
+          # Always export the junit path so the push step can ingest results even on failure.
+          echo "junit=$JUNIT" >> "$GITHUB_OUTPUT"
+          set +e
+          .venv/bin/python -m pytest tests/ -v --tb=short --junitxml="$JUNIT"
+          PYTEST_EXIT=$?
+          echo "exit_code=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
+          exit $PYTEST_EXIT
+
+      - name: Push Bifrost pytest results to Forseti
+        if: always() && steps.forseti_up.outputs.available == 'true' && steps.bifrost_pytest.outputs.junit != ''
+        env:
+          FORSETI_REPO: ${{ env.ASGARD_DEV_ROOT }}/Forseti
+        run: |
+          python "$FORSETI_REPO/scripts/junit_to_forseti.py" \
+            --junit "${{ steps.bifrost_pytest.outputs.junit }}" \
+            --suite bifrost-pytest \
+            --phase SIT \
+            --base-url http://bifrost.asgard-services.svc:8000 \
+            --commit "${{ github.event.workflow_run.head_sha || github.sha }}" \
+            --version "${{ github.event.workflow_run.head_branch || github.ref_name }}" \
+            --forseti-url "$FORSETI_URL" || true
+
+      - name: Service health summary
         if: always()
         run: |
-          curl -sf http://localhost:30555/ > /dev/null && \
-          echo "✅ Forseti dashboard available at http://localhost:30555" || \
-          echo "⚠️  Forseti not reachable"
+          {
+            echo "## 📊 Integration Test Results"
+            echo ""
+            echo "Dashboard: [Forseti @ ${FORSETI_URL}](${FORSETI_URL})"
+            echo ""
+            echo "| Service | Health |"
+            echo "|:--|:--|"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Report summary
-        if: always()
-        run: |
-          echo "## 📊 Integration Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|:--|:--|" >> $GITHUB_STEP_SUMMARY
-
-          SERVICES=("bifrost:30100" "fenrir:30200" "forseti:30555" "mimir-api:30000" "vardr:30090")
-          for svc_port in "${SERVICES[@]}"; do
-            IFS=':' read -r svc port <<< "$svc_port"
-            if curl -sf http://localhost:$port/healthz > /dev/null 2>&1; then
-              echo "| $svc | ✅ |" >> $GITHUB_STEP_SUMMARY
+          for svc_port in "bifrost:30100" "fenrir:30200" "forseti:30555" "mimir-api:30000" "vardr:30090"; do
+            svc="${svc_port%%:*}"
+            port="${svc_port##*:}"
+            if curl -sf "http://localhost:$port/healthz" > /dev/null 2>&1; then
+              echo "| $svc | ✅ |" >> "$GITHUB_STEP_SUMMARY"
             else
-              echo "| $svc | ❌ |" >> $GITHUB_STEP_SUMMARY
+              echo "| $svc | ❌ |" >> "$GITHUB_STEP_SUMMARY"
             fi
           done
+
+      - name: Aggregate test outcome
+        if: always()
+        run: |
+          # Mark job failed if pytest had failures, otherwise pass.
+          # Forseti scenarios are advisory (continue-on-error) so they don't gate.
+          if [ "${{ steps.bifrost_pytest.outcome }}" = "failure" ]; then
+            echo "❌ Bifrost pytest reported failures — see Forseti dashboard for breakdown"
+            exit 1
+          fi
+          echo "✅ Bifrost pytest passed"
