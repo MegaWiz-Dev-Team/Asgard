@@ -11,11 +11,18 @@
 #   To skip per-key flags, drop a values-dev-secrets.yaml (gitignored)
 #   alongside this file with all the `required` values populated.
 global:
-  imagePullPolicy: IfNotPresent  # pull from ghcr.io if not present locally
+  # Always pull on rollout — `:latest` tag silently gets stuck on stale
+  # local images otherwise (saw this 2026-05-12 when Deploy reused a
+  # 5-day-old mimir-api despite a fresh ghcr push). ghcr-secret handles
+  # auth so the extra pull is cheap.
+  imagePullPolicy: Always
   imagePullSecret: ghcr-secret   # private ghcr.io packages — secret pre-created in asgard ns
   infraNamespace: asgard-infra
   heimdallUrl: http://host.docker.internal:8080/v1
   ollamaUrl: http://192.168.1.172:8080
+  # OIDC issuer must match Yggdrasil's ExternalDomain so token `iss` claims and
+  # the browser-visible authorization_endpoint resolve to the public ingress.
+  yggdrasilIssuerUrl: https://sso.asgard.internal
 
 bifrost:
   defaultModel: mlx-community/Qwen3.5-9B-MLX-4bit
