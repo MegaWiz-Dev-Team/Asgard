@@ -209,10 +209,20 @@ jobs:
       - name: Health check
         if: always()
         run: |
-          SERVICES=("bifrost:8100" "fenrir:8200" "forseti:5555" "mimir-api:8080")
+          # Per-service probe path because not every service exposes /healthz.
+          # Forseti is a Flask/MLflow-style dashboard that serves / (matches the
+          # chart's own readinessProbe). Format: name:port:path
+          SERVICES=(
+            "bifrost:8100:/healthz"
+            "fenrir:8200:/healthz"
+            "forseti:5555:/"
+            "mimir-api:8080:/healthz"
+          )
           NS="${{ steps.env.outputs.namespace }}"
-          for svc_port in "${SERVICES[@]}"; do
-            IFS=':' read -r svc port <<< "$svc_port"
-            echo -n "  $svc: "
-            kubectl exec -n $NS deploy/$svc -- curl -sf http://localhost:$port/healthz 2>/dev/null && echo "✅" || echo "❌"
+          for entry in "${SERVICES[@]}"; do
+            IFS=':' read -r svc port path <<< "$entry"
+            echo -n "  $svc (:${port}${path}): "
+            kubectl exec -n "$NS" deploy/"$svc" -- curl -sf "http://localhost:${port}${path}" >/dev/null 2>&1 \
+              && echo "✅" \
+              || echo "❌"
           done
