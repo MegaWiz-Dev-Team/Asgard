@@ -104,7 +104,7 @@ PROMPT="[Attached Document — extracted via ${ENGINE} (audit_id=${AUDIT})]
 ${TEXT}
 [End of document]
 
-Identify all clinical findings in this lab report and return matching ICD-10-CM codes. Use the icd10_lookup tool if you have it. Output as a markdown table with columns: finding | code | description."
+Identify all clinical findings in this lab report and return matching ICD-10-TM codes (Thai Modification — MoPH anamai source). Use the icd10_tm_lookup tool — it accepts Thai or English queries and returns th_label + en_label + DRG mapping. Output as a markdown table with columns: finding | code | th_label | en_label."
 
 log "POST $MIMIR_URL/api/v1/agents/chat (persona=$PERSONA)"
 CHAT_REQ=$(jq -n --arg msg "$PROMPT" --arg p "$PERSONA" \
