@@ -23,6 +23,18 @@ spec:
           env:
             - { name: BIFROST_HOST, value: "0.0.0.0" }
             - { name: BIFROST_PORT, value: "8100" }
+            # Bifrost's main.rs panics on missing DATABASE_URL. Sourced
+            # from the shared asgard-secrets so the Sprint 51e mariadb
+            # rotation flows here automatically. MIMIR_DATABASE_URL
+            # carries the full `mysql://user:pass@host:port/db` string.
+            # Sprint 51e hand-patched this onto the running deployment;
+            # this template makes it permanent so `helm upgrade` doesn't
+            # lose it on recreate.
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.secretsName | default "asgard-secrets" }}
+                  key: MIMIR_DATABASE_URL
             - { name: HEIMDALL_URL, value: {{ .Values.global.heimdallUrl | quote }} }
             - name: HEIMDALL_API_KEY
               valueFrom:
