@@ -37,35 +37,70 @@ jobs:
       - name: Helm dependency update
         run: helm dependency update ${{ env.CHART_PATH }}
 
+      - name: Read deployed secrets from K8s (or fall back to GitHub repo secrets)
+        # Self-hosted runner = same Mac Mini as the K3s cluster. Existing
+        # `asgard-secrets` (Sprint 51e rotated values) is the source of truth
+        # for already-deployed clusters; reading from K8s avoids duplicating
+        # secrets to GitHub repo settings and keeps rotation localized.
+        #
+        # Bootstrap fallback: if a key isn't present in K8s yet (first
+        # deploy), use the matching GitHub repo secret. Templates `required`
+        # function still fails loudly if BOTH are empty.
+        id: read_secrets
+        run: |
+          NS="${{ steps.env.outputs.namespace }}"
+          SECRET_NAME="asgard-secrets"
+
+          read_one() {
+            local key="$1" gh_fallback="$2"
+            local val
+            val=$(kubectl -n "$NS" get secret "$SECRET_NAME" -o jsonpath="{.data.${key}}" 2>/dev/null | base64 -d 2>/dev/null || true)
+            if [[ -z "$val" ]]; then
+              val="$gh_fallback"
+            fi
+            # GitHub secrets masking — never echo the value, only the source
+            if [[ -n "$val" ]]; then
+              echo "::add-mask::$val"
+              echo "$key=$val" >> "$GITHUB_OUTPUT"
+              echo "  $key: ✓ (length=${#val})"
+            else
+              echo "  $key: ⚠ EMPTY (no K8s value, no GitHub fallback)"
+            fi
+          }
+
+          echo "Reading secrets from $NS/$SECRET_NAME (with GitHub repo-secret fallback):"
+          read_one YGGDRASIL_MASTERKEY              "${{ secrets.YGGDRASIL_MASTERKEY }}"
+          read_one YGGDRASIL_POSTGRES_PASSWORD      "${{ secrets.YGGDRASIL_POSTGRES_PASSWORD }}"
+          read_one YGGDRASIL_CLIENT_ID              "${{ secrets.YGGDRASIL_CLIENT_ID }}"
+          read_one YGGDRASIL_CLIENT_SECRET          "${{ secrets.YGGDRASIL_CLIENT_SECRET }}"
+          read_one MARIADB_ROOT_PASSWORD            "${{ secrets.MARIADB_ROOT_PASSWORD }}"
+          read_one MARIADB_PASSWORD                 "${{ secrets.MARIADB_PASSWORD }}"
+          read_one NEO4J_PASSWORD                   "${{ secrets.NEO4J_PASSWORD }}"
+          read_one HEIMDALL_API_KEY                 "${{ secrets.HEIMDALL_API_KEY }}"
+          read_one JWT_SECRET                       "${{ secrets.JWT_SECRET }}"
+          read_one GEMINI_API_KEY                   "${{ secrets.GEMINI_API_KEY }}"
+
       - name: Deploy with Helm
-        # Required GitHub repo secrets (chart `secrets.yaml` template enforces
-        # via `required` — empty values fail the template with a clear message):
-        #   YGGDRASIL_MASTERKEY            ZITADEL masterkey (rotating invalidates sessions)
-        #   YGGDRASIL_POSTGRES_PASSWORD    Zitadel's Postgres user password
-        #   YGGDRASIL_CLIENT_ID            OIDC client id registered in Zitadel
-        #   YGGDRASIL_CLIENT_SECRET        OIDC client secret (regen in Zitadel admin UI)
-        #   MARIADB_ROOT_PASSWORD          MariaDB root password
-        #   MARIADB_PASSWORD               mimir DB user password
-        #   NEO4J_PASSWORD                 Mimir RAG breaks silently if empty
-        #   HEIMDALL_API_KEY               Bifrost cannot call Heimdall without it
-        # Optional (have safe defaults in chart):
-        #   JWT_SECRET, GEMINI_API_KEY
+        # Secrets sourced from "Read deployed secrets" step above:
+        #   1. existing K8s asgard-secrets (preferred — Sprint 51e rotation lives there)
+        #   2. GitHub repo secrets (bootstrap fallback)
+        # Template `required` calls still fail loudly if a key is empty on both paths.
         run: |
           helm upgrade --install asgard ${{ env.CHART_PATH }} \
             --namespace ${{ steps.env.outputs.namespace }} \
             --create-namespace \
             -f ${{ env.CHART_PATH }}/values.yaml \
             -f ${{ env.CHART_PATH }}/${{ steps.env.outputs.values_file }} \
-            --set secrets.yggdrasil.masterKey="${{ secrets.YGGDRASIL_MASTERKEY }}" \
-            --set secrets.yggdrasil.postgresPassword="${{ secrets.YGGDRASIL_POSTGRES_PASSWORD }}" \
-            --set secrets.yggdrasil.clientId="${{ secrets.YGGDRASIL_CLIENT_ID }}" \
-            --set secrets.yggdrasil.clientSecret="${{ secrets.YGGDRASIL_CLIENT_SECRET }}" \
-            --set secrets.mariadb.rootPassword="${{ secrets.MARIADB_ROOT_PASSWORD }}" \
-            --set secrets.mariadb.password="${{ secrets.MARIADB_PASSWORD }}" \
-            --set secrets.neo4j.password="${{ secrets.NEO4J_PASSWORD }}" \
-            --set secrets.heimdallApiKey="${{ secrets.HEIMDALL_API_KEY }}" \
-            --set secrets.jwtSecret="${{ secrets.JWT_SECRET }}" \
-            --set secrets.geminiApiKey="${{ secrets.GEMINI_API_KEY }}" \
+            --set secrets.yggdrasil.masterKey="${{ steps.read_secrets.outputs.YGGDRASIL_MASTERKEY }}" \
+            --set secrets.yggdrasil.postgresPassword="${{ steps.read_secrets.outputs.YGGDRASIL_POSTGRES_PASSWORD }}" \
+            --set secrets.yggdrasil.clientId="${{ steps.read_secrets.outputs.YGGDRASIL_CLIENT_ID }}" \
+            --set secrets.yggdrasil.clientSecret="${{ steps.read_secrets.outputs.YGGDRASIL_CLIENT_SECRET }}" \
+            --set secrets.mariadb.rootPassword="${{ steps.read_secrets.outputs.MARIADB_ROOT_PASSWORD }}" \
+            --set secrets.mariadb.password="${{ steps.read_secrets.outputs.MARIADB_PASSWORD }}" \
+            --set secrets.neo4j.password="${{ steps.read_secrets.outputs.NEO4J_PASSWORD }}" \
+            --set secrets.heimdallApiKey="${{ steps.read_secrets.outputs.HEIMDALL_API_KEY }}" \
+            --set secrets.jwtSecret="${{ steps.read_secrets.outputs.JWT_SECRET }}" \
+            --set secrets.geminiApiKey="${{ steps.read_secrets.outputs.GEMINI_API_KEY }}" \
             --wait --timeout 5m
 
       - name: Verify deployment
