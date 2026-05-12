@@ -171,15 +171,39 @@ jobs:
             | tail -20
           echo ""
           echo "=== Pods not Ready (with logs) ==="
-          # For each pod that isn't in Running+Ready, print container
-          # statuses + last 20 log lines so we can diagnose without
-          # asking operators to kubectl-describe themselves.
-          for pod in $(kubectl get pods -n "$NS" -o jsonpath='{range .items[?(@.status.phase!="Running")]}{.metadata.name}{"\n"}{end}'); do
-            echo "--- $pod ---"
-            kubectl describe pod -n "$NS" "$pod" | tail -25
+          # We want to catch BOTH cases:
+          #   1. phase != Running          (Pending, Failed, Succeeded)
+          #   2. phase == Running but containers in CrashLoopBackOff / Error
+          # The previous filter only matched #1, so silent CrashLoopBackOff
+          # pods (Bifrost) slipped through. Use a Bash loop on ready=0/all
+          # containers — covers both flavors of "sick pod".
+          UNHEALTHY=$(kubectl get pods -n "$NS" -o json | jq -r '
+            .items[]
+            | select(
+                (.status.phase != "Running")
+                or
+                ((.status.containerStatuses // [])
+                  | any(
+                      (.ready == false)
+                      or (.state.waiting.reason // "" | test("CrashLoopBackOff|Error|ImagePullBackOff|CreateContainerConfigError|InvalidImageName"))
+                    )
+                )
+              )
+            | .metadata.name
+          ')
+          if [[ -z "$UNHEALTHY" ]]; then
+            echo "(all pods Ready)"
+          fi
+          for pod in $UNHEALTHY; do
             echo
-            kubectl logs -n "$NS" "$pod" --all-containers --tail=20 --previous=false 2>/dev/null || true
+            echo "─── $pod ───"
+            kubectl describe pod -n "$NS" "$pod" | sed -n '/^Events:/,$p' | head -25
             echo
+            echo "  · current logs (tail 40):"
+            kubectl logs -n "$NS" "$pod" --all-containers --tail=40 --timestamps 2>/dev/null | sed 's/^/    /' || true
+            echo
+            echo "  · previous-instance logs (tail 40, if crashed):"
+            kubectl logs -n "$NS" "$pod" --all-containers --tail=40 --previous --timestamps 2>/dev/null | sed 's/^/    /' || echo "    (no previous instance)"
           done
 
       - name: Health check
