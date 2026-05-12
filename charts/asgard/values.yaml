@@ -10,7 +10,9 @@ global:
   secretsName: asgard-secrets
   # CI-driven image flow: pulls from ghcr.io built by Build-and-Push workflow
   imageRegistry: ghcr.io/megawiz-dev-team
-  imagePullPolicy: IfNotPresent
+  # Always re-pull on rollout — `:latest` is mutable and a cached local
+  # image will silently shadow a fresh ghcr push otherwise.
+  imagePullPolicy: Always
   # Optional: name of pre-existing imagePullSecret if ghcr.io packages are private.
   # Create with: kubectl create secret docker-registry ghcr-secret \
   #   --docker-server=ghcr.io --docker-username=<user> --docker-password=<PAT> -n <ns>
