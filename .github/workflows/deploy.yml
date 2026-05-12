@@ -94,28 +94,42 @@ jobs:
             exit 1
           fi
 
-      - name: Strip conflicting kubectl field-managers
-        # Sprint 51e applied several `kubectl patch` operations directly to
-        # live resources (Bifrost DATABASE_URL → secretKeyRef migration,
-        # Mimir-API client ID rotation, etc.). Those leave a `kubectl` /
-        # `kubectl-patch` field-manager that conflicts with Helm's SSA
-        # ownership on the next `helm upgrade`. Strip the foreign managers
-        # so Helm's reapply lands cleanly.
+      - name: Transfer field ownership to helm field-manager
+        # Sprint 51e applied several `kubectl patch` / `kubectl set` /
+        # `kubectl apply` operations directly to live resources (Bifrost
+        # DATABASE_URL → secretKeyRef migration, Mimir-API client ID
+        # rotation, image pull policy tweaks). Each leaves its own field
+        # manager (kubectl / kubectl-patch / kubectl-set) which Helm's
+        # server-side apply refuses to overwrite.
         #
-        # We don't blow away resources — just remove the managedFields
-        # subresource. The actual data in each resource is preserved; the
-        # next Helm apply re-claims ownership of the same field values.
+        # Re-apply each conflicting resource with `--field-manager=helm`
+        # and `--force-conflicts`. This transfers ALL fields under those
+        # foreign managers to "helm". No data loss — we're re-applying
+        # the resource's current state, only the field-manager label
+        # changes. Helm's subsequent apply then matches the same manager
+        # and proceeds without conflict.
+        #
+        # Stripping `/metadata/managedFields` directly (previous attempt)
+        # is ineffective — k8s repopulates the subresource immediately,
+        # often with the same foreign manager. Explicit SSA transfer is
+        # the proper way.
         run: |
           NS="${{ steps.env.outputs.namespace }}"
-          # Resources flagged by the previous Helm conflict (extend the
-          # list if other resources have been hand-patched). Failures here
-          # are non-fatal: kubectl patch returns 0 if there's nothing to
-          # strip.
-          for r in deploy/bifrost configmap/otel-collector-config; do
+          # List flagged by the latest Helm conflict. Add new entries if
+          # other resources surface in the next failure log.
+          for r in deploy/bifrost deploy/mimir-api deploy/mimir-dashboard configmap/otel-collector-config; do
             if kubectl -n "$NS" get "$r" >/dev/null 2>&1; then
-              echo "Stripping managedFields on $NS/$r"
-              kubectl -n "$NS" patch "$r" --type=json \
-                -p='[{"op":"remove","path":"/metadata/managedFields"}]' >/dev/null 2>&1 || true
+              echo "Transferring field ownership of $NS/$r to 'helm'"
+              # Round-trip: get current state, apply it back as "helm"
+              # with --force-conflicts so foreign-manager fields move
+              # over. `--prune=false` (default) keeps the resource as-is.
+              kubectl -n "$NS" get "$r" -o yaml | \
+                kubectl -n "$NS" apply --server-side \
+                  --force-conflicts \
+                  --field-manager=helm \
+                  -f - >/dev/null
+            else
+              echo "Skip $NS/$r — resource not present (will be created by Helm)"
             fi
           done
 
