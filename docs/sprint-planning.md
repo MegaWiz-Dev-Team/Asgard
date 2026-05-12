@@ -103,7 +103,8 @@ Hand-patched secret rotation across services to break out of pre-rotation defaul
 | Flip Syn integ-test from advisory → gating | 🏰 Asgard CI | After 2 weeks of stable green, drop `continue-on-error` on syn cargo test + syn-api Forseti scenarios | 📝 Planned |
 | Skuggi W2 image redaction design | 🌑 Skuggi | ADR follow-up: OCR bbox-based PII blur before cloud Tier 2/3 image submission | 📝 Planned |
 | Curator review queue UI | 🧠 Mimir Dashboard | Wire `/api/v1/syn/ocr/review-queue` + `/documents/{id}/review` to a Curator-only admin page (B-50f follow-up) | 📝 Planned |
-| Eir ocr_extract end-to-end smoke | 🏥↔📨↔👁️ | Trigger an Eir agent OCR call → Hermodr `ocr_extract` tool → syn-api `/extract` → assert audit row | 📝 Planned |
+| ~~Eir ocr_extract end-to-end smoke~~ | 🏥↔📨↔👁️ | Trigger an Eir agent OCR call → Hermodr `ocr_extract` tool → syn-api `/extract` → assert audit row | ✅ **Done 2026-05-12** — JSON-RPC path verified via new `hermodr-syn` sidecar (Syn PR #11). Audit row id=`687f51b4` in `ocr_documents`. |
+| Bifrost overseer per-agent tool wire-up | ⚡ Bifrost | `swarm_engine/overseer.rs:151` stubs `_agent_tools` — agents can't explicitly call ocr_extract yet (transparent OCR via B-50d is the only active path). Wire the `agent_configs.tools` JSON to Bifrost's Rig tool registry. | 🆕 Discovered 2026-05-12 during P0 smoke — promoted to P0 since the allowlist migration is otherwise inert |
 
 ### Week 2 (P1)
 | Task | Component | Description | Status |
