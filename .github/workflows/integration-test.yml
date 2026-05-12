@@ -81,22 +81,49 @@ jobs:
           # run_e2e.py auto-posts each project's run into Forseti's own DB.
           "${{ steps.py.outputs.forseti_py }}" run_e2e.py --project bifrost-api
 
-      - name: Run Bifrost pytest
+      - name: Run Bifrost cargo test
         id: bifrost_pytest
         continue-on-error: true
         env:
           BIFROST_REPO: ${{ env.ASGARD_DEV_ROOT }}/Bifrost
+        # Bifrost was Python until Sprint 38; the rewrite is now Rust
+        # (`Cargo.toml` v0.3.0+). The old `pytest tests/` step failed
+        # with ModuleNotFoundError since the tests imported from
+        # `bifrost.X` Python packages that no longer exist (deleted in
+        # Bifrost #15). Run `cargo test` instead; emit a stub junit so
+        # the downstream Forseti push step keeps working.
+        #
+        # Step name + output id kept as `bifrost_pytest` for back-compat
+        # with the Forseti ingest scripts.
         run: |
           cd "$BIFROST_REPO"
           mkdir -p .test-results
           JUNIT="$BIFROST_REPO/.test-results/bifrost-pytest.xml"
-          # Always export the junit path so the push step can ingest results even on failure.
           echo "junit=$JUNIT" >> "$GITHUB_OUTPUT"
           set +e
-          "${{ steps.py.outputs.bifrost_py }}" -m pytest tests/ -v --tb=short --junitxml="$JUNIT"
-          PYTEST_EXIT=$?
-          echo "exit_code=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
-          exit $PYTEST_EXIT
+          # cargo test produces TAP, not junit. Use cargo2junit if
+          # available; otherwise fall back to a minimal junit stub
+          # carrying the pass/fail outcome so Forseti still gets a row.
+          if command -v cargo2junit >/dev/null 2>&1; then
+            cargo test --release --no-fail-fast -- -Z unstable-options --format json 2>&1 \
+              | cargo2junit > "$JUNIT" || true
+            EXIT=${PIPESTATUS[0]}
+          else
+            cargo test --release --no-fail-fast 2>&1 | tee /tmp/bifrost-cargo-test.log
+            EXIT=${PIPESTATUS[0]}
+            # Synthesize a single-row junit so the push step works
+            STATUS=$([ "$EXIT" = "0" ] && echo "" || echo '<failure message="cargo test exit $EXIT"/>')
+            cat > "$JUNIT" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="bifrost-cargo-test" tests="1" failures="$([ "$EXIT" = "0" ] && echo 0 || echo 1)">
+    <testcase classname="bifrost" name="cargo_test">$STATUS</testcase>
+  </testsuite>
+</testsuites>
+EOF
+          fi
+          echo "exit_code=$EXIT" >> "$GITHUB_OUTPUT"
+          exit $EXIT
 
       - name: Push Bifrost pytest results to Forseti
         if: always() && steps.forseti_up.outputs.available == 'true' && steps.bifrost_pytest.outputs.junit != ''
