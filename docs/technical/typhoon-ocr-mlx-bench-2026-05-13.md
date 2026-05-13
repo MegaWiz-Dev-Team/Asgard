@@ -189,9 +189,107 @@ config patch.
 
 ## Sprint 51 follow-up
 
-- [ ] Wire Heimdall MLX endpoint for Typhoon (env-var swap path)
-- [ ] A/B flag in syn-api smart router for `SYN_TYPHOON_BACKEND`
-- [ ] Re-bench on real photographed handwriting once B-50h.1 partner-hospital
-      flow ships any samples
+- [x] Wire Heimdall MLX endpoint for Typhoon (env-var swap path) — done 2026-05-13, Heimdall PR #9
+- [x] A/B flag in syn-api smart router for `SYN_TYPHOON_BACKEND` — done via env vars, Syn PR #13
+- [ ] Re-bench on real photographed handwriting once B-50h.1 partner-hospital flow ships any samples
 - [ ] Try `llama-server` direct (skip Ollama daemon) for 7b GGUF comparison
 - [ ] Re-confirm `hw-rx-03` regression on 7b — might be a sampling artifact
+
+---
+
+## Sprint 51 reality check — real Thai medical certs (2026-05-13)
+
+**The synthetic-only numbers above lied by omission.** Once we benched the
+same engines on 10 real photographed Thai medical certificates (`Syn/data/images/T0{01..10}`,
+ground-truth in `Syn/data/TestimageRawText.csv`), the gap to "production ready"
+became obvious.
+
+### Path tested
+
+```
+client → Heimdall :8080 (auth + router) → either VLM (:8082/:8083)
+                                       or Google Gemini OpenAI-compat
+```
+
+Same endpoint Asgard agents call. Same prompt + envelope as Syn's
+`call_openai_chat_ocr`.
+
+### Run A — generic "extract all text" prompt
+
+| Engine | n | CER median | CER mean | CER max | Wall median |
+|---|---|---|---|---|---|
+| MLX 3b q4 | 10 | 5.329 | 12.538 | **45.710** | 11.1 s |
+| MLX 3b q8 | 10 | 4.955 | 10.038 | **62.452** | 8.2 s |
+| Gemini 3 Flash | 10 | 3.805 | 5.214 | **12.875** | 21.4 s |
+| Gemini 3.1 Pro | 10 | 10.178 | 30.214 | **123.253** | 104.3 s |
+
+CER >> 1 everywhere — the **extracted text was multiple times the size of
+ground truth**. Two reasons:
+1. **Ground-truth mismatch.** The CSV holds only content fields (patient
+   name, doctor name, HN, license, diagnosis, comment). Every model
+   correctly extracts the *whole image* including hospital headers,
+   addresses, watermarks, signatures — which the GT doesn't include.
+2. **Runaway generation on MLX.** Four of the MLX runs hit
+   `max_tokens=4096` (T001 q4, T005 q4/q8, T009 q4, T010 q8) — model
+   spirals into describing the form template instead of stopping.
+   Gemini doesn't show this; Pro instead generates very thorough,
+   over-complete extractions.
+
+### Run B — field-targeted prompt (Option D fix)
+
+Switched to a system prompt that explicitly enumerates the expected
+fields and says "do NOT include hospital name, address, watermarks,
+signatures, form numbers". Same 10 images, same engines.
+
+| Engine | n | CER median | CER mean | CER max | Wall median |
+|---|---|---|---|---|---|
+| MLX 3b q4 | 10 | 4.941 | 14.579 | 83.194 | 10.3 s |
+| MLX 3b q8 | 10 | 5.114 | 11.783 | 44.978 | 13.2 s |
+| **Gemini 3 Flash** | 10 | **0.432** | **0.539** | **1.495** | 23.7 s |
+| Gemini 3.1 Pro | 10 | 0.303 | 11.770 | 113.750 (T002 outlier) | 31.6 s |
+
+**Field-targeted prompt collapses Flash's CER from 3.8 → 0.4 (8× better).**
+Same prompt has near-zero effect on MLX — the 3b VLM doesn't follow the
+"do not include the hospital header" instruction; output is still ~5×
+ground-truth length on most cases. That's a model-capacity / instruction-
+following limit, not a quantization issue (q8 doesn't help either).
+
+Pro's median is even better (0.303) but one outlier (T002 = 113.750)
+breaks the mean — Pro emitted 10,044 characters for an 88-char ground
+truth. Likely included internal reasoning in the output stream. Pro
+needs a length cap or response post-filter to be usable as a Curator
+escalation tier.
+
+### Production recommendation (revised)
+
+| Tier | Engine | Use case | Latency | Cost / page |
+|---|---|---|---|---|
+| **Tier 1 — default** | Gemini 3 Flash + field prompt | Real Thai medical certs | ~24 s | ~$0.0001 |
+| Tier 2 — escalation | Gemini 3.1 Pro + length cap | Curator-flagged hard cases | ~30 s | ~$0.05 |
+| Tier 0 — PHI-strict | MLX 3b q4 + body-region crop | Tenants with `ocr_phi_strict=true` | ~10 s | $0 (local) |
+
+The MLX tier needs help to be production-ready on real photographed
+certs:
+- Pre-processing: crop the body region (between header and footer) so
+  the model can't see hospital identity headers.
+- Or: post-process the response to strip everything before "Patient
+  Name:" and after "Doctor Comment:" / signature blocks.
+- Or: route MLX-extracted text through a second LLM call ("keep only
+  the patient/doctor/HN/diagnosis/comment fields") — adds latency but
+  bridges the quality gap.
+
+### Open follow-ups
+
+- [ ] **Length cap heuristic** in syn-api smart router — kill any
+      response > 3× ground-truth template length, fall back to Flash.
+- [ ] **Body-region crop pre-processor** — likely the highest-leverage
+      win for the MLX tier.
+- [ ] **Fine-tune Typhoon-OCR-3b on field-extraction format** — Sprint
+      55-57 candidate alongside the Thai medical NER plan.
+- [ ] **Real-photo eval set expansion** — n=10 is too small to draw
+      strong conclusions. Aim for 50-100 once B-50h.1 partner-hospital
+      flow is live.
+- [ ] **Ground-truth definition fix** — CSV currently holds content-only.
+      Either re-transcribe to "all visible text" OR add a separate
+      field-only metric. Both are useful; the content-only one is the
+      one Asgard's downstream pipelines actually care about.
