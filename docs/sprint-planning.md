@@ -100,19 +100,19 @@ Hand-patched secret rotation across services to break out of pre-rotation defaul
 ### Week 1 (P0)
 | Task | Component | Description | Status |
 |:--|:--|:--|:--|
-| Flip Syn integ-test from advisory → gating | 🏰 Asgard CI | After 2 weeks of stable green, drop `continue-on-error` on syn cargo test + syn-api Forseti scenarios | 📝 Planned |
-| Skuggi W2 image redaction design | 🌑 Skuggi | ADR follow-up: OCR bbox-based PII blur before cloud Tier 2/3 image submission | 📝 Planned |
+| Flip Syn integ-test from advisory → gating | 🏰 Asgard CI | After 2 weeks of stable green, drop `continue-on-error` on syn cargo test + syn-api Forseti scenarios. Gate thresholds = [04_09 Syn OCR Baseline](../../Mimir/docs/04_evaluation_and_testing/04_09_Syn_OCR_Baseline_2026-05-12.md) §Regression Gates | 🟢 Gate scaffolding shipped 2026-05-12: `Syn/benchmarks/gate_check.py` + `TC_SYN_10/11` in `Forseti/examples/test_scripts/syn_e2e.yaml`. Both gates verified passing on latest reports. Pending: 2 weeks stable green to flip `continue-on-error`. |
+| Skuggi W2 image redaction design | 🌑 Skuggi | ADR follow-up: OCR bbox-based PII blur before cloud Tier 2/3 image submission. **Design only this sprint — implementation MUST start Sprint 52 to keep Sprint 54 cloud-enablement on track** | 📝 Planned |
+| OCR cost guard hard-stop | 🧠 Mimir (B-50m) | Verify the per-tenant monthly budget enforcement actually 429s at the boundary (right now only logs). **Promoted P1→P0:** Sprint 54 cloud OCR enablement depends on this — can't open the cloud tap without a hard stop | 📝 Planned (was P1 W2) |
 | Curator review queue UI | 🧠 Mimir Dashboard | Wire `/api/v1/syn/ocr/review-queue` + `/documents/{id}/review` to a Curator-only admin page (B-50f follow-up) | 📝 Planned |
 | ~~Eir ocr_extract end-to-end smoke~~ | 🏥↔📨↔👁️ | Trigger an Eir agent OCR call → Hermodr `ocr_extract` tool → syn-api `/extract` → assert audit row | ✅ **Done 2026-05-12** — JSON-RPC path verified via new `hermodr-syn` sidecar (Syn PR #11). Audit row id=`687f51b4` in `ocr_documents`. |
-| Bifrost overseer per-agent tool wire-up | ⚡ Bifrost | `swarm_engine/overseer.rs:151` stubs `_agent_tools` — agents can't explicitly call ocr_extract yet (transparent OCR via B-50d is the only active path). Wire the `agent_configs.tools` JSON to Bifrost's Rig tool registry. | 🆕 Discovered 2026-05-12 during P0 smoke — promoted to P0 since the allowlist migration is otherwise inert |
+| Bifrost overseer per-agent tool wire-up | ⚡ Bifrost | `swarm_engine/overseer.rs:151` stubs `_agent_tools` — agents can't explicitly call ocr_extract yet (transparent OCR via B-50d is the only active path). Wire the `agent_configs.tools` JSON to Bifrost's Rig tool registry. | 🆕 Discovered 2026-05-12 during P0 smoke — promoted to P0 since the allowlist migration is otherwise inert. ⚠️ Week-1 P0 load now 5 tasks; if capacity is tight, slip "Curator review queue UI" to W2 |
+| sprint-planning.md auto-refresh | 🏰 Asgard | Generate this doc from PR labels + git tags so it stops going stale. **Pulled up from W2 P1:** higher ROI early — every drift week costs review time | 📝 Planned (was P1 W2) |
 
 ### Week 2 (P1)
 | Task | Component | Description | Status |
 |:--|:--|:--|:--|
-| Sprint 51e leftovers | 🔐 Infra | Finish Step 3 (Laminar) + 7b (Eir) + 8 (Masterkey) rotations | 📝 Planned |
+| Sprint 51e leftovers — scoped | 🔐 Infra | Step 7b (Eir) + Step 8 (Masterkey) — in-house, predictable. **Step 3 (Laminar) re-deferred to Sprint 52** unless a dedicated half-day spike resolves the third-party complexity first. Don't bundle it again without scoping | 📝 Planned |
 | Python sidecar pytest | 👁️ Syn | Smoke tests for paddleocr-sidecar + pythainlp-sidecar (`/healthz`, `/extract` fake-image path) | 📝 Planned |
-| OCR cost guard hard-stop | 🧠 Mimir (B-50m) | Verify the per-tenant monthly budget enforcement actually 429s at the boundary (right now only logs) | 📝 Planned |
-| sprint-planning.md auto-refresh | 🏰 Asgard | Generate this doc from PR labels + git tags so it stops going stale | 📝 Planned |
 
 ### Stretch (P2)
 | Task | Component | Description |
@@ -132,7 +132,8 @@ Hand-patched secret rotation across services to break out of pre-rotation defaul
 - **Gating:** gemma-local only by default. Cloud LLM blocked until Sprint 54.
 
 ### Sprint 54 — Insurance Cloud Enablement
-- Blocked on: Skuggi W2 image redaction + W3 NER (or Sprint 55-57 ONNX if PyThaiNLP fails recall gate)
+- Blocked on: (a) Skuggi W2 image redaction + W3 NER (or Sprint 55-57 ONNX if PyThaiNLP fails recall gate), (b) OCR cost guard hard-stop (Sprint 51 W1 P0)
+- Cloud reference engine = `gemini-3-flash` (10× cheaper than 3.1-pro, equivalent CER on Thai handwriting — see [04_09 Syn OCR Baseline](../../Mimir/docs/04_evaluation_and_testing/04_09_Syn_OCR_Baseline_2026-05-12.md))
 - Flips `ocr_cloud_flash_enabled` per insurance sub-tenant once Skuggi covers both text and image surfaces
 
 ### Sprint 55-57 (gated) — Thai Medical NER Fine-tune
