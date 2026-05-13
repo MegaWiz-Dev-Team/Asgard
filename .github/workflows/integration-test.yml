@@ -2,11 +2,15 @@
 #
 # Runs on the self-hosted Mac mini runner. The runner has the full Asgard dev
 # tree under /Users/mimir/Developer, so we orchestrate against sibling repos
-# (Forseti, Bifrost) at their canonical paths rather than re-cloning each one.
+# (Forseti) at their canonical paths rather than re-cloning each one.
 #
-# Forseti is the system of record: every test run — its own YAML scenarios and
-# Bifrost's pytest output — is POSTed to /api/runs and shown on the dashboard
-# at http://forseti.asgard.internal:30555.
+# Forseti is the system of record: every test run is POSTed to /api/runs and
+# shown on the dashboard at http://forseti.asgard.internal:30555.
+#
+# Scope: HTTP-level integration scenarios only. Rust unit tests
+# (`cargo test`) live in a pre-merge workflow — they belong upstream of
+# deployment, not after it, and would otherwise need either a port-forwarded
+# MariaDB or a committed .sqlx/ cache for sqlx::query! macros to compile.
 name: Integration Tests
 
 on:
@@ -28,30 +32,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve Python interpreters
+      - name: Resolve Python interpreter
         id: py
         # actions/setup-python@v5 hardcodes /Users/runner/hostedtoolcache on
         # macOS and ignores AGENT_TOOLSDIRECTORY — broken on this self-hosted
-        # runner (user is `mimir`). Each sibling repo manages its own .venv,
-        # so we just verify they exist and surface paths for later steps.
+        # runner (user is `mimir`). Forseti ships its own .venv on the host;
+        # we just verify and surface its path.
         run: |
           FORSETI_PY="${ASGARD_DEV_ROOT}/Forseti/.venv/bin/python"
-          BIFROST_PY="${ASGARD_DEV_ROOT}/Bifrost/.venv/bin/python"
-          SYSTEM_PY=$(command -v python3.11 || command -v python3)
-
-          for v in "$FORSETI_PY" "$BIFROST_PY"; do
-            if [ ! -x "$v" ]; then
-              echo "::error::missing venv interpreter: $v — bootstrap with 'python3 -m venv .venv && .venv/bin/pip install -r requirements.txt'"
-              exit 1
-            fi
-          done
+          if [ ! -x "$FORSETI_PY" ]; then
+            echo "::error::missing Forseti venv interpreter: $FORSETI_PY — bootstrap with 'python3 -m venv .venv && .venv/bin/pip install -r requirements.txt'"
+            exit 1
+          fi
           echo "forseti_py=$FORSETI_PY" >> "$GITHUB_OUTPUT"
-          echo "bifrost_py=$BIFROST_PY" >> "$GITHUB_OUTPUT"
-          echo "system_py=$SYSTEM_PY" >> "$GITHUB_OUTPUT"
-
           echo "Forseti  $($FORSETI_PY --version)"
-          echo "Bifrost  $($BIFROST_PY --version)"
-          echo "System   $($SYSTEM_PY --version 2>/dev/null || echo missing)"
 
       - name: Wait for services
         run: |
@@ -67,14 +61,16 @@ jobs:
             echo "✅ Forseti dashboard reachable at ${FORSETI_URL}"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "⚠️  Forseti unreachable — results will not be ingested into dashboard"
+            echo "::error::Forseti unreachable at ${FORSETI_URL} — cannot proceed with integration tests"
+            exit 1
           fi
 
       - name: Run Forseti YAML scenarios (bifrost-api)
         id: forseti_scenarios
-        continue-on-error: true
         env:
           FORSETI_REPO: ${{ env.ASGARD_DEV_ROOT }}/Forseti
+        # This step is the actual gate: bifrost-api scenarios cover the
+        # critical HTTP paths of the deployed Bifrost orchestrator.
         run: |
           set -o pipefail
           cd "$FORSETI_REPO"
@@ -95,91 +91,6 @@ jobs:
           cd "$FORSETI_REPO"
           "${{ steps.py.outputs.forseti_py }}" run_e2e.py --project syn-api
 
-      - name: Run Syn cargo test (syn-api smart router unit tests)
-        id: syn_cargo_test
-        continue-on-error: true
-        env:
-          SYN_REPO: ${{ env.ASGARD_DEV_ROOT }}/Syn
-          # mimir-core-ai isn't a dep here but pin offline for parity with
-          # the Bifrost step — Syn uses sqlx::query! macros directly.
-          SQLX_OFFLINE: "true"
-        run: |
-          set -o pipefail
-          cd "$SYN_REPO/services/api"
-          cargo test --release --no-fail-fast 2>&1 | tee /tmp/syn-cargo-test.log
-          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
-
-      - name: Run Bifrost cargo test
-        id: bifrost_pytest
-        continue-on-error: true
-        env:
-          BIFROST_REPO: ${{ env.ASGARD_DEV_ROOT }}/Bifrost
-          # mimir-core-ai (Mimir path dep) uses sqlx::query! macros that
-          # require either a live DATABASE_URL or pre-computed query metadata
-          # in .sqlx/. Force offline mode so cargo test doesn't try to
-          # connect to a DB during compilation.
-          SQLX_OFFLINE: "true"
-        # Bifrost was Python until Sprint 38; the rewrite is now Rust
-        # (`Cargo.toml` v0.3.0+). The old `pytest tests/` step failed
-        # with ModuleNotFoundError since the tests imported from
-        # `bifrost.X` Python packages that no longer exist (deleted in
-        # Bifrost #15). Run `cargo test` instead; emit a stub junit so
-        # the downstream Forseti push step keeps working.
-        #
-        # Step name + output id kept as `bifrost_pytest` for back-compat
-        # with the Forseti ingest scripts.
-        run: |
-          cd "$BIFROST_REPO"
-          mkdir -p .test-results
-          JUNIT="$BIFROST_REPO/.test-results/bifrost-pytest.xml"
-          echo "junit=$JUNIT" >> "$GITHUB_OUTPUT"
-          set +e
-          # cargo test produces TAP, not junit. Use cargo2junit if
-          # available; otherwise fall back to a minimal junit stub
-          # carrying the pass/fail outcome so Forseti still gets a row.
-          if command -v cargo2junit >/dev/null 2>&1; then
-            cargo test --release --no-fail-fast -- -Z unstable-options --format json 2>&1 \
-              | cargo2junit > "$JUNIT" || true
-            EXIT=${PIPESTATUS[0]}
-          else
-            cargo test --release --no-fail-fast 2>&1 | tee /tmp/bifrost-cargo-test.log
-            EXIT=${PIPESTATUS[0]}
-            # Synthesize a single-row junit so the push step works.
-            # Avoid YAML-breaking heredoc: build the XML with echo lines
-            # so every line stays inside the `run: |` block scalar's indent.
-            if [ "$EXIT" = "0" ]; then
-              FAILURES=0
-              CASE='<testcase classname="bifrost" name="cargo_test"/>'
-            else
-              FAILURES=1
-              CASE="<testcase classname=\"bifrost\" name=\"cargo_test\"><failure message=\"cargo test exit $EXIT\"/></testcase>"
-            fi
-            {
-              echo '<?xml version="1.0" encoding="UTF-8"?>'
-              echo '<testsuites>'
-              echo "  <testsuite name=\"bifrost-cargo-test\" tests=\"1\" failures=\"$FAILURES\">"
-              echo "    $CASE"
-              echo '  </testsuite>'
-              echo '</testsuites>'
-            } > "$JUNIT"
-          fi
-          echo "exit_code=$EXIT" >> "$GITHUB_OUTPUT"
-          exit $EXIT
-
-      - name: Push Bifrost pytest results to Forseti
-        if: always() && steps.forseti_up.outputs.available == 'true' && steps.bifrost_pytest.outputs.junit != ''
-        env:
-          FORSETI_REPO: ${{ env.ASGARD_DEV_ROOT }}/Forseti
-        run: |
-          "${{ steps.py.outputs.forseti_py }}" "$FORSETI_REPO/scripts/junit_to_forseti.py" \
-            --junit "${{ steps.bifrost_pytest.outputs.junit }}" \
-            --suite bifrost-pytest \
-            --phase SIT \
-            --base-url http://bifrost.asgard-services.svc:8000 \
-            --commit "${{ github.event.workflow_run.head_sha || github.sha }}" \
-            --version "${{ github.event.workflow_run.head_branch || github.ref_name }}" \
-            --forseti-url "$FORSETI_URL" || true
-
       - name: Service health summary
         if: always()
         run: |
@@ -187,6 +98,11 @@ jobs:
             echo "## 📊 Integration Test Results"
             echo ""
             echo "Dashboard: [Forseti @ ${FORSETI_URL}](${FORSETI_URL})"
+            echo ""
+            echo "| Suite | Outcome |"
+            echo "|:--|:--|"
+            echo "| bifrost-api (gate) | ${{ steps.forseti_scenarios.outcome }} |"
+            echo "| syn-api (advisory) | ${{ steps.forseti_scenarios_syn.outcome }} |"
             echo ""
             echo "| Service | Health |"
             echo "|:--|:--|"
@@ -201,14 +117,3 @@ jobs:
               echo "| $svc | ❌ |" >> "$GITHUB_STEP_SUMMARY"
             fi
           done
-
-      - name: Aggregate test outcome
-        if: always()
-        run: |
-          # Mark job failed if pytest had failures, otherwise pass.
-          # Forseti scenarios are advisory (continue-on-error) so they don't gate.
-          if [ "${{ steps.bifrost_pytest.outcome }}" = "failure" ]; then
-            echo "❌ Bifrost pytest reported failures — see Forseti dashboard for breakdown"
-            exit 1
-          fi
-          echo "✅ Bifrost pytest passed"
