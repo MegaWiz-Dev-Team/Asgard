@@ -2,7 +2,7 @@
 
 > A self-hosted AI platform running entirely on Apple Silicon & NVIDIA GPU.
 >
-> *Updated: 2026-03-14 — Eir Gateway Chat UI, MCP/A2A integration protocol (8 components)*
+> *Updated: 2026-05-14 — Voice I/O components (Sága STT + Bragi TTS), LLM Observability (Laminar), 14 components total*
 
 ## High-Level Overview
 
@@ -441,6 +441,32 @@ graph LR
 
 ---
 
+### 🎵 Bragi — Text-to-Speech (Voice Synthesis)
+
+```mermaid
+graph LR
+    Input["📝 Text Input<br/>(UTF-8)"] --> Synthesis["🎵 TTS Engine<br/>(ONNX / piper)"]
+    Synthesis --> Stream["🔊 Audio Output<br/>(WAV/MP3)"]
+    Stream --> Streaming["📡 Streaming<br/>(chunked HTTP)"]
+    
+    Streaming --> Response["🔊 Response<br/>(SSE Audio Stream)"]
+
+    style Input fill:#7c2d12,stroke:#ea580c
+    style Synthesis fill:#7c2d12,stroke:#ea580c
+    style Response fill:#7c2d12,stroke:#ea580c
+```
+
+| Feature | Description |
+|:--|:--|
+| **Stack** | Python (FastAPI + piper-tts or Coqui TTS) |
+| **Port** | `8400` (localhost, chains with Bifrost) |
+| **Protocol** | REST + SSE (audio stream) |
+| **Models** | On-device ONNX (Thai, English, multilingual) |
+| **Integration** | Pairs with Sága (STT) for bidirectional conversation; chains with Bifrost for LLM response synthesis |
+| **Repo** | [MegaWiz-Dev-Team/Bragi](https://github.com/MegaWiz-Dev-Team/Bragi) |
+
+---
+
 ## Network Map
 
 ```mermaid
@@ -500,5 +526,8 @@ graph LR
 | **Computer Use** | Python (Browser Use + FHIR) | Natural language browser control, OpenEMR integration |
 | **Clinic Gateway** | Rust (Axum) + OpenEMR | FHIR R4, MCP Server, Chat UI, rate limiting |
 | **Monitoring** | Rust (Axum) + Docker CLI | Real-time service health, logs, and metrics |
+| **Observability** | Rust (Laminar) + ClickHouse + OpenTelemetry | LLM trace, evals, latency metrics |
+| **Speech-to-Text** | Python (Sága) + Whisper.cpp | Real-time transcription + streaming |
+| **Text-to-Speech** | Python (Bragi) + piper/Coqui | On-device voice synthesis + streaming |
 | **Protocol** | MCP + A2A | MCP for tool calls, A2A for task delegation |
 | **Hardware** | Mac Mini M4 Pro, 64GB | Unified memory, 273 GB/s bandwidth |

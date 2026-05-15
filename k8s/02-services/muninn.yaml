@@ -1,0 +1,61 @@
+# 🐦 Muninn — Auto-fix & Remediation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: muninn
+  namespace: asgard
+  labels:
+    app: muninn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: muninn
+  template:
+    metadata:
+      labels:
+        app: muninn
+    spec:
+      containers:
+      - name: muninn
+        image: asgard-muninn:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8500
+        env:
+        - name: PORT
+          value: "8500"
+        - name: RUST_LOG
+          value: info
+        - name: HEIMDALL_URL
+          value: http://host.docker.internal:8080
+        envFrom:
+        - secretRef:
+            name: asgard-secrets
+            optional: true
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8500
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 50m
+          limits:
+            memory: 256Mi
+            cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: muninn
+  namespace: asgard
+spec:
+  selector:
+    app: muninn
+  ports:
+  - port: 8500
+    targetPort: 8500
+  type: ClusterIP

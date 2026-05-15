@@ -1,7 +1,7 @@
 # PM-01: Project Plan (แผนโครงการ)
 **Project Name:** Asgard AI Platform (Umbrella)
-**Document Version:** 3.0
-**Date:** 2026-03-16 (updated — TOR Gap Analysis + 3 New Services)
+**Document Version:** 3.1
+**Date:** 2026-05-14 (updated — Bragi TTS component named; Sága clarified as STT-only)
 **Standard:** ISO/IEC 29110 — PM Process
 
 ---
@@ -9,7 +9,7 @@
 ## 1. Project Scope & Objectives (ขอบเขตและวัตถุประสงค์)
 
 ### เป้าหมาย
-พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย **13 components** ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
+พัฒนาแพลตฟอร์ม AI แบบ Self-Hosted ครบวงจร ภายใต้ชื่อ **Asgard** ประกอบด้วย **14 components** ที่ทำงานร่วมกันผ่าน Docker Compose เพื่อให้องค์กรสามารถรัน AI stack ทั้งหมดบน hardware ของตัวเอง
 
 > **TOR Gap Closure**: Platform ถูกขยายเพื่อรองรับ TOR AI Agent OPS (ประกันภัย — Dhipaya Life) ผ่าน gap analysis จาก 46% → 85%+ coverage — ดู [Sprint Plan](../strategy/asgard_sprint_plan_gap_to_action.md)
 
@@ -26,7 +26,8 @@
 | 🐦‍⬛ **Huginn** | MegaWiz-Dev-Team/Huginn | Security Scanner — Multi-Agent Pentest + DAST/SAST + LLM Security (Rust) | v0.1.0 | 36 tests | 🚧 Sprint 2 Complete |
 | 🐦 **Muninn** | MegaWiz-Dev-Team/Muninn | Auto-Fixer — Issue Watcher + Multi-Agent Fix Pipeline (Rust) | v0.1.0 | 37 tests | 🚧 Sprint 2 Complete |
 | 👁️ **Syn** | MegaWiz-Dev-Team/Syn | Document Vision & Identity — OCR + eKYC (Python) | — | — | 🆕 Planned (Apr 2026) |
-| 🗣️ **Sága** | MegaWiz-Dev-Team/Saga | Speech & Voice — STT (Whisper) + Streaming (Python) | — | — | 🆕 Planned (May 2026) |
+| 🗣️ **Sága** | MegaWiz-Dev-Team/Saga | Speech-to-Text — STT (Whisper) + Streaming (Python) | — | — | 🆕 Planned (May 2026) |
+| 🎵 **Bragi** | MegaWiz-Dev-Team/Bragi | Text-to-Speech — TTS synthesis + streaming (Python) | — | — | 🆕 Planned (Jun 2026) |
 | 📨 **Hermóðr** | MegaWiz-Dev-Team/Hermodr | MCP Sidecar — Universal Rust JSON-RPC bridge for REST services | v0.1.0 | 37 tests | ✅ Sprint 6 Complete |
 | 🏰 Asgard | MegaWiz-Dev-Team/Asgard | Umbrella — docs, Docker Compose, strategy | — | — | 📄 Active |
 
@@ -43,6 +44,7 @@
 | Muninn | 37 | Rust (#[cfg(test)]) | Watcher + Fixer + LLM + DB + Health |
 | Syn | — | pytest | Planned (Apr 2026) |
 | Sága | — | pytest | Planned (May 2026) |
+| Bragi | — | pytest | Planned (Jun 2026) |
 | Hermóðr | 37 | Rust (#[cfg(test)]) | MCP Sidecar tools + proxy + JSON-RPC |
 | **Total** | **647+** | | |
 

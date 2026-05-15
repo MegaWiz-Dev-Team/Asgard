@@ -38,6 +38,12 @@ spec:
               valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_CLIENT_ID } }
             - name: YGGDRASIL_CLIENT_SECRET
               valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: YGGDRASIL_CLIENT_SECRET } }
+            - name: HEIMDALL_API_KEY
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: HEIMDALL_API_KEY } }
+            - { name: SYNC_HEIMDALL_URL, value: {{ .Values.global.heimdallUrl | trimSuffix "/v1" | quote }} }
+            - { name: SYNC_OLLAMA_URL, value: {{ .Values.global.ollamaUrl | quote }} }
+            - name: GEMINI_API_KEY
+              valueFrom: { secretKeyRef: { name: {{ .Values.global.secretsName | default "asgard-secrets" }}, key: GEMINI_API_KEY } }
           readinessProbe:
             httpGet: { path: /healthz, port: 8080 }
             initialDelaySeconds: 10

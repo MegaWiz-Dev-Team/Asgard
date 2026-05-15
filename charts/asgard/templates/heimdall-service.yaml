@@ -1,0 +1,19 @@
+{{- if .Values.global.heimdallExternalName }}
+# ExternalName service to expose host's Heimdall (native MLX) to K8s pods
+# Bifrost, Mimir API, and other services access via: http://heimdall-host.asgard.svc:8080
+apiVersion: v1
+kind: Service
+metadata:
+  name: heimdall-host
+  namespace: {{ .Values.global.namespace | default "asgard" }}
+spec:
+  type: ExternalName
+  externalName: {{ .Values.global.heimdallExternalName }}
+  ports:
+  - name: gateway
+    port: 8080
+    protocol: TCP
+  - name: embedding
+    port: 8081
+    protocol: TCP
+{{- end }}

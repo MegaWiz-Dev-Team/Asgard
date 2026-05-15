@@ -1,0 +1,61 @@
+# 🦅 Huginn — Analytics & Event Logging
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: huginn
+  namespace: asgard
+  labels:
+    app: huginn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: huginn
+  template:
+    metadata:
+      labels:
+        app: huginn
+    spec:
+      containers:
+      - name: huginn
+        image: asgard-huginn:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8400
+        env:
+        - name: PORT
+          value: "8400"
+        - name: RUST_LOG
+          value: info
+        - name: HEIMDALL_URL
+          value: http://host.docker.internal:8080
+        envFrom:
+        - secretRef:
+            name: asgard-secrets
+            optional: true
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8400
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 50m
+          limits:
+            memory: 256Mi
+            cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: huginn
+  namespace: asgard
+spec:
+  selector:
+    app: huginn
+  ports:
+  - port: 8400
+    targetPort: 8400
+  type: ClusterIP

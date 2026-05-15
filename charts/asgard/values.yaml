@@ -17,8 +17,9 @@ global:
   # Create with: kubectl create secret docker-registry ghcr-secret \
   #   --docker-server=ghcr.io --docker-username=<user> --docker-password=<PAT> -n <ns>
   imagePullSecret: ""
-  heimdallUrl: http://host.docker.internal:8080/v1  # OpenAI-compat path required for bifrost
-  ollamaUrl: http://host.docker.internal:8080  # legacy ollama path (no /v1)
+  heimdallUrl: http://heimdall-host.asgard.svc:8080/v1  # K8s service DNS (ExternalName)
+  heimdallExternalName: host.docker.internal  # Set to actual hostname for ExternalName service
+  ollamaUrl: http://heimdall-host.asgard.svc:8080  # legacy ollama path (no /v1)
   rustLog: info
   logLevel: info
 

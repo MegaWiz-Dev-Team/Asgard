@@ -1,0 +1,93 @@
+# 👁️ Syn — OCR & Document Intelligence
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syn-api-config
+  namespace: asgard
+data:
+  PORT: "8080"
+  RUST_LOG: info,syn_api=debug
+  GEMINI_BASE_URL: https://generativelanguage.googleapis.com/v1beta/openai/
+  SYN_GEMINI_FLASH_API_MODEL: gemini-3-flash-preview
+  SYN_GEMINI_PRO_API_MODEL: gemini-3-pro-preview
+  SYN_PADDLE_URL: http://paddleocr:8091
+  SYN_TYPHOON_URL: http://host.orb.internal:8080/v1
+  SYN_TYPHOON_MODEL: MegawizCo/typhoon-ocr-3b-mlx-q4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syn-api
+  namespace: asgard
+  labels:
+    app: syn-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syn-api
+  template:
+    metadata:
+      labels:
+        app: syn-api
+    spec:
+      containers:
+      - name: syn-api
+        image: syn-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+        - name: MARIADB_URL
+          valueFrom:
+            secretKeyRef:
+              key: MIMIR_DATABASE_URL
+              name: asgard-secrets
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: GEMINI_API_KEY
+              name: syn-api-secrets
+              optional: true
+        - name: SYN_TYPHOON_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: HEIMDALL_API_KEY
+              name: asgard-secrets
+              optional: true
+        envFrom:
+        - configMapRef:
+            name: syn-api-config
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 2
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syn-api
+  namespace: asgard
+spec:
+  selector:
+    app: syn-api
+  ports:
+  - port: 8080
+    targetPort: http
+  type: ClusterIP
