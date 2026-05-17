@@ -137,10 +137,10 @@ kubectl wait --for=delete pod -l app=neo4j -n asgard-infra --timeout=90s
 echo "   ${GREEN}✓${NC} Neo4j pod terminated"
 
 # ============================================
-# Step 4: Clear auth files via helper pod
+# Step 4: Clear auth state via helper pod (auth file + system database)
 # ============================================
 echo ""
-echo "🔄 Step 4/8: Clear auth state in /data/dbms…"
+echo "🔄 Step 4/8: Clear auth state (auth.ini + system DB)..."
 
 # Use kubectl run + --overrides for PVC mount
 cat <<'EOF' > /tmp/neo4j-auth-reset.yaml
@@ -157,12 +157,32 @@ spec:
       command: ["sh","-c"]
       args:
         - |
+          # Neo4j 5 keeps user records in /data/databases/system, not just
+          # /data/dbms/auth*. Deleting only auth.ini lets neo4j boot but the
+          # entrypoint's `neo4j-admin dbms set-initial-password` silently
+          # fails because the user already exists in the system DB →
+          # NEO4J_AUTH is ignored and the old password remains active.
+          #
+          # We delete:
+          #   /data/dbms/auth*                — local auth file
+          #   /data/databases/system           — Neo4j metadata DB (users, roles, db registry)
+          #   /data/transactions/system        — transaction log for the system DB
+          #
+          # Preserved:
+          #   /data/databases/neo4j            — actual graph data
+          #   /data/transactions/neo4j         — graph transaction log
           echo "Before:"
-          ls -la /data/dbms/ 2>/dev/null || echo "  (dbms not yet created)"
-          rm -f /data/dbms/auth /data/dbms/auth.ini
+          ls -la /data/dbms/ /data/databases/ /data/transactions/ 2>/dev/null
+          echo ""
+          rm -f  /data/dbms/auth /data/dbms/auth.ini
+          rm -rf /data/databases/system
+          rm -rf /data/transactions/system
           echo ""
           echo "After:"
-          ls -la /data/dbms/ 2>/dev/null || echo "  (dbms not yet created)"
+          ls -la /data/dbms/ /data/databases/ /data/transactions/ 2>/dev/null
+          echo ""
+          echo "Graph data preserved:"
+          ls /data/databases/neo4j 2>/dev/null | head -3
           echo ""
           echo "DONE"
       volumeMounts:
