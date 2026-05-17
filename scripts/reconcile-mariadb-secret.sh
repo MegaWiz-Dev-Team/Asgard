@@ -33,18 +33,11 @@ kubectl create secret generic mariadb-secret -n "$NAMESPACE_INFRA" \
   --from-literal=MYSQL_PASSWORD="$APP_PW" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-echo "🔄 Aligning live MariaDB user password (in case auto-init used the old value)…"
-
-# Find pod
-POD=$(kubectl get pod -n "$NAMESPACE_INFRA" -l app=mariadb -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-if [ -z "$POD" ]; then
-  echo "⚠️  MariaDB pod not found — skipping ALTER USER (will apply on next pod start)"
-else
-  kubectl exec -n "$NAMESPACE_INFRA" "$POD" -- \
-    mariadb -u root -p"$ROOT_PW" -e \
-    "ALTER USER 'mimir'@'%' IDENTIFIED BY '$APP_PW'; FLUSH PRIVILEGES;" \
-    && echo "✅ Live MariaDB password aligned"
-fi
+# Note: this script only syncs the mariadb-secret resource to match
+# asgard-secrets. It does NOT run ALTER USER on the live database — that's
+# the job of rotate-mariadb-password.sh, which sets both the live password
+# AND the asgard-secrets value atomically. PVC-fresh init also reads from
+# mariadb-secret (now correct), so the sync alone is sufficient for that path.
 
 echo ""
 echo "✅ Reconcile complete."

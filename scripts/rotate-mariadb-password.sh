@@ -21,6 +21,39 @@ echo "${GREEN}━━━━━━━━━━━━━━━━━━━━━━
 echo "${GREEN}MariaDB password rotation${NC}"
 echo "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
+# ----- Helpers: URL-encode + SQL-escape -----
+# URL-encode keeps only RFC 3986 unreserved chars + percent-encodes the rest.
+# Required because MIMIR_DATABASE_URL contains the password as URL userinfo
+# and characters like @ : / # ? must be percent-encoded there.
+urlencode() {
+  local s="$1" i c
+  for ((i=0; i<${#s}; i++)); do
+    c="${s:$i:1}"
+    case "$c" in
+      [a-zA-Z0-9.~_-]) printf '%s' "$c" ;;
+      *)               printf '%%%02X' "'$c" ;;
+    esac
+  done
+}
+
+# SQL-escape for MariaDB string literals: doubles `'` and escapes `\`.
+# Both treatments survive default MariaDB sql_mode (with or without
+# NO_BACKSLASH_ESCAPES).
+sql_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"   # backslash → \\
+  s="${s//\'/\'\'}"   # single quote → ''
+  printf '%s' "$s"
+}
+
+# ----- Offer auto-generated URL/SQL-safe password -----
+SUGGESTED=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 48)
+echo "Suggested random password (48-char alphanumeric, safe for URL + SQL):"
+echo "  ${YELLOW}${SUGGESTED}${NC}"
+echo "Copy/paste this, or type your own. Avoid these chars in custom passwords:"
+echo "  @ : / # ? & = % \\ ' \" \$ (they need escaping and break URLs)"
+echo
+
 # ----- Prompt for new password (twice) -----
 IFS= read -rsp "Enter NEW MariaDB password (hidden): " NEW_PW
 echo
@@ -39,6 +72,21 @@ if [ ${#NEW_PW} -lt 16 ]; then
   read -rp "Continue anyway? (y/N) " yn
   [ "$yn" = "y" ] || exit 1
 fi
+
+# Warn (don't block) on chars that REQUIRE encoding. Script handles them
+# correctly via urlencode + sql_escape, but a clean alphanumeric password
+# is easier to copy/paste between tools.
+if [[ "$NEW_PW" =~ [@:/\#\?\&\=\%\\\"\'\$\ ] ]]; then
+  echo "${YELLOW}⚠  Password contains chars that need URL/SQL encoding.${NC}"
+  echo "    Script handles them correctly, but a clean alphanumeric password"
+  echo "    is portable across more tools."
+  read -rp "Continue with this password? (y/N) " yn
+  [ "$yn" = "y" ] || exit 1
+fi
+
+# Compute encoded forms once (used in steps 1, 2, 3)
+NEW_PW_URL=$(urlencode "$NEW_PW")
+NEW_PW_SQL=$(sql_escape "$NEW_PW")
 
 # ----- Read current password (for backup + rollback) -----
 echo "📋 Reading current MariaDB password for rollback…"
@@ -63,9 +111,13 @@ if [ "$NEW_PW" = "$CURRENT_PW" ]; then
 fi
 
 # ----- Verify current password actually works -----
+# Pass password via stdin instead of -p to avoid shell-escaping problems
+# when the current password contains chars like @ : / etc.
 echo "🔍 Verifying current password works against live MariaDB…"
-if ! kubectl exec -n asgard-infra deploy/mariadb -- \
-       mariadb -u mimir -p"$CURRENT_PW" -e "SELECT 1;" >/dev/null 2>&1; then
+if ! printf '[client]\nuser=mimir\npassword=%s\n' "$CURRENT_PW" | \
+     kubectl exec -i -n asgard-infra deploy/mariadb -- \
+       sh -c 'cat > /tmp/.my.cnf && mariadb --defaults-file=/tmp/.my.cnf -e "SELECT 1;" ; rm -f /tmp/.my.cnf' \
+     >/dev/null 2>&1; then
   echo "${RED}❌ Current password from asgard-secrets does not work against live MariaDB.${NC}"
   echo "   Aborting — the cluster state has drifted further than this script can safely handle."
   echo "   Backup of (broken) current password: ${BACKUP_FILE}"
@@ -92,9 +144,10 @@ fi
 # ============================================
 echo ""
 echo "🔄 Step 1/4: ALTER USER on MariaDB…"
-kubectl exec -n asgard-infra deploy/mariadb -- \
-  mariadb -u root -proot -e \
-  "ALTER USER 'mimir'@'%' IDENTIFIED BY '$NEW_PW'; FLUSH PRIVILEGES;"
+# Pipe the SQL via stdin so the password (with SQL-escaped quotes) doesn't
+# get mangled by the shell -e argument parser.
+printf "ALTER USER 'mimir'@'%%' IDENTIFIED BY '%s'; FLUSH PRIVILEGES;\n" "$NEW_PW_SQL" | \
+  kubectl exec -i -n asgard-infra deploy/mariadb -- mariadb -u root -proot
 echo "   ${GREEN}✓${NC} MariaDB user 'mimir' password rotated"
 
 # ============================================
@@ -103,8 +156,12 @@ echo "   ${GREEN}✓${NC} MariaDB user 'mimir' password rotated"
 echo ""
 echo "🔄 Step 2/4: Patch asgard-secrets…"
 
-NEW_DB_URL="mysql://mimir:${NEW_PW}@mariadb.asgard-infra.svc:3306/mimir"
-NEW_PW_B64=$(printf '%s' "$NEW_PW"   | base64 | tr -d '\n')
+# URL: password must be URL-encoded (RFC 3986 userinfo)
+NEW_DB_URL="mysql://mimir:${NEW_PW_URL}@mariadb.asgard-infra.svc:3306/mimir"
+# Secret stores the RAW password (not URL-encoded) for MARIADB_PASSWORD,
+# so kubectl exec / cypher / SDK clients reading it via secretKeyRef get
+# the original chars. Only the URL form needs encoding.
+NEW_PW_B64=$(printf '%s' "$NEW_PW"      | base64 | tr -d '\n')
 NEW_URL_B64=$(printf '%s' "$NEW_DB_URL" | base64 | tr -d '\n')
 
 kubectl patch secret asgard-secrets -n asgard --type=json -p="[
@@ -137,8 +194,10 @@ echo ""
 echo "🔍 Verifying…"
 sleep 3
 
-if kubectl exec -n asgard-infra deploy/mariadb -- \
-     mariadb -u mimir -p"$NEW_PW" -e "SELECT 1;" >/dev/null 2>&1; then
+if printf '[client]\nuser=mimir\npassword=%s\n' "$NEW_PW" | \
+   kubectl exec -i -n asgard-infra deploy/mariadb -- \
+     sh -c 'cat > /tmp/.my.cnf && mariadb --defaults-file=/tmp/.my.cnf -e "SELECT 1;" ; rm -f /tmp/.my.cnf' \
+   >/dev/null 2>&1; then
   echo "   ${GREEN}✓${NC} New password authenticates to MariaDB"
 else
   echo "   ${RED}✗${NC} New password failed against MariaDB — investigate immediately"

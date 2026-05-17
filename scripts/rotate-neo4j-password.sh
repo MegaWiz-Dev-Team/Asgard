@@ -33,6 +33,17 @@ echo "  the current Neo4j password is unknown (set on first boot, never recorded
 echo "  Auth files in /data/dbms will be cleared. Graph data is preserved."
 echo ""
 
+# NEO4J_AUTH env format is `user/password` — '/' separates them, so the
+# password MUST NOT contain '/'. The Neo4j Bolt driver accepts any chars
+# in the password itself, but cypher-shell needs single-quote escaping.
+
+# ----- Offer auto-generated safe password -----
+SUGGESTED=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 48)
+echo "Suggested random password (48-char alphanumeric, no / : ' \" needed):"
+echo "  ${YELLOW}${SUGGESTED}${NC}"
+echo "Copy/paste this, or type your own. Avoid: / (breaks NEO4J_AUTH parser)"
+echo
+
 # ----- Prompt for new password (twice) -----
 IFS= read -rsp "Enter NEW Neo4j password (hidden): " NEW_PW
 echo
@@ -54,6 +65,12 @@ fi
 # Neo4j has password complexity requirements; minimum 8 chars
 if [ ${#NEW_PW} -lt 8 ]; then
   echo "${RED}❌ Neo4j requires password ≥ 8 chars${NC}"; exit 1
+fi
+
+# NEO4J_AUTH uses '/' as user/password delimiter — password can NOT contain it
+if [[ "$NEW_PW" == */* ]]; then
+  echo "${RED}❌ Password contains '/' — NEO4J_AUTH parser splits on first '/', so password is misread${NC}"
+  exit 1
 fi
 
 # Backup current asgard-secrets NEO4J_PASSWORD for the record
@@ -193,8 +210,13 @@ echo "   ${GREEN}✓${NC} Neo4j pod ready"
 echo ""
 echo "🔄 Step 7/8: Verify cypher with new password…"
 ATTEMPTS=0
-until kubectl exec -n asgard-infra deploy/neo4j -- bash -c \
-        "echo 'RETURN 1 AS ok;' | cypher-shell -u neo4j -p '$NEW_PW'" >/dev/null 2>&1; do
+# Pipe password via stdin → env var → cypher-shell. Bypasses all shell
+# quoting / SQL escaping. cypher-shell reads NEO4J_PASSWORD from env when -p
+# is omitted.
+until printf '%s\n' "$NEW_PW" | \
+        kubectl exec -i -n asgard-infra deploy/neo4j -- \
+        bash -c 'IFS= read -r PW; export NEO4J_PASSWORD="$PW"; echo "RETURN 1 AS ok;" | cypher-shell -u neo4j' \
+        >/dev/null 2>&1; do
   ATTEMPTS=$((ATTEMPTS + 1))
   if [ $ATTEMPTS -ge 12 ]; then
     echo "   ${RED}✗${NC} cypher auth failed after 12 attempts — investigate"
