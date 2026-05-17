@@ -69,14 +69,25 @@ spec:
     - port: 3306
       targetPort: 3306
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mariadb-secret
-  namespace: asgard-infra
-type: Opaque
-stringData:
-  MYSQL_ROOT_PASSWORD: root
-  MYSQL_DATABASE: mimir
-  MYSQL_USER: mimir
-  MYSQL_PASSWORD: REDACTED-MARIADB-PW
+# NOTE: This Secret is no longer applied from git. Create out-of-band:
+#
+#   kubectl create secret generic mariadb-secret -n asgard-infra \
+#     --from-literal=MYSQL_ROOT_PASSWORD="$(kubectl get secret asgard-secrets -n asgard -o jsonpath='{.data.MARIADB_ROOT_PASSWORD}' | base64 -d)" \
+#     --from-literal=MYSQL_DATABASE=mimir \
+#     --from-literal=MYSQL_USER=mimir \
+#     --from-literal=MYSQL_PASSWORD="$(kubectl get secret asgard-secrets -n asgard -o jsonpath='{.data.MARIADB_PASSWORD}' | base64 -d)"
+#
+# Kept here as a documented schema only. See docs/security/SECRETS.md
+# for the full rotation runbook. Reconcile script: ./scripts/reconcile-mariadb-secret.sh
+#
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: mariadb-secret
+#   namespace: asgard-infra
+# type: Opaque
+# stringData:
+#   MYSQL_ROOT_PASSWORD: <REDACTED — see asgard-secrets:MARIADB_ROOT_PASSWORD>
+#   MYSQL_DATABASE: mimir
+#   MYSQL_USER: mimir
+#   MYSQL_PASSWORD: <REDACTED — see asgard-secrets:MARIADB_PASSWORD>

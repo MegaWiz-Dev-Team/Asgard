@@ -37,7 +37,10 @@ spec:
             - containerPort: 7687
           env:
             - name: NEO4J_AUTH
-              value: neo4j/REDACTED-NEO4J-PW
+              valueFrom:
+                secretKeyRef:
+                  name: neo4j-secret
+                  key: NEO4J_AUTH
             - name: NEO4J_PLUGINS
               value: '["apoc"]'
             - name: NEO4J_server_config_strict__validation_enabled
@@ -81,3 +84,21 @@ spec:
       port: 7687
       targetPort: 7687
       nodePort: 30687
+---
+# NOTE: This Secret is no longer applied from git. Create out-of-band:
+#
+#   NEO4J_PW=$(kubectl get secret asgard-secrets -n asgard -o jsonpath='{.data.NEO4J_PASSWORD}' | base64 -d)
+#   kubectl create secret generic neo4j-secret -n asgard-infra \
+#     --from-literal=NEO4J_AUTH="neo4j/${NEO4J_PW}"
+#
+# Kept here as a documented schema only. See docs/security/SECRETS.md.
+# Reconcile script: ./scripts/reconcile-neo4j-secret.sh
+#
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: neo4j-secret
+#   namespace: asgard-infra
+# type: Opaque
+# stringData:
+#   NEO4J_AUTH: neo4j/<REDACTED — see asgard-secrets:NEO4J_PASSWORD>
