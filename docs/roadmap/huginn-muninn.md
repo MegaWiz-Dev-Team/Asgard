@@ -2,7 +2,7 @@
 
 > Version 3.0 · March 2026 · Rust/Axum · Multi-Agent Architecture
 >
-> Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.
+> 🔒 **Commercial component** — source repos are private (`github.com/MegaWiz-Dev-Team/Huginn`, `Muninn`). This roadmap remains in the public Asgard repo for architectural context only. Access to source/binaries requires a commercial license.
 
 ---
 

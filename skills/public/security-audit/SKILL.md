@@ -9,6 +9,8 @@ tools: [huginn_scan, fenrir_execute]
 
 # Security Audit
 
+> 🔒 **Requires commercial license** — `huginn_scan` is provided by Huginn (private/commercial component). Community users without Huginn access cannot execute this skill end-to-end.
+
 ## Overview
 Comprehensive security scanning and vulnerability assessment skill. Integrates with Huginn (Semgrep + Trivy) for SAST, container scanning, and dependency auditing across the Asgard ecosystem.
 

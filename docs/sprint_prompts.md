@@ -1,5 +1,7 @@
 # Asgard Ecosystem — Sprint Execution Prompts
 > Copy-paste ทีละ Sprint แล้วเปิด Conversation ใหม่ส่งได้เลย
+>
+> 🔒 Huginn/Muninn scan steps require commercial license access (repos are private).
 
 ---
 

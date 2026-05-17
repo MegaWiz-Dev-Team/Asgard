@@ -3,6 +3,8 @@
 > Single source of truth for all milestones and timelines.
 >
 > Last updated: March 2026
+>
+> 🔒 **Note:** Huginn (Security Scanner) and Muninn (Auto-Fixer) are commercial components. Source repos are private; this roadmap retains their milestones for platform-wide planning context.
 
 ---
 

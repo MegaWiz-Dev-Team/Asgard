@@ -1,6 +1,8 @@
 # 🏰 Asgard Sprint Planning — May 2026
 
 > Asgard เป็นของทุกคนแล้ว — Asgard belongs to everyone.
+>
+> 🔒 **Huginn & Muninn are commercial components** — internal sprint refs remain for planning continuity; source repos are private.
 
 ---
 

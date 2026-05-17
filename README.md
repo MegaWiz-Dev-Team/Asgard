@@ -75,8 +75,8 @@ graph LR
 | 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, native macOS Log Shipper | Rust (Axum) + Python | 5 | ✅ Sprint 38 |
 | ⚖️ **[Týr](https://github.com/MegaWiz-Dev-Team/Tyr)** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Sprint 38 |
 | 🐉 **Fáfnir** | K3s HashiCorp Vault Secrets Manager | Vault / HCL | — | ✅ Sprint 38 |
-| 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Rust (Axum) | 51 | ✅ Active |
-| 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Rust (Axum) | 60 | ✅ Active |
+| 🐦‍⬛ **Huginn** 🔒 | Security Scanner + AI Pentest Agent + Performance Test *(private — commercial component)* | Rust (Axum) | 51 | ✅ Active |
+| 🐦 **Muninn** 🔒 | Issue Watcher + LLM Auto-Fixer *(private — commercial component)* | Rust (Axum) | 60 | ✅ Active |
 | 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
 | 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 |
 | ⚖️ **[Forseti](https://github.com/MegaWiz-Dev-Team/Forseti)** | LLM-Powered E2E Testing Service — multi-project, auto-report | Python | 147 | ✅ Sprint 6 |
