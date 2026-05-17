@@ -24,7 +24,7 @@ if [ -z "$ROOT_PW" ] || [ -z "$APP_PW" ]; then
   exit 1
 fi
 
-echo "🔄 Recreating mariadb-secret in $NAMESPACE_INFRA…"
+echo "🔄 Recreating mariadb-secret in ${NAMESPACE_INFRA}..."
 
 kubectl create secret generic mariadb-secret -n "$NAMESPACE_INFRA" \
   --from-literal=MYSQL_ROOT_PASSWORD="$ROOT_PW" \
