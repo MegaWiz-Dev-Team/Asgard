@@ -37,7 +37,7 @@ spec:
             - containerPort: 7687
           env:
             - name: NEO4J_AUTH
-              value: neo4j/REDACTED-PW
+              value: neo4j/REDACTED-NEO4J-PW
             - name: NEO4J_PLUGINS
               value: '["apoc"]'
             - name: NEO4J_server_config_strict__validation_enabled

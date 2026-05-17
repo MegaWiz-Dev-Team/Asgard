@@ -28,7 +28,7 @@ spec:
             - name: BIFROST_PORT
               value: "8100"
             - name: DATABASE_URL
-              value: mysql://mimir:REDACTED-PW@mariadb.asgard-infra.svc:3306/mimir
+              value: mysql://mimir:REDACTED-MARIADB-PW@mariadb.asgard-infra.svc:3306/mimir
             - name: QDRANT_URL
               value: http://qdrant.asgard-infra.svc:6333
             - name: REDIS_URL
@@ -38,7 +38,7 @@ spec:
             - name: NEO4J_USER
               value: neo4j
             - name: NEO4J_PASSWORD
-              value: REDACTED-PW
+              value: REDACTED-NEO4J-PW
             - name: HEIMDALL_URL
               value: http://host.docker.internal:8081/v1
             - name: MIMIR_URL
