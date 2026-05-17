@@ -47,7 +47,9 @@ sql_escape() {
 }
 
 # ----- Offer auto-generated URL/SQL-safe password -----
-SUGGESTED=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 48)
+# openssl rand avoids the SIGPIPE landmine that `tr </dev/urandom | head` hits
+# under `set -o pipefail` (head closes the pipe → tr exits 141 → script aborts).
+SUGGESTED=$(openssl rand -hex 24)
 echo "Suggested random password (48-char alphanumeric, safe for URL + SQL):"
 echo "  ${YELLOW}${SUGGESTED}${NC}"
 echo "Copy/paste this, or type your own. Avoid these chars in custom passwords:"

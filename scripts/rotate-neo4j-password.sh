@@ -38,7 +38,9 @@ echo ""
 # in the password itself, but cypher-shell needs single-quote escaping.
 
 # ----- Offer auto-generated safe password -----
-SUGGESTED=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 48)
+# openssl rand avoids the SIGPIPE landmine that `tr </dev/urandom | head` hits
+# under `set -o pipefail` (head closes the pipe → tr exits 141 → script aborts).
+SUGGESTED=$(openssl rand -hex 24)
 echo "Suggested random password (48-char alphanumeric, no / : ' \" needed):"
 echo "  ${YELLOW}${SUGGESTED}${NC}"
 echo "Copy/paste this, or type your own. Avoid: / (breaks NEO4J_AUTH parser)"
