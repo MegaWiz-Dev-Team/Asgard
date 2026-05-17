@@ -272,8 +272,8 @@ Before escalating:
    ```
 
 4. **Check incident history:**
-   - [INCIDENT_REPORT_2026_05_17.md](./INCIDENT_REPORT_2026_05_17.md)
-   - [POSTMORTEM_2026_05_17.md](./POSTMORTEM_2026_05_17.md)
+   - [Incident report](./docs/incidents/2026-05-17-mimir-503/incident-report.md)
+   - [Postmortem](./docs/incidents/2026-05-17-mimir-503/postmortem.md)
 
 ---
 

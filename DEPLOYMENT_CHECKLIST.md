@@ -216,6 +216,6 @@ kubectl rollout status deployment/mimir-api -n asgard
 ## Questions?
 
 See:
-- [INCIDENT_REPORT_2026_05_17.md](../INCIDENT_REPORT_2026_05_17.md) — Full technical analysis
-- [POSTMORTEM_2026_05_17.md](../POSTMORTEM_2026_05_17.md) — Team learning
+- [Incident report](./docs/incidents/2026-05-17-mimir-503/incident-report.md) — Full technical analysis
+- [Postmortem](./docs/incidents/2026-05-17-mimir-503/postmortem.md) — Team learning
 - `./scripts/validate-k8s-before-deploy.sh` — Automated validation
