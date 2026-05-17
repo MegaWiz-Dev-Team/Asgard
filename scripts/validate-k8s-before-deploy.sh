@@ -202,6 +202,54 @@ for pvc_spec in "${REQUIRED_PVCS[@]}"; do
 done
 
 # ============================================
+# Check 7: Live deployments with inline credential values (manual-patch drift)
+# ============================================
+# Detects the INC-2026-05-17 follow-up class S6/E5: a live deployment was
+# manually patched (kubectl set env / kubectl edit) and a credential env
+# var ended up with a literal `value:` instead of `valueFrom:` (or
+# `envFrom:`). The committed manifest looks correct, but the live cluster
+# has plaintext credentials in the pod spec.
+#
+# We can't reliably "diff manifest vs live" in bash — kubectl strategic-
+# merge + manual patches make the live spec structurally different. So
+# this check ignores the manifest side (Check 1 covers that) and just asks
+# the live cluster: "any env var whose NAME smells like a credential and
+# whose VALUE is a literal?". If yes → drift.
+
+echo -e "\nCheck 7: Live deployments with inline credential values..."
+
+DRIFT_FOUND=0
+if ! command -v jq >/dev/null 2>&1; then
+  echo -e "  ${YELLOW}⚠${NC}  jq not installed — skipping live drift check"
+  WARNINGS=$((WARNINGS + 1))
+else
+  for ns in asgard asgard-infra; do
+    kubectl get deploy -n "$ns" -o json 2>/dev/null | \
+      jq -r --arg ns "$ns" '
+        .items[] |
+        .metadata.name as $dep |
+        (.spec.template.spec.containers[]?.env[]? // empty) |
+        select(.value != null and .value != "") |
+        select(.name | test("(PASSWORD|MASTERKEY|MASTER_KEY|_SECRET$|^SECRET$|_TOKEN$|^TOKEN$|API_KEY|VAULT_TOKEN|NEO4J_AUTH|DATABASE_URL)")) |
+        # Allow safe values that are obviously not real credentials
+        select(.value | test("^(sqlite:|file:|http://|https://|<.*>$)") | not) |
+        "  ✗ \($dep) in \($ns): \(.name) has literal value (length=\(.value|length))"
+      ' 2>/dev/null
+  done > /tmp/.drift-check 2>&1
+
+  if [ -s /tmp/.drift-check ]; then
+    cat /tmp/.drift-check
+    DRIFT_FOUND=$(wc -l < /tmp/.drift-check)
+    echo -e "       Fix: kubectl set env deploy/<name> -n <ns> <KEY>-  # remove inline"
+    echo -e "       Then ensure manifest's secretKeyRef/envFrom takes over"
+    ERRORS=$((ERRORS + DRIFT_FOUND))
+  else
+    echo -e "  ${GREEN}✓${NC} No inline credential values in live deployments"
+  fi
+  rm -f /tmp/.drift-check
+fi
+
+# ============================================
 # Summary
 # ============================================
 
