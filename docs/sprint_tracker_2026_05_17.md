@@ -170,6 +170,58 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 
 ---
 
+## 🚀 Sprint 3 Preview — FHIR Consumer Integration (NOT committed yet)
+
+**Theme:** Wire the FHIR types from Sprint 2 B.3 into actual consumers — Eir agents (read), OCR pipeline (write), Underwriter workflow (write). FHIR stops being a library; it becomes a live data shape across the platform.
+
+**Prereq:** Sprint 2 complete. Specifically required:
+- S2.B.3 (FHIR R4 types + Thai profile) shipped to `asgard-doc-pipeline-core`
+- W2.3a (LOINC ingest) ✅ powering `Observation.code` validation
+- W2.3d (coding validator) ✅ so emitted FHIR resources pass validation
+- S2.A.1 (Underwriter MariaDB persistence) ✅ so Claim emission has case data to reference
+
+**Total effort:** ~10-13d (2-3 weeks calendar)
+**Calendar window:** after Sprint 2 ships, target mid-to-late July 2026
+
+### F-track: FHIR consumer wiring
+
+| ID | Task | Effort | Notes |
+|---|---|---|---|
+| S3.F.1 | **Eir `read_fhir` Hermodr tool wired to Eir Gateway (OpenEMR FHIR API)** | 2-3d | Adds real implementation behind the `read_fhir` tool allowlist entry in `Eir/docs/Eir_Agents_Architecture.md` §3.1. Touch: `Hermodr/src/services/eir_medical.rs` (add ToolDefinition + endpoint route); upstream = Eir Gateway OpenEMR FHIR REST API (`GET /apis/default/fhir/Patient/{id}`, `Condition?patient={id}`, etc.). Auth: OpenEMR uses OAuth2; Hermodr proxies with service credentials. Returns canonical `asgard-doc-pipeline-core` Patient/Condition/etc. (not raw OpenEMR JSON). Tests: happy path + 404 + auth fail + ExternalPatient → Patient conversion path. **Unblocks all Eir specialty agents from doing real FHIR reads instead of placeholders.** |
+| S3.F.2 | **OCR pipeline → FHIR Bundle mapper** | 3-4d | New module `asgard-doc-pipeline-pipeline::ocr_to_fhir`. Input: `ExtractionResult` (from Syn OCR + Mimir entity linking + PrimeKG validation). Output: FHIR Bundle containing Patient (from extracted identifiers) + Encounter (visit shell) + Conditions (extracted dx, ICD-10-TM coded) + MedicationRequests (extracted Rx, TMT coded if available) + Procedures (TPC coded) + DocumentReference (pointer to source scan). Handles low-confidence extractions: `Condition.verificationStatus = "provisional"`. Internal Bundle references resolved via URL fragments (`Patient/local-1`, `Condition/local-2` referencing `Patient/local-1`). Validation: emitted Bundle passes coding-validator (W2.3d) + Thai profile constraints. Tests: 10-20 fixture extractions → expected Bundles snapshot-compared. **Sets up M3 OCR benchmark to score against FHIR-shape output instead of bespoke extraction JSON.** |
+| S3.F.3 | **Underwriter → FHIR Claim/ClaimResponse emitter** | 2-3d | New module `asgard-underwriter::fhir_claim_emitter`. Input: case + final UnderwritingDecision after assessment. Output: FHIR Claim (with linked Patient + diagnoses-as-Condition references + procedures + supporting_info pointing to DocumentReferences) + ClaimResponse (adjudication outcome — accepted/denied/refer-to-HITL, with risk_score → `adjudication[].amount` mapping). Wires into Underwriter workflow as the FINAL step after HITL approval (or auto-approve for high-confidence cases). PDF export path can use the Claim/ClaimResponse pair as its data source. Tests: 5-10 case fixtures → expected Claim/Response snapshot. **Closes the loop on underwriting being FHIR-native, not bespoke schema.** |
+| S3.F.4 | **FHIR conformance test corpus + harness** | 2d | Test corpus: ~50 hand-crafted FHIR Bundles covering each of the 15 resources + Thai profile edge cases (citizen_id Luhn, multi-language HumanName, missing coding-when-validator-not-loaded). Harness: validates each Bundle against `asgard-doc-pipeline-core` schemas + Thai profile constraints + coding-validator (W2.3d). Living as test_eval_datasets entry. Run on every PR touching `asgard-doc-pipeline-core` or any of S3.F.1-3. **Catches Thai profile drift + schema-Validation/coding-validator regressions.** |
+| S3.F.5 | **Bundle round-trip benchmark** (optional) | 1d | Benchmark: take a `Patient` (or Bundle) → serialize to JSON → parse back → assert identity. Measures schema completeness (any field that doesn't round-trip = schema missing). Run on M3 OCR-emitted Bundles + S3.F.4 hand-crafted Bundles. **Only run if S3.F.4 surfaces unexpected diffs; otherwise defer.** |
+
+### Sprint 3 dependency graph
+
+```
+S2.B.3 (FHIR types)  ──┬─→ S3.F.1 (Eir read)
+                       ├─→ S3.F.2 (OCR write)
+                       └─→ S3.F.3 (Underwriter write)
+                              ↓
+                       S3.F.4 (conformance test corpus + harness)
+                              ↓
+                       S3.F.5 (round-trip bench, optional)
+
+W2.3a (LOINC)          ──→ S3.F.2 (Observation validation)
+W2.3d (coding val)     ──→ S3.F.2, S3.F.3 (emit-time validation)
+S2.A.1 (Underwriter DB) ──→ S3.F.3 (case data to reference)
+S3.F.4 (corpus)         ──→ Eir per-specialty HBp% baselines (M6 dataset)
+```
+
+S3.F.1/F.2/F.3 are independent of each other — can run in any order or parallel (3 different code surfaces). F.4 consolidates.
+
+### Open questions parked for Sprint 3 kickoff
+
+1. **Eir Gateway OAuth flow** — does Hermodr terminate the OAuth dance with OpenEMR, or does it forward a JWT issued by Yggdrasil that OpenEMR accepts? (Likely first; the second requires OpenEMR config we may not control.)
+2. **Bundle storage in Underwriter** — does S3.F.3 emit Bundle to a new `bundles` MariaDB table, or stream into Tyr audit only, or both? (Likely both — Tyr for audit, table for retrieval.)
+3. **Claim adjudication numeric mapping** — `risk_score 0-100` to `ClaimResponse.adjudication[].amount`? Or use a custom extension? FHIR doesn't have a native "risk score" field; need decision.
+4. **M3 OCR benchmark scoring** — once S3.F.2 ships, M3 hit-rate scores against Bundle outputs (per-field) or whole-Bundle equality? Per-field is more informative; needs scoring spec.
+5. **HITL UI for FHIR-shape data** — does the reviewer see Bundle JSON, rendered FHIR card, or canonical Underwriter UI? Likely keep current UI; Bundle is back-end shape only.
+
+---
+
 ## 📝 Decision Log
 
 | Date | Decision | Rationale |
