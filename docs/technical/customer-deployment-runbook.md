@@ -85,6 +85,41 @@ Done when `curl localhost:8080/v1/models` returns the full list.
 These are universal reference data (`tenant_id=NULL`) — every tenant on the
 box uses them. **Required before any clinical use.**
 
+### 2.0 One-command bootstrap (recommended)
+
+```bash
+cd ~/Developer/Mimir
+
+# Auth env (sourced from the launchd plist + k8s secret)
+export HEIMDALL_API_KEY=$(grep API_KEYS ~/Library/LaunchAgents/com.asgard.heimdall-gateway.plist | head -1)
+# Optional: pre-set NEO4J_PASS, MIMIR_JWT — script reads from k8s secret + warns otherwise
+
+# Place PrimeKG kg.csv at data/PrimeKG/kg.csv (download once from Harvard Dataverse;
+# free public dataset), then:
+./scripts/bootstrap-shared-kbs.sh
+```
+
+What it does (idempotent — re-runable, ~2h on first run, <5s on re-run):
+
+1. Apply ICD-10 + LOINC migrations (skips if tables exist)
+2. Download anamai PDF + ingest 15,376 ICD-10-TM codes
+3. Embed ICD-10 rows → Qdrant `icd10-th` via Heimdall BGE-M3
+4. Import PrimeKG kg.csv → Neo4j (129K nodes + 8.1M edges via APOC)
+5. Trigger PrimeKG → Qdrant `primekg-entities` embed via Mimir admin endpoint
+6. Verify via `/api/v1/knowledge/shared`
+
+Flags:
+- `--skip-icd10`, `--skip-primekg`, `--skip-loinc-schema` — partial bootstrap
+- `--dry-run` — print plan, no work
+- `--primekg-csv=/path/to/kg.csv` — override default path
+- `--icd10-pdf=/path/to/icd10tm_anamai.pdf` — use pre-downloaded PDF
+
+For LOINC data ingest (manual download required) see section 2.4 below.
+
+The rest of this section (2.1–2.3) documents the same steps individually
+in case you need to run them out of order or debug a partial failure. If
+the one-command script worked, skip ahead to 2.4 (LOINC) and 2.6 (verify).
+
 ### 2.1 ICD-10-TM (Thai diagnoses, ~5 min)
 
 Download the anamai PDF once, parse, ingest:
