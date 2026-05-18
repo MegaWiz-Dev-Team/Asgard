@@ -51,15 +51,19 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 
 ---
 
-## ⚡ PrimeKG Qdrant Embedding (~30 min when embedding service up)
+## ⚡ PrimeKG Qdrant Embedding — DONE 2026-05-18
+
+**Unblocked + completed end-to-end in this session.** The "P.1 embedding service down" blocker was stale — it referred to a deprecated Ollama/FastEmbed setup. Heimdall BGE-M3 (`:8080/v1/embeddings`) was already running and is the correct path per `feedback_no_ollama`. Also discovered Neo4j was empty (Sprint 51e rotation reaped the PVC); re-imported.
 
 | ID | Task | Effort | Status | Notes |
 |---|---|---|---|---|
-| P.1 | Verify embedding service `host.docker.internal:8001` status | 0.1d | 🚫 | Confirmed DOWN 2026-05-17. localhost:8001 not responding |
-| P.1b | Verify Qdrant access path | 0.1d | ✅ | Qdrant pod Running in `asgard-infra`, ClusterIP only → needs port-forward or in-cluster call |
-| P.2 | Start embedding service on host (BGE-M3 via FastEmbed or Ollama nomic-embed-text) | 0.25d | 🚫 | NEEDS USER: manual start preferred or document the start procedure |
-| P.3 | Trigger PrimeKG node embedding → `primekg-entities` collection | 0.25d | 🚫 | Blocked by P.2 |
-| P.4 | Validate: count = ~129K, sample retrieval query works | 0.1d | 🚫 | Blocked by P.3 |
+| P.0 | **NEW**: Re-import PrimeKG → Neo4j (lost in Sprint 51e rotation) | 0.5d | ✅ | 2026-05-18 17:13–17:19 (6m36s real time via `Mimir/scripts/primekg_import.sh`). 129,375 nodes + 8.1M edges via APOC LOAD CSV. SAME_AS pass 0 links (no `:Entity` nodes populated yet — expected). |
+| P.1 | ~~Verify embedding service `host.docker.internal:8001`~~ — stale ref | — | ❌ | Cancelled; Heimdall `:8080/v1/embeddings` is the canonical path. |
+| P.1b | Verify Qdrant access path | 0.1d | ✅ | Qdrant pod Running in `asgard-infra`, ClusterIP → port-forward `:6333:6333`. |
+| P.2 | ~~Start embedding service on host~~ | — | ❌ | Cancelled; Heimdall launchd services already up. |
+| P.3 | Trigger PrimeKG node embedding → `primekg-entities` collection | 0.25d | ✅ | 2026-05-18 via `POST /api/v1/admin/knowledge/primekg/embed`. **NB: Mimir API process needs `NEO4J_PASSWORD` env or it silently retries auth + returns `total=0`.** Also note `routes/icd10.rs` was still calling Ollama — fixed in Mimir PR #306. |
+| P.4 | Validate: count + sample retrieval query | 0.1d | ✅ | Qdrant `primekg-entities` = 129,374 points (1 below Neo4j due to a duplicate `entity_index` in PrimeKG kg.csv; not a defect). Sample queries verified: `"diabetes mellitus"` → diabetes (disease) top 5; Thai `"ปวดศีรษะ"` → "Pain in head and neck region" / "Headache" (cross-lingual via BGE-M3). |
+| P.5 | **NEW**: Shared Knowledge Bases endpoint + UI | 1.0d | ✅ | 2026-05-18 Mimir PR #308 — `GET /api/v1/knowledge/shared` lists ICD-10-TM / PrimeKG / LOINC / TMT / TPC with live counts; dashboard page at `/knowledge/shared`. Resolves user ask "primekg ต้องเห็นใน UI". |
 
 ---
 
