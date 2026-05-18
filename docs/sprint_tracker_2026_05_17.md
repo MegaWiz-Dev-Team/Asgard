@@ -69,13 +69,17 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 |---|---|---|---|---|
 | W2.1 | Medical retrieval benchmark queries (50-100 TH/EN) | 1d | ✅ | 2026-05-18 M1 dataset shipped — 75 queries (14 categories, TH 25 / EN 48 / mixed 2; easy 19 / medium 36 / hard 20). Registered in eval_benchmark_datasets as `m1_medical_retrieval_v1` (id `10659f35-…`). Includes sleep-specific subset for Mega Care + negation/distractor queries. |
 | W2.2 | Send chart sample request to Mega Care | 0.5d | ⬜ | 20-50 de-identified samples + chain of custody |
-| W2.3 | TMT/TPC license inquiry to MoPH | 0.5d | ⬜ | Piggy-back ICD-10-TM follow-up |
+| W2.3 | TMT/TPC license inquiry to MoPH | 0.5d | ⏭️ | 2026-05-18 user direction: skip waiting; proceed with anamai 2010 + LOINC free; TMT/TPC ingest may use alternative sources or wait passively for any future MoPH response |
+| W2.3a | **LOINC ValueSet ingest** | 1.5d | ⬜ | NEW (G2 gap). Free download from loinc.org; no license needed. Migration table `loinc_codes`; ingest script + audit row in pattern of `icd10_tm_anamai_ingest.py`. Powers `Observation.code` validation in B.3. **Not blocked.** |
+| W2.3b | **TMT ValueSet ingest** | 1d | 🚫 | NEW (G2 gap). Thai Medicines Terminology; powers `MedicationRequest.medicationCodeableConcept` Thai profile. **Blocked: no licensed source confirmed.** Per 2026-05-18 user direction, do NOT wait on MoPH; investigate alternative sources (NHSO open data, RxNorm proxy, hospital partner institutional license) before/during S2.B.3. If still unresolved at B.3 ship: MedicationRequest accepts any CodeableConcept; Thai profile validation relaxes from "required" to "recommended" until data exists. |
+| W2.3c | **TPC ValueSet ingest** | 0.5d | 🚫 | NEW (G2 gap). Thai Procedural Classification; powers `Procedure.code` Thai profile. **Same block as W2.3b.** Same fallback: Procedure.code accepts any CodeableConcept; Thai profile validation downgrades when no data. |
+| W2.3d | **Coding validator service** | 1d | ⬜ | NEW (G2 gap). `validate_coding(system, code)` over the 4 master tables (icd10_codes + loinc_codes + tmt_codes + tpc_codes — whichever are populated). Used by FHIR validation in Phase B.3 + Eir agents calling `read_fhir` tool. Returns Unknown/Validated/SystemMissing per binding. Depends on at least W2.3a + icd10_codes populated. |
 | W2.4 | FHIR R4 resource selection list (~15 + Thai profile) | 1d | ✅ | 2026-05-18 spec doc at [architecture/fhir_r4_resource_selection.md](architecture/fhir_r4_resource_selection.md). 15 resources locked: Patient/Encounter/Observation/Condition/MedicationRequest/MedicationStatement/Procedure/DiagnosticReport/AllergyIntolerance/DocumentReference + Coverage/Claim/ClaimResponse + Practitioner/Organization. Thai profile constraints for 7 resources. Hand-rolled types recommended over `fhirbolt`. 5 open questions parked for ADR-006. |
 | W2.5 | 6 Hermodr MCP tool schemas (JSON spec) | 0.5d | ✅ | 2026-05-18 Hermodr PR #5 MERGED. 6 PrimeKG graph-native tools shipped: primekg_lookup_entity, _neighbors, _drug_interactions, _disease_drugs, _symptom_to_disease, _path. 57/57 tests passing. Mimir backend endpoint impl is separate follow-on. |
 | W2.6 | ADR-006 FHIR R4 + Thai coding canonical | 0.5d | ✅ | 2026-05-18 Asgard PR #67 MERGED. [ADR-006](decisions/ADR-006-fhir-canonical-design.md) locks 5 W2.4 open questions. Phase B.3 effort refined to 10-12d (was 3-5d optimistic). 10-step implementation order specified. |
-| W2.7 | Verify MoPH ICD-10-TM 2017 response (due ~May 21) | 0.25d | ⬜ | Decision tree per license-request doc |
+| W2.7 | Verify MoPH ICD-10-TM 2017 response (due ~May 21) | 0.25d | ⏭️ | 2026-05-18 user direction: skip; proceed with anamai 2010 in production + LOINC free. Do not block any downstream work on MoPH response. |
 | W2.1b | **Synthetic Thai applicants Faker generator** | 2d | ✅ | 2026-05-18 shipped. Path: `Mimir/scripts/synthetic_thai_applicants/`. 7 modules + 19 tests. CLI: `python -m synthetic_thai_applicants --applicants 1000 --claims 500 --seed 42 --output ./out --pdf`. Reproducible seed, Luhn-valid Thai citizen IDs, correlated fraud injection (5 rules), Thai-font PDF medical certificates. Smoke test 50/30 = 17% fraud rate. Delivers I1/I2/X1/M3 dataset inputs. |
-| W2.1c | **Dataset inventory plan registration in eval_benchmark_datasets** | 0.5d | 🟡 | 2026-05-18 I1 + I2 registered (1000 applicants + 500 claims, seed=42). Idempotent upsert script at `scripts/register_eval_datasets_i1_i2.py`. Canonical data committed at `tests/eval_datasets/i1/v1.0/`. M1/M4/M8/I5 deferred to separate PRs (each needs its own ground-truth labeling). |
+| W2.1c | **Dataset inventory plan registration in eval_benchmark_datasets** | 0.5d | ✅ | 2026-05-18 Mimir PR #303 MERGED. I1 + I2 registered (1000 applicants + 500 claims, seed=42). Idempotent upsert script at `scripts/register_eval_datasets_i1_i2.py`. Canonical data committed at `tests/eval_datasets/i1/v1.0/`. M1/M4/M8/I5 deferred to separate PRs (each needs its own ground-truth labeling). M1 itself shipped via #304. |
 
 ---
 
@@ -97,7 +101,8 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 
 | ID | Task | Effort | Notes |
 |---|---|---|---|
-| S2.A.1 | Underwriter v3 MariaDB persistence | 5-7d | Per ADR-001; 10 tables incl `chat_sessions`/`audit_events` |
+| S2.A.0 | **Partial FHIR types in Underwriter** (Patient + Encounter) — Option C per G4 resolution 2026-05-18 | 1-1.5d | NEW. Lives at `asgard-underwriter/iris/src/fhir/` temporarily; relocates to `asgard-doc-pipeline-core` during S2.B.2. Also rename `iris::underwriting::Condition` → `PolicyCondition` to free the `Condition` name for FHIR. Unblocks A.1 schema to be FHIR-shape-aware instead of JSON blob. |
+| S2.A.1 | Underwriter v3 MariaDB persistence | 5-7d | Per ADR-001; 10 tables incl `chat_sessions`/`audit_events`. Now schema-aligned with A.0 Patient/Encounter types; remaining domain (Condition/Medication/Procedure/etc.) stored as FHIR JSON columns in patient_record table until B.3 lands typed schema. |
 | S2.A.2 | Tyr audit integration | 3-4d | Per ADR-002; LocalDbSink + Wazuh stub + hash chain |
 | S2.A.3 | JWT/Yggdrasil auth | 3-4d | Per ADR-009; service-to-service auth, not tenant routing |
 
@@ -106,8 +111,19 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 | ID | Task | Effort | Notes |
 |---|---|---|---|
 | S2.B.1 | Refactor `extraction.rs` → trait-based | 3-4d | Per ADR-003 |
-| S2.B.2 | Extract `asgard-doc-pipeline` workspace + publish v0.1.0 | 3-5d | Per ADR-003; crates.io public AGPL+Commercial |
-| S2.B.3 | FHIR R4 types (~15 resources) + Thai profile | 3-5d | Per ADR-006 (pending); ICD-10-TM/TMT/TPC bindings |
+| S2.B.2 | Extract `asgard-doc-pipeline` workspace + publish v0.1.0 | 3-5d | Per ADR-003; **standalone repo `MegaWiz-Dev-Team/asgard-doc-pipeline`** (decision 2026-05-18); crates.io public AGPL+Commercial. See readiness checklist below. |
+| S2.B.3 | FHIR R4 types (~15 resources) + Thai profile | **10-12d** | Per ADR-006 (locked); 15 resources + 12 datatypes + Thai profile bindings + External* newtypes + schema export. Effort refined from 3-5d in ADR-006. Depends on A.0 Patient/Encounter (already typed) + W2.3a-d coding tables (parts may degrade to "any CodeableConcept" if TMT/TPC unavailable). |
+
+### S2.B.2 readiness checklist (decided 2026-05-18)
+
+| Item | Status | Action |
+|---|---|---|
+| Repo location | ✅ standalone `MegaWiz-Dev-Team/asgard-doc-pipeline` (not monorepo) | Create empty repo before S2.B.2 starts |
+| crates.io account + publish token | ✅ token detected in `~/.cargo/credentials.toml` | Verify scope before first publish |
+| AGPL-3.0 + Commercial dual license boilerplate | ⬜ | Author at S2.B.2 start; mirror Asgard top-level legal repo format |
+| Cargo workspace skeleton (7 sub-crates per ADR-003 §B.2) | ⬜ | First commit of new repo |
+| README + LICENSE-AGPL.md + LICENSE-COMMERCIAL.md | ⬜ | Same |
+| GitHub Actions CI for crates.io publish on tag | ⬜ | Optional; manual publish OK for v0.1.0 |
 
 ### Phase C — Production hardening + MCP tool catalog (~3 weeks)
 
@@ -175,6 +191,10 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 | 2026-05-17 | Faker generator output includes synthetic PDFs (not just JSON) | Asgard pipeline tests OCR; AWS sample is JSON-only |
 | 2026-05-17 | Faker fraud_indicators must be correlated (not random) | AWS sample uses pure random which doesn't train/test fraud detection meaningfully |
 | 2026-05-17 | Heimdall #10 + Mimir #294/#295/#297/#298 merged. Mimir tagged v1.4.0; Heimdall tagged v0.7.0 (NOT v0.6.0 due to existing legacy tag conflict from Hotswap fix May 5). Stacked-merge via #298 brought entire JWT chain. | Backend SSO release ships locked. Production deploy unblocks via [deploy runbook in commit 72d9483](https://github.com/MegaWiz-Dev-Team/Mimir/commit/72d9483) |
+| 2026-05-18 | **G2 gap resolution: add W2.3a-d for LOINC + TMT + TPC ingest + coding validator** | Phase B.3 FHIR types require coding-system validation. Without these, ships schema-only. LOINC unblocked (free); TMT/TPC blocked on alternative source discovery (license deferred per user). |
+| 2026-05-18 | **G5 gap resolution: skip MoPH license waiting → proceed with anamai 2010 + LOINC + alternative TMT/TPC sources** | User direction. Day 21 escalation deadline (2026-05-28) deprioritized; alternative paths (NHSO open data / RxNorm proxy / hospital-partner institutional license) explored during S2.B.3 instead of synchronous blocking. |
+| 2026-05-18 | **G4 gap resolution: Option C — Partial FHIR (Patient + Encounter typed in Phase A.0)** before A.1 schema | Avoids JSON-blob → typed migration in Phase B.3; freed `Condition` name from `iris::underwriting` namespace clash; types relocate to `asgard-doc-pipeline-core` during S2.B.2. |
+| 2026-05-18 | **G1 gap resolution: `asgard-doc-pipeline` = standalone repo `MegaWiz-Dev-Team/asgard-doc-pipeline`** (NOT monorepo workspace) | Cleaner external contribution surface; independent versioning; crates.io publishing simpler. AGPL+Commercial dual license boilerplate authored at S2.B.2 start. |
 
 ---
 
@@ -184,12 +204,16 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 |---|---|---|---|
 | Embedding service down → PrimeKG Qdrant + B-48f blocked | High (was down 2026-05-07) | Medium | P.1/P.2 priority; FastEmbed local fallback |
 | S1 spillover → Window 2 days lost | Medium | High | Cut P1 (W2.6) first |
-| MoPH no-response by May 21 | Medium | Medium | International ICD-10 only path |
+| MoPH no-response by May 21 | Medium | Medium | ~~International ICD-10 only path~~ ⏭️ Per 2026-05-18 user direction: deprioritized. Proceed with anamai 2010 + LOINC free + alternative TMT/TPC sources. |
 | Mega Care chart samples slow | High | High | Send request immediately on May 29 |
 | Chunking benchmark shows 300 already optimal | Low | Low | Document + close ticket |
 | Sprint 2 over-scoped at 5-6 weeks | Medium | Medium | Phase D5-D8 (chat + reasoning UI) are cuttable to Sprint 3 if Phase C delays |
 | Faker generator coupling to ICD-10-TM table breaks if schema changes | Low | Low | Pin schema version + test isolation |
 | AWS sample evolves and adds patterns worth tracking | Medium | Low | Re-audit aws-samples/sample-quicksuite-chatagent-insurance-underwriting quarterly |
+| **TMT / TPC source not found before B.3 ship** | Medium | Medium | NEW. Fallback: Thai profile validation downgrades from "required" to "recommended" for MedicationRequest + Procedure. Investigation tasks during W2.3b/c — try NHSO open data, RxNorm as Thai-equivalent proxy, hospital-partner institutional license. |
+| **SMART on FHIR (RS384 keypair) needed when Prudential POC has FHIR API** | Medium | Medium | NEW. No ADR yet — defer until Prudential tech brief lands. Mark in Phase D backlog. |
+| **HL7 v2 ingress (parser + MLLP + mapper + HOSxP quirks) needed for first hospital customer** | Medium | High when needed | NEW. No design now — wait until first customer specifies vendor + version (HOSxP / HIS-Plus / Bizzcomm / in-house). Then scope sprint. |
+| **`iris::underwriting::Condition` namespace clash with FHIR `Condition`** | Medium (will hit) | Low | NEW. Rename to `PolicyCondition` as part of S2.A.0 (early Phase A). Pre-emptive, not after-the-fact. |
 
 ---
 
