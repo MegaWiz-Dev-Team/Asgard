@@ -1,0 +1,212 @@
+# Example catalog config for the tyr-archive daemon (V1 scope).
+#
+# At startup the daemon reads this file, validates against the schema in
+# `data-catalog.md`, generates a per-tenant JSON catalog manifest, and pushes
+# it to gs://asgard-archive/tenants/<tenant_id>/_meta/catalog.json.
+#
+# Lives at:
+#   /etc/tyr-archive/catalog.toml          (Mac mini deployment)
+#   tyr-archive/config/catalog.toml        (repo default for development)
+
+schema = "asgard-archive-catalog-v1"
+tenant_id = "asgard_medical"
+
+[bucket]
+name = "asgard-archive"
+project = "asgard-489513"
+location = "asia-southeast1"
+
+[license]
+# Yggdrasil-signed RS256 JWT; daemon refuses to start if invalid or
+# `tier != "commercial"` or `cloud-archive` not in features.
+jwt_path = "/var/lib/tyr-archive/license.jwt"
+verify_jwks_url = "https://yggdrasil.asgard-medical.svc.cluster.local/.well-known/jwks.json"
+
+[auth]
+# GCP service account key sealed in Vault.
+sa_key_vault_path = "secret/asgard_medical/archive/sa_key"
+
+[skuggi]
+# Per `feedback_include_tyr_in_pii_designs` + `asgard_skuggi_state`.
+# tier1-text W1 already shipped; image/NER (W2/W3) pending.
+endpoint = "http://heimdall.asgard-services.svc.cluster.local:8080/skuggi/scan"
+required_tier = "text-tier1"
+
+[staging]
+# Local staging directory on T7 (intentional per `tyr_pvc_t7_shield`).
+dir = "/var/lib/tyr-archive/staging"
+max_retention_hours = 24  # purge after successful upload + 24h grace
+
+# ── V1 datasets ────────────────────────────────────────────────────────────
+
+[[datasets]]
+id = "tyr-alerts"
+tier = 1
+owner = "tyr"
+description = "Wazuh SIEM alerts (rule matches)"
+
+[datasets.source]
+type = "opensearch"
+url = "https://wazuh-indexer.wazuh.svc.cluster.local:9200"
+username_env = "WAZUH_USER"      # admin (will move to SA token in V2)
+password_env = "WAZUH_PASS"
+index_pattern = "wazuh-alerts-4.x-*"
+since_template = "now-24h"
+ca_cert = "/etc/wazuh/certs/root-ca.pem"
+
+[datasets.destination]
+prefix_template = "tenants/{tenant_id}/tyr/alerts/{yyyy}/{mm}/{dd}/"
+object_name_template = "alerts-{yyyy}-{mm}-{dd}.jsonl.zst"
+encryption = "google-managed"   # SIEM alerts not PHI; Google-managed OK
+compression = "zstd:19"
+
+[datasets.schedule]
+cron = "0 2 * * *"
+timezone = "Asia/Bangkok"
+
+[datasets.policy]
+retention_days = 2555  # 7 yr
+skuggi_gate = "tier1-text"
+compliance_tags = ["hipaa", "pdpa", "oic"]
+classification = "confidential-audit"
+pii_present = false
+phi_present = false
+
+
+[[datasets]]
+id = "tyr-audit"
+tier = 1
+owner = "tyr"
+description = "Wazuh audit events (host access, login, sudo)"
+
+[datasets.source]
+type = "opensearch"
+url = "https://wazuh-indexer.wazuh.svc.cluster.local:9200"
+username_env = "WAZUH_USER"
+password_env = "WAZUH_PASS"
+index_pattern = "wazuh-audit-*"
+since_template = "now-24h"
+ca_cert = "/etc/wazuh/certs/root-ca.pem"
+
+[datasets.destination]
+prefix_template = "tenants/{tenant_id}/tyr/audit/{yyyy}/{mm}/{dd}/"
+object_name_template = "audit-{yyyy}-{mm}-{dd}.jsonl.zst"
+encryption = "google-managed"
+compression = "zstd:19"
+
+[datasets.schedule]
+cron = "15 2 * * *"
+timezone = "Asia/Bangkok"
+
+[datasets.policy]
+retention_days = 2555
+skuggi_gate = "tier1-text"
+compliance_tags = ["hipaa", "pdpa", "oic"]
+classification = "confidential-audit"
+pii_present = false
+phi_present = false
+
+
+[[datasets]]
+id = "tyr-fim"
+tier = 1
+owner = "tyr"
+description = "File integrity monitoring events"
+
+[datasets.source]
+type = "opensearch"
+url = "https://wazuh-indexer.wazuh.svc.cluster.local:9200"
+username_env = "WAZUH_USER"
+password_env = "WAZUH_PASS"
+index_pattern = "wazuh-fim-*"
+since_template = "now-24h"
+ca_cert = "/etc/wazuh/certs/root-ca.pem"
+
+[datasets.destination]
+prefix_template = "tenants/{tenant_id}/tyr/fim/{yyyy}/{mm}/{dd}/"
+object_name_template = "fim-{yyyy}-{mm}-{dd}.jsonl.zst"
+encryption = "google-managed"
+compression = "zstd:19"
+
+[datasets.schedule]
+cron = "30 2 * * *"
+timezone = "Asia/Bangkok"
+
+[datasets.policy]
+retention_days = 2555
+skuggi_gate = "tier1-text"
+compliance_tags = ["hipaa", "pdpa", "oic"]
+classification = "confidential-audit"
+pii_present = false
+phi_present = false
+
+
+[[datasets]]
+id = "bifrost-frames"
+tier = 1
+owner = "bifrost"
+description = "Agent decision frames (.mv2 memvid-core blobs) — clinical accountability core"
+
+[datasets.source]
+type = "filesystem"
+# Bifrost StatefulSet PVC mount path on the daemon's pod (via shared PVC).
+root = "/var/lib/bifrost/agents"
+glob = "agent_*_session_*.mv2"
+# Bifrost frames are session-keyed; copy any file modified in the last hour.
+modified_since = "1h"
+
+[datasets.destination]
+# Note: object name preserves session ID for restore. UTC date prefix
+# corresponds to the close-time of the session, not its creation.
+prefix_template = "tenants/{tenant_id}/bifrost/frames/{yyyy}/{mm}/{dd}/"
+object_name_template = "{basename}"   # keep agent_*_session_*.mv2 as-is
+encryption = "cmek"                    # PHI-adjacent — CMEK required
+encryption_key = "projects/asgard-489513/locations/asia-southeast1/keyRings/asgard_medical/cryptoKeys/asgard-archive"
+compression = "none"                   # .mv2 is already compressed by memvid
+
+[datasets.schedule]
+cron = "55 * * * *"                    # hourly, hh:55
+timezone = "Asia/Bangkok"
+
+[datasets.policy]
+retention_days = 2555
+skuggi_gate = "tier1-text"
+compliance_tags = ["hipaa", "pdpa", "clinical-accountability"]
+classification = "phi-adjacent"
+pii_present = true
+phi_present = true
+
+
+# ── V2 datasets (commented — uncomment when V2 ships) ─────────────────────
+#
+# [[datasets]]
+# id = "eir-openemr-db"
+# tier = 2
+# ...
+#
+# [[datasets]]
+# id = "mimir-mariadb"
+# tier = 2
+# ...
+#
+# [[datasets]]
+# id = "mimir-qdrant"
+# tier = 2
+# ...
+#
+# [[datasets]]
+# id = "mimir-neo4j"
+# tier = 2
+# ...
+#
+# [[datasets]]
+# id = "syn-redactions"
+# tier = 2
+# ...
+
+# ── V3 datasets (commented — uncomment when V3 ships) ─────────────────────
+#
+# [[datasets]]
+# id = "heimdall-calls"
+# tier = 3
+# ...
