@@ -1,0 +1,82 @@
+# Hourly CronJob — pulls Bifrost agent decision frames (.mv2) at xx:55 every
+# hour. Separate from the daily job because Bifrost RPO is 1h (clinical
+# accountability data must not lag a full day).
+#
+# Mounts the Bifrost data PVC read-only — Bifrost runs in `asgard` ns; the
+# PVC must allow access from `asgard-archive` ns (PV-level binding decision
+# happens at install).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tyr-archive-bifrost-hourly
+  namespace: asgard-archive
+  labels:
+    app.kubernetes.io/part-of: tyr-archive
+    app.kubernetes.io/component: cloud-archive
+    cadence: hourly
+spec:
+  schedule: "55 * * * *"
+  timeZone: Asia/Bangkok
+  successfulJobsHistoryLimit: 24
+  failedJobsHistoryLimit: 24
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: tyr-archive
+            cadence: hourly
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: tyr-archive
+              image: tyr-archive:0.1.0
+              imagePullPolicy: IfNotPresent
+              args:
+                - --catalog
+                - /etc/tyr-archive/catalog.toml
+                - run
+                - --dataset
+                - bifrost-frames
+              env:
+                - name: RUST_LOG
+                  value: "info,tyr_archive=debug"
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/run/secrets/gcp/sa-key.json
+              volumeMounts:
+                - name: catalog
+                  mountPath: /etc/tyr-archive
+                  readOnly: true
+                - name: gcp-sa
+                  mountPath: /var/run/secrets/gcp
+                  readOnly: true
+                - name: license
+                  mountPath: /etc/tyr-archive/license
+                  readOnly: true
+                - name: bifrost-frames
+                  mountPath: /var/lib/bifrost/agents
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+          volumes:
+            - name: catalog
+              configMap:
+                name: tyr-archive-catalog
+            - name: gcp-sa
+              secret:
+                secretName: tyr-archive-gcp-sa
+            - name: license
+              secret:
+                secretName: tyr-archive-license
+            - name: bifrost-frames
+              persistentVolumeClaim:
+                claimName: bifrost-data-pvc
+                readOnly: true
