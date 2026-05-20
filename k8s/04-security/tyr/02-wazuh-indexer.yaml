@@ -25,13 +25,50 @@ spec:
             - |
               mkdir -p /usr/share/wazuh-indexer/certs
               cp -L /tmp/certs/* /usr/share/wazuh-indexer/certs/
+              cp -L /tmp/admin-certs/admin.pem /usr/share/wazuh-indexer/certs/admin.pem
+              cp -L /tmp/admin-certs/admin-key.pem /usr/share/wazuh-indexer/certs/admin-key.pem
               chmod 400 /usr/share/wazuh-indexer/certs/*
               sed -i 's|/etc/wazuh-indexer/certs|/usr/share/wazuh-indexer/certs|g' /usr/share/wazuh-indexer/opensearch.yml
               sed -i 's|CN=node-1,OU=Wazuh,O=Wazuh,L=California,C=US|CN=wazuh-indexer.wazuh.svc.cluster.local|g' /usr/share/wazuh-indexer/opensearch.yml
-              sed -i 's|CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US|CN=wazuh-indexer.wazuh.svc.cluster.local|g' /usr/share/wazuh-indexer/opensearch.yml
+              sed -i 's|CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US|CN=admin|g' /usr/share/wazuh-indexer/opensearch.yml
               echo "" >> /usr/share/wazuh-indexer/opensearch.yml
               echo "bootstrap.system_call_filter: false" >> /usr/share/wazuh-indexer/opensearch.yml
               exec /entrypoint.sh opensearchwrapper
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - "/bin/bash"
+                  - "-c"
+                  - |
+                    # Auto-init OpenSearch security index on every pod start.
+                    # Idempotent: securityadmin.sh updates existing config; populates
+                    # a fresh `.opendistro_security` index if the PVC lost it.
+                    # Why: prevents the 2026-05-17 outage from recurring silently.
+                    CERTS=/usr/share/wazuh-indexer/certs
+                    SECDIR=/usr/share/wazuh-indexer/opensearch-security
+                    TOOL=/usr/share/wazuh-indexer/plugins/opensearch-security/tools/securityadmin.sh
+                    export JAVA_HOME=/usr/share/wazuh-indexer/jdk
+                    # Wait until the JVM responds on 9200 with ANY payload.
+                    # We can't gate on status:green here — before securityadmin
+                    # runs the indexer literally returns "OpenSearch Security
+                    # not initialized." (no JSON), so a status-grep would loop
+                    # the full 5 min and defeat the purpose of auto-init.
+                    for i in $(seq 1 60); do
+                      if curl -sk --cacert "$CERTS/root-ca.pem" -o /dev/null \
+                           -w '%{http_code}' --max-time 3 \
+                           https://localhost:9200/ 2>/dev/null \
+                           | grep -qE '^(200|401|503)$'; then
+                        break
+                      fi
+                      sleep 5
+                    done
+                    "$TOOL" -cd "$SECDIR" -icl -nhnv \
+                      -cacert "$CERTS/root-ca.pem" \
+                      -cert "$CERTS/admin.pem" \
+                      -key "$CERTS/admin-key.pem" \
+                      -h 127.0.0.1 -p 9200 \
+                      > /tmp/securityadmin.log 2>&1 || true
           env:
             - name: "OPENSEARCH_JAVA_OPTS"
               value: "-Xms2g -Xmx2g"
@@ -53,6 +90,9 @@ spec:
             - name: certs
               mountPath: /tmp/certs
               readOnly: true
+            - name: admin-certs
+              mountPath: /tmp/admin-certs
+              readOnly: true
       volumes:
         - name: indexer-data
           persistentVolumeClaim:
@@ -68,6 +108,15 @@ spec:
                 path: indexer-key.pem
               - key: ca.crt
                 path: root-ca.pem
+        - name: admin-certs
+          secret:
+            secretName: admin-certs
+            defaultMode: 0444
+            items:
+              - key: tls.crt
+                path: admin.pem
+              - key: tls.key
+                path: admin-key.pem
 ---
 apiVersion: v1
 kind: Service
