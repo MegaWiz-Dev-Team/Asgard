@@ -18,6 +18,10 @@ metadata:
     app.kubernetes.io/component: cloud-archive
     cadence: daily
 spec:
+  # SUSPENDED until Phase B done (per-tenant SA + Yggdrasil-issued JWT).
+  # Once Secrets `tyr-archive-gcp-sa` and `tyr-archive-license` have real
+  # values, flip to `suspend: false` to enable nightly archiving.
+  suspend: true
   schedule: "0 19 * * *"          # 02:00 Asia/Bangkok = 19:00 UTC previous day
   timeZone: Etc/UTC
   successfulJobsHistoryLimit: 7
@@ -41,6 +45,9 @@ spec:
               args:
                 - --catalog
                 - /etc/tyr-archive/catalog.toml
+                # --skip-license is DEV ONLY until Phase B Yggdrasil JWT
+                # issuance is wired. Remove this flag before production.
+                - --skip-license
                 - run
                 - --all
               env:

@@ -15,6 +15,8 @@ metadata:
     app.kubernetes.io/component: cloud-archive
     cadence: hourly
 spec:
+  # SUSPENDED until Phase B done (see 10-cronjob-daily.yaml comment).
+  suspend: true
   schedule: "55 * * * *"
   timeZone: Asia/Bangkok
   successfulJobsHistoryLimit: 24
@@ -38,6 +40,9 @@ spec:
               args:
                 - --catalog
                 - /etc/tyr-archive/catalog.toml
+                # --skip-license is DEV ONLY until Phase B Yggdrasil JWT
+                # issuance is wired. Remove this flag before production.
+                - --skip-license
                 - run
                 - --dataset
                 - bifrost-frames

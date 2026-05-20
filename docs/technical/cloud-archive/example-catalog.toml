@@ -177,6 +177,76 @@ pii_present = true
 phi_present = true
 
 
+# ── Infra-critical sources (added 2026-05-20, V1 dependency-loop fix) ────
+# Vault + Yggdrasil are the "if these die, archive itself can't recover"
+# pieces. Daemon archives them with the `command` source via kubectl exec
+# so the captured payload is a stream the daemon writes directly to GCS.
+
+[[datasets]]
+id = "fafnir-vault-file"
+tier = 1
+owner = "fafnir"
+description = "Vault file backend (init keys + sealed core/logical/sys)"
+
+[datasets.source]
+type = "command"
+argv = ["kubectl", "exec", "-n", "asgard", "fafnir-vault-0", "--", "tar", "-cf", "-", "-C", "/", "vault/file"]
+max_stdout_bytes = 1073741824   # 1 GiB cap; current actual size ~100 KB
+timeout_secs = 120
+record_count = 1
+
+[datasets.destination]
+prefix_template = "tenants/{tenant_id}/fafnir/{yyyy}/{mm}/{dd}/"
+object_name_template = "vault-file-{yyyy}-{mm}-{dd}.tar.zst"
+encryption = "cmek"             # init-keys.json is sealed-master material
+encryption_key = "projects/asgard-489513/locations/asia-southeast1/keyRings/asgard_medical/cryptoKeys/asgard-archive"
+compression = "zstd:19"
+
+[datasets.schedule]
+cron = "5 3 * * *"
+timezone = "Asia/Bangkok"
+
+[datasets.policy]
+retention_days = 2555
+skuggi_gate = "none"            # binary tarball; nothing for tier1-text to scan
+compliance_tags = ["hipaa", "pdpa", "infra-recovery"]
+classification = "infra-secret"
+pii_present = false
+phi_present = false
+
+[[datasets]]
+id = "yggdrasil-zitadel-db"
+tier = 1
+owner = "yggdrasil"
+description = "Zitadel signing keys + IDP state (lives in postgres.asgard-infra/zitadel)"
+
+[datasets.source]
+type = "command"
+argv = ["kubectl", "exec", "-n", "asgard-infra", "postgres-0", "--", "pg_dump", "-U", "postgres", "--format=custom", "--no-owner", "zitadel"]
+max_stdout_bytes = 5368709120   # 5 GiB cap
+timeout_secs = 600
+record_count = 1
+
+[datasets.destination]
+prefix_template = "tenants/{tenant_id}/yggdrasil/{yyyy}/{mm}/{dd}/"
+object_name_template = "zitadel-{yyyy}-{mm}-{dd}.pgdump.zst"
+encryption = "cmek"             # contains signing keys + user PII
+encryption_key = "projects/asgard-489513/locations/asia-southeast1/keyRings/asgard_medical/cryptoKeys/asgard-archive"
+compression = "zstd:19"
+
+[datasets.schedule]
+cron = "20 3 * * *"
+timezone = "Asia/Bangkok"
+
+[datasets.policy]
+retention_days = 2555
+skuggi_gate = "none"            # binary pg_dump format
+compliance_tags = ["hipaa", "pdpa", "infra-recovery"]
+classification = "infra-secret"
+pii_present = true
+phi_present = false
+
+
 # ── V2 datasets (commented — uncomment when V2 ships) ─────────────────────
 #
 # [[datasets]]

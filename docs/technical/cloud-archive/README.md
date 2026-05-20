@@ -41,6 +41,17 @@ Single point of failure: theft / fire / Mac mini SSD failure / T7 disconnect (th
 5. **License gate at daemon startup.** Yggdrasil RS256 JWT validated against `ASGARD_LICENSE_KEY` (per `asgard_jwt_auth_pattern`); `tier=commercial` enables the feature; AGPL build fails validation and the archive daemon refuses to start.
 6. **Rust-first.** `tyr-archive` is a Rust binary per `asgard_rust_first_principle`. K8s CronJob runs it daily.
 
+## Coexistence with existing backup tooling
+
+Two backup paths run side-by-side today and serve different needs:
+
+| Path | Owner | Scope | Destination | Cadence | Migration |
+|---|---|---|---|---|---|
+| `Mimir/scripts/backup-shared-kbs.sh` | bash, manual | Mimir MariaDB shared-KBs + 2 Qdrant collections + Neo4j PrimeKG manifest | local `~/asgard-backups/shared-kbs/` | ad-hoc, pre-destructive | deprecate when V2 Mimir datasets land |
+| `tyr-archive` daemon (this design) | Rust, K8s CronJob | V1: Tyr/Bifrost/Fafnir-Vault/Yggdrasil-Zitadel. V2: + Eir/Mimir/Syn | `gs://asgard-archive/tenants/<id>/` | daily 02:00 + hourly Bifrost | replaces shared-kbs script for Mimir in V2 |
+
+Scopes do **not** overlap in V1 — bash script archives Mimir, daemon does not (yet). Don't try to merge them prematurely; the bash script is also a useful local-only fallback when GCS is unreachable.
+
 ## What this is NOT
 
 - **Not a sync tool.** Append-only. Once uploaded, objects are immutable until lifecycle deletes them.

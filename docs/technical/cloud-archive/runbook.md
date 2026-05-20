@@ -108,17 +108,27 @@ gsutil cat gs://asgard-archive/tenants/<tenant_id>/eir/db-dumps/2026/05/19/opene
 
 ### 5b. Full restore of one dataset (requires customer KMS access)
 
+⚠️ **Disk-space gotcha — verified by 2026-05-20 DR drill**: a single restore of
+`asgard-full.tar` (~8 GB) overflowed `/tmp` on a Mac mini with only 32 GB free
+on its internal SSD. Always restore to T7 (1.1 TB free) or another large
+volume; never to the OS root. Recommended staging path:
+`/Volumes/T7 Shield/asgard-restore/<YYYY-MM-DD>/`.
+
 ```bash
 # (run on customer Mac mini with proper Vault unsealing first)
 TENANT=asgard_medical
 DATASET=eir-openemr-db
 DATE=2026-05-19
 
+# Stage on T7, not /tmp.
+STAGE=/Volumes/T7\ Shield/asgard-restore/$DATE
+mkdir -p "$STAGE"
+
 tyr-archive restore \
   --tenant $TENANT \
   --dataset $DATASET \
   --date $DATE \
-  --output /var/lib/asgard-restore/$DATE/
+  --output "$STAGE/"
 
 # For PHI datasets (CMEK), restore-time SA needs:
 #   roles/storage.objectViewer on prefix
@@ -205,6 +215,10 @@ shred -u /tmp/license-new.jwt
 7. Issue NEW SA key + license JWT (assume old Mac mini compromised). Old SA key is revoked.
 
 RTO target: 4 hours for non-PHI data; 8 hours including PHI restore (CMEK key access + DB import time).
+
+**Measured restore throughput (2026-05-20 DR drill)**: ~12 MB/s download =
+~11 min for the 8 GB `asgard-full.tar`. Plan ~1 GB/min when sizing RTO for
+a real customer cluster recovery.
 
 ### 7b. T7 Shield disconnected mid-archive
 
