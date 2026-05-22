@@ -93,7 +93,7 @@ Per [ADR-009](../decisions/ADR-009-single-tenant-mac-mini-deployment.md), each M
 **Workflows (per Eir_Agents_Architecture.md §4):**
 - Outpatient / Surgical / Emergency / Pediatric — full 4 flows
 
-### `asgard_insurance` box (Insurer A, Insurer B, Insurer C)
+### `asgard_insurance` box (Prudential, ThaiLife, Thai Health)
 
 **Agents** (in `agent_configs` table, all rows with `tenant_id='asgard_insurance'`):
 - **Underwriter consensus agents** (NOT the 19 Eir):
@@ -112,7 +112,7 @@ Per [ADR-009](../decisions/ADR-009-single-tenant-mac-mini-deployment.md), each M
 **Knowledge data populated:**
 - PrimeKG — same loaded (drug/disease knowledge for underwriting medical history analysis)
 - ICD-10-TM + TMT in MariaDB — TPC NOT loaded (procedures = hospital concern)
-- Insurance product catalogs (Insurer A/Insurer B/Insurer C) in tabular + vector
+- Insurance product catalogs (Prudential/ThaiLife/Thai Health) in tabular + vector
 - Underwriting manuals + exclusion catalogs in vector
 - PageIndex on: policy PDFs (50-200 page), claim documents, medical certificates submitted
 
@@ -237,7 +237,7 @@ Asgard maintains **4 complementary indexes**, each optimized for different query
 |---|---|---|---|
 | "ยานี้รักษาอะไรได้" | PrimeKG | — | drug → indication relations |
 | "ผู้ป่วยรายนี้มีโรคอะไรบ้าง" | RefGraph | Tabular DB | case_id → diagnoses |
-| "ในกรมธรรม์ Insurer A เขียนอย่างไรเรื่อง pre-existing" | Vector + PageIndex | — | semantic search → drill to page |
+| "ในกรมธรรม์ Prudential เขียนอย่างไรเรื่อง pre-existing" | Vector + PageIndex | — | semantic search → drill to page |
 | "ICD-10 ของเบาหวานชนิด 2 คืออะไร" | Tabular (icd10_codes) | — | exact lookup |
 | "เปรียบเทียบยา Atorvastatin กับ Rosuvastatin" | PrimeKG | Vector (clinical guidelines) | drug nodes + their indication neighbors |
 | "ระบุยาที่ห้ามใช้ในผู้ป่วยตั้งครรภ์" | PrimeKG (`contraindication`) | RefGraph (cross-reference patient history) | graph traversal |
@@ -280,7 +280,7 @@ Document
 **Metadata per page (in Qdrant + sidecar in DB):**
 ```json
 {
-  "doc_id": "policy_insurer_a_term_v2",
+  "doc_id": "policy_prudential_term_v2",
   "page_num": 47,
   "section": "Pre-existing Conditions",
   "section_id": "ch3",
@@ -417,7 +417,7 @@ Agent steps:
 ### Pattern 2: Policy interpretation (insurance underwriter chat)
 
 ```
-User: "Does Insurer A ProductX cover pre-existing diabetes?"
+User: "Does Prudential ProductX cover pre-existing diabetes?"
 
 Agent steps:
 1. pageindex.search_pages("pre-existing diabetes", doc_id="ProductX") → top-3 pages

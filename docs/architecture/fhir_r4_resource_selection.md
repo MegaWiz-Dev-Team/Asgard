@@ -349,7 +349,7 @@ pub struct Coverage {
 }
 ```
 
-**Thai insurance:** `payor` references the insurer Organization (e.g. Insurer A / Insurer B / Insurer C). `policy_holder` may differ from `beneficiary` (employer-paid plans). `network` describes provider network for in-network/out-of-network claim handling.
+**Thai insurance:** `payor` references the insurer Organization (Prudential / ThaiLife / Thai Health). `policy_holder` may differ from `beneficiary` (employer-paid plans). `network` describes provider network for in-network/out-of-network claim handling.
 
 ### 5.12 Claim
 
