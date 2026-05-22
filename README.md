@@ -210,6 +210,7 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 | **Asgard** | Realm of the gods | The platform | Community |
 | **Mimir** | God of wisdom | Knowledge & RAG | Community |
 | **Heimdall** | Guardian of Bifrost | LLM Gateway | Community |
+| **Laminar** → `heimdall-trace` | (Heimdall submodule) | LLM tracing / observability | Community ‡ |
 | **Skuggi** | "Shadow" (Old Norse) | PII/DLP guardrail — in-process middleware | Community † |
 | **Bifrost** | Rainbow bridge | Agent Runtime | Community |
 | **Fenrir** | The great wolf | Computer use | Community |
@@ -226,7 +227,6 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 | **Mjölnir** | Thor's hammer | HTTP Load Testing Service | Community |
 | **Sága** | Seeress & chronicler | Speech-to-Text (STT) | Community ‡ |
 | **Bragi** | God of poetry & eloquence | Text-to-Speech (TTS) | Community ‡ |
-| **Laminar** → `heimdall-trace` | (absorbed as Heimdall submodule) | LLM tracing / observability | Community ‡ |
 | **Odin** | The All-Father | Platform Supervisor | Community |
 
 > 🔒 = private repository (commercial / security-sensitive). **Odin's Ravens** = the cyber-security suite (Huginn · Muninn · Týr).
