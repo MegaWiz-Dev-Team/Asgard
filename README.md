@@ -208,6 +208,7 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 | **Asgard** | Realm of the gods | The platform | Community |
 | **Mimir** | God of wisdom | Knowledge & RAG | Community |
 | **Heimdall** | Guardian of Bifrost | LLM Gateway | Community |
+| **Skuggi** | "Shadow" (Old Norse) | PII/DLP guardrail — in-process middleware | Community † |
 | **Bifrost** | Rainbow bridge | Agent Runtime | Community |
 | **Fenrir** | The great wolf | Computer use | Community |
 | **Eir** | Goddess of healing | Clinic management (Gateway + OpenEMR) | Community |
@@ -221,9 +222,18 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 | **Hermóðr** | Messenger of the gods | Universal MCP Sidecar | Community |
 | **Forseti** | God of justice & reconciliation | LLM-Powered E2E Testing Service | Community |
 | **Mjölnir** | Thor's hammer | HTTP Load Testing Service | Community |
+| **Sága** | Seeress & chronicler | Speech-to-Text (STT) | Community ‡ |
+| **Bragi** | God of poetry & eloquence | Text-to-Speech (TTS) | Community ‡ |
+| **Laminar** → `heimdall-trace` | (absorbed as Heimdall submodule) | LLM tracing / observability | Community ‡ |
 | **Odin** | The All-Father | Platform Supervisor | Community |
 
 > 🔒 = private repository (commercial / security-sensitive). **Odin's Ravens** = the cyber-security suite (Huginn · Muninn · Týr).
+>
+> † **Skuggi** is not a standalone repo — it is in-process Rust middleware. The text-tier engine (Tier 1 regex + audit, ADR-007) ships **public** inside Heimdall (`gateway/src/skuggi.rs`) and Mimir's benchmarks; product-specific applications are private (Underwriter/Iris patient-name masking, Týr archive redaction). The image-tier model that gates cloud OCR is a runtime model, not committed code.
+>
+> ‡ **Planned** — not yet built; no repository exists yet. Intended to be open-core (public) when created. Laminar is being absorbed as the `heimdall-trace` submodule rather than a new top-level service.
+>
+> **Iris** (Greek: messenger goddess) is the **Underwriter product's** multi-agent orchestrator and lives in the private `asgard-underwriter` repo — a commercial product component, not part of the open-core platform, hence not listed above.
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
