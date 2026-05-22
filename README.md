@@ -37,6 +37,7 @@ graph LR
     EirGW --> |"proxy"| Eir["📋 OpenEMR<br/>FHIR R4"]
     Fenrir --> |"Browser"| Eir
 
+    Heimdall --> |"PII/DLP gate"| Skuggi["🕶️ Skuggi<br/>Guardrail (in-process)"]
     Heimdall --> LLM["🍎 MLX Backend (LLM)<br/>⚡ ONNX (Embedding)"]
 
     Yggdrasil["🌳 Yggdrasil<br/>Auth (Zitadel)"] -.-> Heimdall
@@ -58,6 +59,7 @@ graph LR
     style Huginn fill:#020617,stroke:#94a3b8,color:#e2e8f0
     style Tyr fill:#450a0a,stroke:#f87171,color:#fecaca
     style LogShipper fill:#450a0a,stroke:#f87171,color:#fecaca
+    style Skuggi fill:#1e1b4b,stroke:#a78bfa,color:#ddd6fe
 ```
 
 ---

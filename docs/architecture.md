@@ -2,7 +2,7 @@
 
 > A self-hosted AI platform running entirely on Apple Silicon & NVIDIA GPU.
 >
-> *Updated: 2026-03-14 — Eir Gateway Chat UI, MCP/A2A integration protocol (8 components)*
+> *Updated: 2026-05-22 — component roster + repo visibility (Public/Private) aligned with the [root README](../README.md#-components). Skuggi PII/DLP guardrail, heimdall-trace (formerly Laminar), planned Sága/Bragi.*
 
 ## High-Level Overview
 
@@ -411,11 +411,16 @@ graph LR
 
 ---
 
-### 👁️ Laminar — LLM Observability (Trace & MLOps)
+### 👁️ heimdall-trace (formerly Laminar) — LLM Observability (Trace & MLOps)
+
+> Reassigned 2026-05-19: this component is absorbed into the **Heimdall family**
+> as the `heimdall-trace` submodule rather than a standalone Norse-named service
+> (family: `heimdall` · `heimdall-trace` · future `heimdall-horn`). The name
+> "Sága" once proposed here was reassigned to Speech-to-Text.
 
 ```mermaid
 graph LR
-    subgraph laminar["👁️ Laminar System"]
+    subgraph laminar["👁️ heimdall-trace System"]
         UI["🖥️ Dashboard<br/>Traces · Evaluations"]
         LmnrAPI["📡 API/Ingest<br/>Rust Backend"]
         ClickHouse["🗄️ ClickHouse<br/>OLAP Traces"]

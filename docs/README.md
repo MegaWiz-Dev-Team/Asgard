@@ -77,18 +77,12 @@ graph TB
     Yggdrasil["🌳 Yggdrasil<br/>Auth"] -.-> Hermodr
 ```
 
-| Component | Role | Tech | Status |
-|:--|:--|:--|:--|
-| ⚡ **Bifrost** | Multi-Agent Orchestrator | **Rust (Axum + rig.rs)** | 🚧 Migrating to Rust |
-| 📨 **Hermóðr** | Universal MCP Sidecar | Rust | ✅ v0.1.0 |
-| 🏥 **Eir** | FHIR Gateway + Context Router | Rust (Axum) | ✅ v0.4.0 |
-| 🧠 **Mimir** | Knowledge Engine (Curator + Researcher) | Rust (Axum) + Next.js | ✅ Sprint 29 |
-| 🐺 **Fenrir** | Computer Use Agent | Rust + Python sidecar | ✅ v0.3.0 |
-| 🐿️ **Ratatoskr** | Shared Headless Browser | Rust (Axum) | ✅ Active |
-| 🛡️ **Heimdall** | LLM Gateway + Step-up Router | Rust (Axum) | ✅ Production |
-| 🌳 **Yggdrasil** | Identity & Auth (SSO/JWT) | Go (Zitadel) | ✅ v0.5.0 |
-| 🔱 **Odin** | Platform Supervisor | Rust (Axum) | 📋 Planned |
-| 🛡️ **Várðr** | Monitoring & Tracing | Rust | 📋 Planned |
+> 📋 **Canonical roster:** the full component list, tech stack, status, and
+> **Access (🌐 Public / 🔒 Private)** lives in the root README to avoid drift —
+> see **[Components](../README.md#-components)** and **[Norse Naming](../README.md#%EF%B8%8F-norse-naming)**.
+> Private repos: Yggdrasil, Týr, Huginn, Muninn, Syn, asgard-underwriter (Iris).
+> Skuggi (PII/DLP guardrail) is in-process middleware, not a standalone repo;
+> Sága (STT), Bragi (TTS), and Laminar → `heimdall-trace` are planned.
 
 ---
 
