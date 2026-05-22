@@ -149,7 +149,7 @@ Build a **self-hosted AI platform** that enables:
 - [ ] Fenrir MVP — OpenEMR form automation
 - [ ] Visual Workflow Builder (ReactFlow)
 - [ ] Documentation site (asgardai.dev)
-- [ ] Developer Preview (GitHub public)
+- [x] Developer Preview — core repos public on GitHub under AGPL-3.0 (open-core; security/auth/OCR repos remain private)
 
 ### Phase 3: Community Launch
 - [ ] v1.0 Community Edition
@@ -174,15 +174,19 @@ Build a **self-hosted AI platform** that enables:
 | **Bifrost** | Rainbow bridge | Agent Runtime | Community |
 | **Fenrir** | The great wolf | Computer use | Community |
 | **Eir** | Goddess of healing | Clinic management (Gateway + OpenEMR) | Community |
-| **Yggdrasil** | The world tree | Auth service | Community |
+| **Yggdrasil** | The world tree | Auth service | 🔒 Private |
 | **Várðr** | The guardian | Monitoring dashboard | Community |
-| **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | Odin's Ravens |
-| **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | Odin's Ravens |
+| **Týr** | God of justice & war | Enterprise SIEM & XDR (Wazuh) | 🔒 Odin's Ravens |
+| **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | 🔒 Odin's Ravens |
+| **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | 🔒 Odin's Ravens |
+| **Syn** | Goddess of watchfulness | Document OCR & PII redaction | 🔒 Private |
 | **Ratatoskr** | The squirrel on Yggdrasil | Shared Browser Service | Community |
 | **Hermóðr** | Messenger of the gods | Universal MCP Sidecar | Community |
 | **Forseti** | God of justice & reconciliation | LLM-Powered E2E Testing Service | Community |
 | **Mjölnir** | Thor's hammer | HTTP Load Testing Service | Community |
 | **Odin** | The All-Father | Platform Supervisor | Community |
+
+> 🔒 = private repository (commercial / security-sensitive). **Odin's Ravens** = the cyber-security suite (Huginn · Muninn · Týr).
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
