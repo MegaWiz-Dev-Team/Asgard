@@ -32,18 +32,16 @@ POSTGRES_CONTAINER="asgard_postgres"
 QDRANT_CONTAINER="asgard_qdrant"
 NEO4J_CONTAINER="asgard_neo4j"
 
-# Credentials — sourced from .env file (gitignored) or pre-set env vars.
-# All previously committed defaults have been retired. Rotate any deployment
-# that may still be running with them.
+# Credentials (from .env or defaults)
 if [ -f "${PROJECT_DIR}/.env" ]; then
     set -a
     source "${PROJECT_DIR}/.env"
     set +a
 fi
-: "${MYSQL_ROOT_PASSWORD:?Required: set MYSQL_ROOT_PASSWORD in .env or env}"
-: "${POSTGRES_PASSWORD:?Required: set POSTGRES_PASSWORD in .env or env}"
-: "${NEO4J_AUTH:?Required: set NEO4J_AUTH (format: neo4j/<password>) in .env or env}"
+MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-root}"
 MYSQL_DATABASE="${MYSQL_DATABASE:-mimir}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-yggdrasil-secret}"
+NEO4J_AUTH="${NEO4J_AUTH:-neo4j/REDACTED-PW}"
 
 # ── Parse Arguments ──
 while [[ $# -gt 0 ]]; do

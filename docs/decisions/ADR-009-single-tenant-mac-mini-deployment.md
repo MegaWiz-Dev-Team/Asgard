@@ -31,7 +31,7 @@ This is on-prem appliance distribution, not SaaS.
 - JWT (Yggdrasil) is for service-to-service auth (e.g., Cloud Run portal → on-prem Mac mini) and proof of box access, not for tenant extraction
 - Per-component audit (Tyr) is local to the box
 
-**The "multi-insurer" pattern within `asgard_insurance` is NOT multi-tenancy.** It means: ONE insurance company customer loads competing product catalogs (Insurer A + Insurer B + Insurer C) onto their own box for product comparison analysis. The `insurer_id` field identifies which insurer issued a product record, not which insurer is logged in.
+**The "multi-insurer" pattern within `asgard_insurance` is NOT multi-tenancy.** It means: ONE insurance company customer loads competing product catalogs (Prudential + ThaiLife + Thai Health) onto their own box for product comparison analysis. The `insurer_id` field identifies which insurer issued a product record, not which insurer is logged in.
 
 ## Alternatives Considered
 

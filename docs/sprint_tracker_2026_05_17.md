@@ -135,7 +135,7 @@ Pick-up reason: B-48f Qdrant Thai semantic search is deferred; Fix #1 unblocks i
 
 | ID | Task | Effort | Notes |
 |---|---|---|---|
-| S2.C.1 | Multi-insurer product comparison (Insurer A/Insurer B/Insurer C) | 5-6d | S2 architecture, dedup >0.95 |
+| S2.C.1 | Multi-insurer product comparison (Prudential/ThaiLife/Thai Health) | 5-6d | S2 architecture, dedup >0.95 |
 | S2.C.2 | HITL queue production (SLA, assignment, escalation) | 3d | Reuse from Phase A.1 schema |
 | S2.C.3 | Observability (prometheus + OTel + JSON logs) | 3d | Per ADR-005 (pending) |
 | S2.C.4 | PDF export depth | 3d | Keep `printpdf`; add ICD-10/timeline/HITL notes |
@@ -234,7 +234,7 @@ S3.F.1/F.2/F.3 are independent of each other — can run in any order or paralle
 | 2026-05-17 | Audit sink = LocalDbSink + Wazuh stub | Local first, Wazuh ready for when Tyr scales up |
 | 2026-05-17 | crates.io public for shared crate | AGPL+Commercial dual license; open-core moat |
 | 2026-05-17 | Keep `printpdf` | Stability over polish (typst nicer but switch cost too high) |
-| 2026-05-17 | Insurers: Insurer A, Insurer B, Insurer C | Per latest commercial direction |
+| 2026-05-17 | Insurers: Prudential, ThaiLife, Thai Health | NOT AXA; user correction |
 | 2026-05-17 | 1 Mac mini per customer, on-prem single-tenant | No RBAC, tenant_id is deployment config |
 | 2026-05-17 | Embedding runtime = candle + Metal recommended | Rust-First, no architecture split (vs MLX which needs host service split) |
 | 2026-05-17 | FHIR R4 canonical + Thai coding (ICD-10-TM/TMT/TPC) | Cross-domain interop free if both sides speak FHIR |
@@ -267,7 +267,7 @@ S3.F.1/F.2/F.3 are independent of each other — can run in any order or paralle
 | Faker generator coupling to ICD-10-TM table breaks if schema changes | Low | Low | Pin schema version + test isolation |
 | AWS sample evolves and adds patterns worth tracking | Medium | Low | Re-audit aws-samples/sample-quicksuite-chatagent-insurance-underwriting quarterly |
 | **TMT / TPC source not found before B.3 ship** | Medium | Medium | NEW. Fallback: Thai profile validation downgrades from "required" to "recommended" for MedicationRequest + Procedure. Investigation tasks during W2.3b/c — try NHSO open data, RxNorm as Thai-equivalent proxy, hospital-partner institutional license. |
-| **SMART on FHIR (RS384 keypair) needed when first insurance POC exposes a FHIR API** | Medium | Medium | NEW. No ADR yet — defer until partner tech brief lands. Mark in Phase D backlog. |
+| **SMART on FHIR (RS384 keypair) needed when Prudential POC has FHIR API** | Medium | Medium | NEW. No ADR yet — defer until Prudential tech brief lands. Mark in Phase D backlog. |
 | **HL7 v2 ingress (parser + MLLP + mapper + HOSxP quirks) needed for first hospital customer** | Medium | High when needed | NEW. No design now — wait until first customer specifies vendor + version (HOSxP / HIS-Plus / Bizzcomm / in-house). Then scope sprint. |
 | **`iris::underwriting::Condition` namespace clash with FHIR `Condition`** | Medium (will hit) | Low | NEW. Rename to `PolicyCondition` as part of S2.A.0 (early Phase A). Pre-emptive, not after-the-fact. |
 

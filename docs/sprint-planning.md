@@ -68,81 +68,27 @@ Cluster is on v1.3.0 (Mimir + Bifrost + Syn rolled). Sprint 50 OCR + Sprint 50b 
 
 ---
 
-## ✅ Sprint 51d — Open-core go-live (2026-05-10)
+## 🔄 Sprint 51e — Secret Rotation (in flight, 5/7 done as of 2026-05-11)
 
-Asgard repo flipped private → public. Triggered pre-existing inline-secrets burn from
-commit `73a004f`. Recovery via Sprint 51e. Incident bundle filed
-2026-05-20 at [`docs/incidents/2026-05-10-open-core-go-live-burn/`](incidents/2026-05-10-open-core-go-live-burn/README.md)
-(README + incident-report + postmortem + compliance-response). SEV-2,
-no observed exploitation, no PHI breach. Compensating control: `.pre-commit-config.yaml`
-gitleaks v8.21.2 (was in place pre-incident; prevents future regressions).
-
-## ✅ Sprint 51e — Secret Rotation (7/8 done, closed 2026-05-19)
-
-Hand-patched secret rotation across services post-51d burn. Doc-of-record:
-[`docs/security/ROTATION-PLAN-2026-05-10.md`](security/ROTATION-PLAN-2026-05-10.md).
+Hand-patched secret rotation across services to break out of pre-rotation defaults.
 
 | Step | Component | State |
 |:--|:--|:--|
-| 1 | Heimdall (LLM Gateway) | ✅ Rotated 2026-05-11 (dual-key zero-downtime) |
-| 2 | Neo4j | ✅ Rotated 2026-05-11 |
-| 3 | Laminar → renamed `heimdall-trace` 2026-05-19 | ✅ Rotated 2026-05-11 PM (DB sha3-256 hash + ConfigMap + Secret + restart) |
-| 4 | MariaDB | ✅ Rotated 2026-05-11 |
-| 5 | Postgres | ✅ Rotated 2026-05-11 |
-| 6 | Mimir-OIDC | ✅ Rotated 2026-05-11 |
-| 7a | Bifrost DB (inline → Secret) | ✅ Patched 2026-05-11 |
-| 7b | Eir-Gateway OAuth2 (OpenEMR CryptoGen) | ✅ Rotated 2026-05-11 PM |
-| 8 | Yggdrasil masterkey | ⏸ Deferred per Option 8A — encrypted-data audit shows low risk; revisit if external IDP creds or SMTP relays are added to Zitadel |
-
-Verification pass 2026-05-19 confirmed all rotations stable. Separate finding
-during verification: `laminar-app-server.SHARED_SECRET_TOKEN` is an
-otel-collector-internal placeholder (NOT part of this incident scope) — tracked
-separately at [`docs/security/laminar-shared-secret-token-cleanup-draft.md`](security/laminar-shared-secret-token-cleanup-draft.md).
+| 1 | Heimdall (LLM Gateway) | ✅ Rotated |
+| 2 | Neo4j | ✅ Rotated |
+| 3 | Laminar | ⏭️ Deferred (third-party complexity) |
+| 4 | MariaDB | ✅ Rotated |
+| 5 | Postgres | ✅ Rotated |
+| 6 | Mimir-OIDC | ✅ Rotated |
+| 7a | Bifrost DB (inline → Secret) | ✅ Patched |
+| 7b | Eir | ⏭️ Deferred |
+| 8 | Masterkey | ⏭️ Deferred |
 
 **Bonus fixes (during rotation work):**
 - `lan-bridge-http` cleanup
 - Mimir↔Neo4j 401 unauthenticated path
 - Bifrost DATABASE_URL chart wired to MIMIR_DATABASE_URL secretKeyRef
 - syn-api MARIADB_URL → secretKeyRef (2026-05-12)
-
----
-
-## 🆕 2026-05-19 — Architecture & Naming Decisions
-
-> Locked design decisions from "Living Clinical Evidence" planning session. Affect Sprint 55+ deliverables; do NOT disturb Sprint 52-54 (Insurance Launch + Cloud Enablement) which remain locked.
-
-### Component naming reassignments
-
-| Before | After (2026-05-19) | Rationale |
-|:--|:--|:--|
-| Sága = Laminar (display name) | **Sága = STT** (pairs with Bragi=TTS) | Aligns with `strategy/roadmap.md` Sága S1 Whisper Foundation (Q3 2026); fits the storytelling/listening goddess myth |
-| Laminar (no Asgard name) | **`heimdall-trace`** submodule | Heimdall = mythological all-watcher; already sees all LLM calls as gateway; per `feedback_no_new_norse_components` extends existing instead of new top-level |
-| Bifrost (single runtime) | **`bifrost-agent` + `bifrost-jobs`** | Agent runs (tree-shape, live) vs cron jobs (linear, scheduled) need different debug surfaces; unified via `bifrost.runs` envelope |
-
-### Planned submodules (Sprint 55+)
-- **`mimir-curator`** — Label Studio wrap (port 8888), 2 projects: `ocr-region-gt` (existing aspiration) + `oracle-review` (new). Replaces v2.3.11 OCR annotation UI (retire/redirect)
-- **`mimir-well`** — Memory artifact accumulation layer; Mímisbrunnr metaphor; Tulving 3-tier schema (episodic/semantic/procedural); PROV-AGENT provenance → Tyr audit stream
-- **`mimir-guideline-lineage`** — Neo4j subgraph (separate from PrimeKG) with HL7 FHIR CPG-IG schema; tracks `REPLACES`/`DERIVED_FROM`/`CITES`/`CONTRADICTS` between Guideline/Recommendation/Evidence nodes
-- **`heimdall-trace`** — Laminar self-hosted wrapper, OTel ingest, PG+ClickHouse backend, UI proxied via `/heimdall/trace/*` with Heimdall JWT
-- **`bifrost-trace` middleware** — Emits OTel root span from Bifrost runtimes → heimdall-trace
-
-### Locked policy decisions
-- **Heimdall budget cap:** $100 USD/month/tenant for `oracle_ingest` (shared bucket incl. deep-research + LLM-as-judge eval); fallback to local LLM (gemma-4-26b) when exceeded; dashboard at `/heimdall/budget`
-- **Eir agents:** Local LLM only remains hard rule (per `feedback_eir_agents_local_only`) — cloud LLM never permitted for clinical reasoning
-- **Curator conflict resolution:** Recursive deep-research tiebreaker (PubMed + other societies + Epistemonikos L·OVE → Heimdall synthesize → new `research_brief` artifact); max 2 rounds before escalating to senior clinician
-- **Eval architecture split:** Mimir Eval (cold/benchmark, dataset-driven, asgard_platform tenant) + heimdall-trace (warm/live, per-trace LLM-as-judge); unified scoreboard surface in Mimir UI; Sága→Mimir push via webhook
-- **Prompt management:** `agent_configs` MariaDB stays source of truth; Laminar trace just tags `prompt_version=X` (NO Laminar prompt mgmt — avoid drift between 2 stores)
-- **PII in traces:** Skuggi pre-emit redaction (W1 Text Tier 1 shipped 2026-05-09) — PHI never enters heimdall-trace storage
-- **Retention (draft, compliance review post-S1):** Hot 30d (Laminar) / Warm 1y (Mimir summary) / Cold 6y (sampled + eval-failed, MinIO) — HIPAA min 6y for medical-decision records
-- **Positioning:** "Your Hospital's Living Research System" or "Living Clinical Evidence, On Your Premises" — borrows Cochrane/Elliott 2014 academic credibility; commercial space empty (UpToDate/DynaMed/BMJ/OpenEvidence don't own "living")
-
-### Memory references
-- `asgard_laminar_saga` (Laminar=heimdall-trace, supersedes Sága=Laminar)
-- `asgard_saga_stt` (Sága=STT reassignment)
-- `bifrost_runtime_family` (agent+jobs split)
-- `asgard_living_evidence_positioning`, `mimir_guideline_lineage_plan`, `mimir_well_memory_artifacts`
-- `mimir_curator_label_studio`, `mimir_curator_conflict_resolution`, `heimdall_oracle_budget_cap`
-- `bifrost_cron_monitor` (extended by `bifrost_runtime_family`)
 
 ---
 
@@ -193,32 +139,6 @@ separately at [`docs/security/laminar-shared-secret-token-cleanup-draft.md`](sec
 - Replace PyThaiNLP Tier 2 with in-process ONNX
 - Only execute if PyThaiNLP recall drops below 98% on production data
 - 03_17 execution plan + 03_18 MLOps infra docs (already drafted)
-
-### Sprint 55-58 — "Living Clinical Evidence" System (NEW 2026-05-19)
-
-> Theme: **"Your Hospital's Living Research System"** — guideline lineage tracking + memory artifact accumulation + live observability. Public-facing positioning that differentiates Asgard from medical AI chatbots.
->
-> **Sequencing rule:** Starts only after S1 Insurance Go/No-Go decision (2026-06-12) and Sprint 52-54 (Insurance Launch + Cloud Enablement) are stable. If PyThaiNLP recall < 98%, the gated Thai NER work shares Sprint 55-57 bandwidth — Living Evidence shifts to S56-S59. If recall ≥ 98%, Living Evidence runs full Sprint 55-58.
-
-| Sprint | Focus | Deliverables |
-|:--|:--|:--|
-| **55** | Lineage MVP + observability foundation | `mimir-guideline-lineage` Neo4j subgraph (HL7 FHIR CPG-IG schema); `mimir-guideline-ingest` Rust pipeline (**MAGICapp JSON only, 1 society × 1 topic — ESC HTN**); `heimdall-trace` integration wire-up (OTel ingest + Heimdall JWT proxy + spans from Bifrost/Heimdall/Hermodr/Mimir/Skuggi — rotation itself closed 2026-05-11 in 51e); `bifrost-agent` + `bifrost-jobs` runtime split + unified `bifrost.runs` schema; Heimdall $100/mo budget middleware basic |
-| **56** | Curator + Memory Well | `mimir-curator` (Label Studio wrap, 2 projects: ocr-region-gt + oracle-review); PDF ingest pipeline (Syn OCR → Heimdall extract → curator review queue); `mimir-well` schema (Tulving 3-tier artifacts + PROV-O emit → Tyr audit); retire v2.3.11 OCR annotation UI (redirect → mimir-curator) |
-| **57** | UI + new eval types + scale | `/mimir/well` timeline UI + node inspector; 4 new eval types via `eval-tab-registry.tsx` (`agent_trace_quality`, `citation_faithfulness`, `tool_call_correctness`, `session_safety`); `/bifrost/runs` unified monitor UI (agent trace tree view + job linear log view); replay sandbox (`dry_run=true` in Hermodr context); scale to 4 societies × 4 topics |
-| **58** | Deep research + feedback loop | Recursive research tiebreaker pipeline (curator disagreement → Heimdall synthesize new evidence brief → re-queue, max 2 rounds); Sága→Mimir score push webhook; Sága labeling queue → Mimir dataset promotion (closed feedback loop); HealthBench-Pro port to Sága offline eval; comparison view in Mimir scoreboard (benchmark vs live) |
-
-**Demo gate (end of Sprint 55):** Eir-cardio answers "current BP target for diabetic adult" with currency signaling — *"Per ESC 2025 [updated from ESC 2024], target <130/80, driven by SPRINT-DM trial (NEJM 2024). Evidence as of YYYY-MM-DD."* + lineage timeline in UI. **This unlocks public "Living Clinical Evidence" positioning + blog/landing-page copy.**
-
-**Explicit non-goals (Sprint 55 MVP):**
-- ❌ Multi-PDF ingest (MAGICapp JSON only)
-- ❌ 2 societies × 2 topics (1×1 enough for demo)
-- ❌ Curator workflow (no PDF extract = no review queue needed yet — moved to S56)
-- ❌ Mimir Well UI (schema only S55, UI in S57)
-- ❌ Deep research tiebreaker (S58; requires 2 curators in conflict)
-- ❌ Separate eval budget bucket (shared $100/mo with line items)
-- ❌ Laminar prompt management (keep `agent_configs` source of truth)
-
-**Cost ceiling:** Heimdall cloud LLM for guideline extract ≈ $0.011 per 100-page guideline (Gemini Flash Lite). At $100/mo budget → 6,700-25,000 extracts headroom. Deep research brief ≈ $0.15. Realistic mo volume ≪ cap.
 
 ---
 
