@@ -210,7 +210,7 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 | **Asgard** | Realm of the gods | The platform | Community |
 | **Mimir** | God of wisdom | Knowledge & RAG | Community |
 | **Heimdall** | Guardian of Bifrost | LLM Gateway | Community |
-| **Laminar** → `heimdall-trace` | (Heimdall submodule) | LLM tracing / observability | Community ‡ |
+| **heimdall-trace** *(Laminar)* | Heimdall submodule | LLM tracing / observability | Community ‡ |
 | **Skuggi** | "Shadow" (Old Norse) | PII/DLP guardrail — in-process middleware | Community † |
 | **Bifrost** | Rainbow bridge | Agent Runtime | Community |
 | **Fenrir** | The great wolf | Computer use | Community |
