@@ -64,24 +64,27 @@ graph LR
 
 ## 📦 Components
 
-| Component | Description | Tech Stack | Tests | Status |
-|:--|:--|:--|:--|:--|
-| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 38 |
-| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) + MLX + fastembed | Benchmarked | ✅ Sprint 38 |
-| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 |
-| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 |
-| 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
-| 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
-| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, native macOS Log Shipper | Rust (Axum) + Python | 5 | ✅ Sprint 38 |
-| ⚖️ **[Týr](https://github.com/MegaWiz-Dev-Team/Tyr)** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Sprint 38 |
-| 🐉 **Fáfnir** | K3s HashiCorp Vault Secrets Manager | Vault / HCL | — | ✅ Sprint 38 |
-| 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Rust (Axum) | 51 | ✅ Active |
-| 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Rust (Axum) | 60 | ✅ Active |
-| 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
-| 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 |
-| ⚖️ **[Forseti](https://github.com/MegaWiz-Dev-Team/Forseti)** | LLM-Powered E2E Testing Service — multi-project, auto-report | Python | 147 | ✅ Sprint 6 |
-| 🔨 **[Mjölnir](https://github.com/MegaWiz-Dev-Team/Mjolnir)** | HTTP Load Testing Service — MCP-compatible, Forseti linked | Rust (Axum) | — | ✅ Active |
-| 🏰 **Asgard** *(this repo)* | K3s Deployment (OrbStack), docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active |
+| Component | Description | Tech Stack | Tests | Status | Access |
+|:--|:--|:--|:--|:--|:--|
+| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 38 | 🌐 Public |
+| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) + MLX + fastembed | Benchmarked | ✅ Sprint 38 | 🌐 Public |
+| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 | 🌐 Public |
+| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 | 🌐 Public |
+| 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 | 🌐 Public |
+| 🌳 **Yggdrasil** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 | 🔒 Private |
+| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, native macOS Log Shipper | Rust (Axum) + Python | 5 | ✅ Sprint 38 | 🌐 Public |
+| ⚖️ **Týr** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Sprint 38 | 🔒 Private |
+| 🐉 **Fáfnir** | K3s HashiCorp Vault Secrets Manager | Vault / HCL | — | ✅ Sprint 38 | 🔒 Private |
+| 🐦‍⬛ **Huginn** | Security Scanner + AI Pentest Agent + Performance Test | Rust (Axum) | 51 | ✅ Active | 🔒 Private |
+| 🐦 **Muninn** | Issue Watcher + LLM Auto-Fixer | Rust (Axum) | 60 | ✅ Active | 🔒 Private |
+| 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 | 🌐 Public |
+| 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 | 🌐 Public |
+| ⚖️ **[Forseti](https://github.com/MegaWiz-Dev-Team/Forseti)** | LLM-Powered E2E Testing Service — multi-project, auto-report | Python | 147 | ✅ Sprint 6 | 🌐 Public |
+| 🔨 **[Mjölnir](https://github.com/MegaWiz-Dev-Team/Mjolnir)** | HTTP Load Testing Service — MCP-compatible, Forseti linked | Rust (Axum) | — | ✅ Active | 🌐 Public |
+| 🩻 **Syn** | Document OCR & PII redaction — handwriting, layout, DICOM | Rust + Python (MLX VLM) | — | ✅ Active | 🔒 Private |
+| 🏰 **Asgard** *(this repo)* | K3s Deployment (OrbStack), docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active | 🌐 Public |
+
+> 🔒 **Private** components are commercial / security-sensitive (cyber-security suite, auth, secrets, OCR with PHI) and are not browsable publicly. 🌐 **Public** components are open-core under AGPL-3.0. See [`DATA_LICENSE.md`](https://github.com/MegaWiz-Dev-Team/Mimir/blob/main/DATA_LICENSE.md) in Mimir for medical-terminology data licensing (SNOMED CT / ICD-10-TM / TMT / LOINC / DrugBank — code references only, never redistributed release data).
 
 > **530+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
@@ -121,6 +124,43 @@ Build a **self-hosted AI platform** that enables:
 
 ---
 
+## 🔑 Authentication
+
+Auth is **dual-mode**, so the open-core services run **without** the (private)
+Yggdrasil auth service. Each service inspects the bearer token: a JWT (starts
+with `ey`) is validated via JWKS; anything else is treated as a static API key.
+
+**1. Static API key — default, no identity provider needed**
+
+Leave `YGGDRASIL_ISSUER` / `JWT_AUDIENCE` unset and configure a static key.
+Services log `JWT disabled … static API_KEYS only` and run as-is — ideal for
+self-hosted, single-user, and dev setups.
+
+```bash
+# no issuer/audience set → static-key mode
+export API_KEYS="my-secret-key"
+curl -H "Authorization: Bearer my-secret-key" http://localhost:8080/...
+```
+
+**2. Bring your own OIDC provider — multi-user / SSO**
+
+Point the services at *any* OIDC issuer (Keycloak, Auth0, your own Zitadel —
+not just Yggdrasil). They fetch the issuer's JWKS and validate RS256 JWTs.
+
+```bash
+export YGGDRASIL_ISSUER="https://id.example.com"   # any OIDC issuer URL
+export JWT_AUDIENCE="heimdall"                       # per-service audience
+```
+
+The only contract is a RS256 JWT carrying the expected claims (e.g.
+`urn:zitadel:iam:org:id` → `tenant_id`).
+
+> 🔒 Yggdrasil is private and provides only the **turnkey multi-tenant SSO
+> provisioning** (a commercial convenience on top of [Zitadel](https://github.com/zitadel/zitadel), Apache-2.0).
+> It is **not** required to run or self-host the open-core platform.
+
+---
+
 ## 🗺️ Roadmap
 
 > **[Full Roadmap with Gantt Chart →](docs/strategy/roadmap.md)**
@@ -146,7 +186,7 @@ Build a **self-hosted AI platform** that enables:
 - [ ] Fenrir MVP — OpenEMR form automation
 - [ ] Visual Workflow Builder (ReactFlow)
 - [ ] Documentation site (asgardai.dev)
-- [ ] Developer Preview (GitHub public)
+- [x] Developer Preview — core repos public on GitHub under AGPL-3.0 (open-core; security/auth/OCR repos remain private)
 
 ### Phase 3: Community Launch
 - [ ] v1.0 Community Edition
@@ -171,15 +211,19 @@ Build a **self-hosted AI platform** that enables:
 | **Bifrost** | Rainbow bridge | Agent Runtime | Community |
 | **Fenrir** | The great wolf | Computer use | Community |
 | **Eir** | Goddess of healing | Clinic management (Gateway + OpenEMR) | Community |
-| **Yggdrasil** | The world tree | Auth service | Community |
+| **Yggdrasil** | The world tree | Auth service | 🔒 Private |
 | **Várðr** | The guardian | Monitoring dashboard | Community |
-| **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | Odin's Ravens |
-| **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | Odin's Ravens |
+| **Týr** | God of justice & war | Enterprise SIEM & XDR (Wazuh) | 🔒 Odin's Ravens |
+| **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | 🔒 Odin's Ravens |
+| **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | 🔒 Odin's Ravens |
+| **Syn** | Goddess of watchfulness | Document OCR & PII redaction | 🔒 Private |
 | **Ratatoskr** | The squirrel on Yggdrasil | Shared Browser Service | Community |
 | **Hermóðr** | Messenger of the gods | Universal MCP Sidecar | Community |
 | **Forseti** | God of justice & reconciliation | LLM-Powered E2E Testing Service | Community |
 | **Mjölnir** | Thor's hammer | HTTP Load Testing Service | Community |
 | **Odin** | The All-Father | Platform Supervisor | Community |
+
+> 🔒 = private repository (commercial / security-sensitive). **Odin's Ravens** = the cyber-security suite (Huginn · Muninn · Týr).
 
 > **[Huginn & Muninn Roadmap →](docs/roadmap/huginn-muninn.md)**
 
@@ -202,8 +246,10 @@ Build a **self-hosted AI platform** that enables:
   <a href="https://github.com/MegaWiz-Dev-Team/Heimdall">Heimdall</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Bifrost">Bifrost</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Fenrir">Fenrir</a> ·
-  <a href="https://github.com/MegaWiz-Dev-Team/Yggdrasil">Yggdrasil</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Eir">Eir</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Vardr">Várðr</a> ·
-  <a href="https://github.com/MegaWiz-Dev-Team/Ratatoskr">Ratatoskr</a>
+  <a href="https://github.com/MegaWiz-Dev-Team/Ratatoskr">Ratatoskr</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Hermodr">Hermóðr</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Forseti">Forseti</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Mjolnir">Mjölnir</a>
 </p>
