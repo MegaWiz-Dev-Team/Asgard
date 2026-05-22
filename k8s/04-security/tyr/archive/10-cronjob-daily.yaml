@@ -1,0 +1,99 @@
+# Daily archive CronJob — fires once per day at 02:00 Asia/Bangkok and runs
+# every dataset whose schedule.cron has come due in the last 24h. (V1 simply
+# runs --all; per-dataset cron filtering is a V2 task.)
+#
+# Not applied automatically. Deploy via:
+#   kubectl apply -f Asgard/k8s/04-security/tyr/archive/
+#
+# Pre-req: tyr-archive:0.1.0 image built (local or registry) per
+# Tyr/tyr-archive/Dockerfile, and the three Secrets in 01-secrets.yaml
+# replaced with real values.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tyr-archive-daily
+  namespace: asgard-archive
+  labels:
+    app.kubernetes.io/part-of: tyr-archive
+    app.kubernetes.io/component: cloud-archive
+    cadence: daily
+spec:
+  # SUSPENDED until Phase B done (per-tenant SA + Yggdrasil-issued JWT).
+  # Once Secrets `tyr-archive-gcp-sa` and `tyr-archive-license` have real
+  # values, flip to `suspend: false` to enable nightly archiving.
+  suspend: true
+  schedule: "0 19 * * *"          # 02:00 Asia/Bangkok = 19:00 UTC previous day
+  timeZone: Etc/UTC
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 14
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: tyr-archive
+            cadence: daily
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: tyr-archive
+              image: tyr-archive:0.1.0
+              imagePullPolicy: IfNotPresent
+              args:
+                - --catalog
+                - /etc/tyr-archive/catalog.toml
+                # --skip-license is DEV ONLY until Phase B Yggdrasil JWT
+                # issuance is wired. Remove this flag before production.
+                - --skip-license
+                - run
+                - --all
+              env:
+                - name: RUST_LOG
+                  value: "info,tyr_archive=debug"
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/run/secrets/gcp/sa-key.json
+                - name: WAZUH_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: tyr-archive-wazuh
+                      key: user
+                - name: WAZUH_PASS
+                  valueFrom:
+                    secretKeyRef:
+                      name: tyr-archive-wazuh
+                      key: pass
+              volumeMounts:
+                - name: catalog
+                  mountPath: /etc/tyr-archive
+                  readOnly: true
+                - name: gcp-sa
+                  mountPath: /var/run/secrets/gcp
+                  readOnly: true
+                - name: license
+                  mountPath: /etc/tyr-archive/license
+                  readOnly: true
+                - name: staging
+                  mountPath: /var/lib/tyr-archive/staging
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 1000m
+                  memory: 1Gi
+          volumes:
+            - name: catalog
+              configMap:
+                name: tyr-archive-catalog
+            - name: gcp-sa
+              secret:
+                secretName: tyr-archive-gcp-sa
+            - name: license
+              secret:
+                secretName: tyr-archive-license
+            - name: staging
+              emptyDir:
+                sizeLimit: 1Gi

@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tyr-archive-catalog
+  namespace: asgard-archive
+  labels:
+    app.kubernetes.io/part-of: tyr-archive
+data:
+  # Per-tenant catalog file. The canonical example lives in
+  # Asgard/docs/technical/cloud-archive/example-catalog.toml and in the
+  # Tyr repo at tyr-archive/config/catalog.example.toml. Customize per
+  # deployment, then `kubectl create configmap --from-file=catalog.toml`
+  # to replace this placeholder.
+  catalog.toml: |
+    schema = "asgard-archive-catalog-v1"
+    tenant_id = "asgard_medical"
+
+    [bucket]
+    name = "asgard-archive"
+    project = "asgard-489513"
+    location = "asia-southeast1"
+
+    [license]
+    jwt_path = "/etc/tyr-archive/license/license.jwt"
+    verify_jwks_url = "https://yggdrasil.asgard-medical.svc.cluster.local/.well-known/jwks.json"
+
+    [auth]
+    sa_key_vault_path = "secret/asgard_medical/archive/sa_key"
+
+    [skuggi]
+    endpoint = "http://heimdall.asgard-services.svc.cluster.local:8080/skuggi/scan"
+    required_tier = "text-tier1"
+
+    [staging]
+    dir = "/var/lib/tyr-archive/staging"
+    max_retention_hours = 24
+
+    [[datasets]]
+    id = "tyr-alerts"
+    tier = 1
+    owner = "tyr"
+    description = "Wazuh SIEM alerts"
+    [datasets.source]
+    type = "opensearch"
+    url = "https://wazuh-indexer.wazuh.svc.cluster.local:9200"
+    username_env = "WAZUH_USER"
+    password_env = "WAZUH_PASS"
+    index_pattern = "wazuh-alerts-4.x-*"
+    since_template = "now-24h"
+    [datasets.destination]
+    prefix_template = "tenants/{tenant_id}/tyr/alerts/{yyyy}/{mm}/{dd}/"
+    object_name_template = "alerts-{yyyy}-{mm}-{dd}.jsonl.zst"
+    encryption = "google-managed"
+    compression = "zstd:19"
+    [datasets.schedule]
+    cron = "0 2 * * *"
+    timezone = "Asia/Bangkok"
+    [datasets.policy]
+    retention_days = 2555
+    skuggi_gate = "tier1-text"
+    compliance_tags = ["hipaa", "pdpa", "oic"]
+    classification = "confidential-audit"
+    pii_present = false
+    phi_present = false
+
+    [[datasets]]
+    id = "tyr-audit"
+    tier = 1
+    owner = "tyr"
+    description = "Wazuh audit events"
+    [datasets.source]
+    type = "opensearch"
+    url = "https://wazuh-indexer.wazuh.svc.cluster.local:9200"
+    username_env = "WAZUH_USER"
+    password_env = "WAZUH_PASS"
+    index_pattern = "wazuh-audit-*"
+    since_template = "now-24h"
+    [datasets.destination]
+    prefix_template = "tenants/{tenant_id}/tyr/audit/{yyyy}/{mm}/{dd}/"
+    object_name_template = "audit-{yyyy}-{mm}-{dd}.jsonl.zst"
+    encryption = "google-managed"
+    compression = "zstd:19"
+    [datasets.schedule]
+    cron = "15 2 * * *"
+    timezone = "Asia/Bangkok"
+    [datasets.policy]
+    retention_days = 2555
+    skuggi_gate = "tier1-text"
+    compliance_tags = ["hipaa", "pdpa", "oic"]
+    classification = "confidential-audit"
+    pii_present = false
+    phi_present = false
+
+    [[datasets]]
+    id = "tyr-fim"
+    tier = 1
+    owner = "tyr"
+    description = "File integrity monitoring events"
+    [datasets.source]
+    type = "opensearch"
+    url = "https://wazuh-indexer.wazuh.svc.cluster.local:9200"
+    username_env = "WAZUH_USER"
+    password_env = "WAZUH_PASS"
+    index_pattern = "wazuh-fim-*"
+    since_template = "now-24h"
+    [datasets.destination]
+    prefix_template = "tenants/{tenant_id}/tyr/fim/{yyyy}/{mm}/{dd}/"
+    object_name_template = "fim-{yyyy}-{mm}-{dd}.jsonl.zst"
+    encryption = "google-managed"
+    compression = "zstd:19"
+    [datasets.schedule]
+    cron = "30 2 * * *"
+    timezone = "Asia/Bangkok"
+    [datasets.policy]
+    retention_days = 2555
+    skuggi_gate = "tier1-text"
+    compliance_tags = ["hipaa", "pdpa", "oic"]
+    classification = "confidential-audit"
+    pii_present = false
+    phi_present = false
+
+    [[datasets]]
+    id = "bifrost-frames"
+    tier = 1
+    owner = "bifrost"
+    description = "Agent decision frames — clinical accountability core"
+    [datasets.source]
+    type = "filesystem"
+    root = "/var/lib/bifrost/agents"
+    glob = "agent_*_session_*.mv2"
+    modified_since = "1h"
+    [datasets.destination]
+    prefix_template = "tenants/{tenant_id}/bifrost/frames/{yyyy}/{mm}/{dd}/"
+    object_name_template = "{basename}"
+    encryption = "cmek"
+    encryption_key = "projects/asgard-489513/locations/asia-southeast1/keyRings/asgard_medical/cryptoKeys/asgard-archive"
+    compression = "none"
+    [datasets.schedule]
+    cron = "55 * * * *"
+    timezone = "Asia/Bangkok"
+    [datasets.policy]
+    retention_days = 2555
+    skuggi_gate = "tier1-text"
+    compliance_tags = ["hipaa", "pdpa", "clinical-accountability"]
+    classification = "phi-adjacent"
+    pii_present = true
+    phi_present = true
