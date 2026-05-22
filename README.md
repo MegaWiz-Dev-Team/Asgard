@@ -124,6 +124,43 @@ Build a **self-hosted AI platform** that enables:
 
 ---
 
+## 🔑 Authentication
+
+Auth is **dual-mode**, so the open-core services run **without** the (private)
+Yggdrasil auth service. Each service inspects the bearer token: a JWT (starts
+with `ey`) is validated via JWKS; anything else is treated as a static API key.
+
+**1. Static API key — default, no identity provider needed**
+
+Leave `YGGDRASIL_ISSUER` / `JWT_AUDIENCE` unset and configure a static key.
+Services log `JWT disabled … static API_KEYS only` and run as-is — ideal for
+self-hosted, single-user, and dev setups.
+
+```bash
+# no issuer/audience set → static-key mode
+export API_KEYS="my-secret-key"
+curl -H "Authorization: Bearer my-secret-key" http://localhost:8080/...
+```
+
+**2. Bring your own OIDC provider — multi-user / SSO**
+
+Point the services at *any* OIDC issuer (Keycloak, Auth0, your own Zitadel —
+not just Yggdrasil). They fetch the issuer's JWKS and validate RS256 JWTs.
+
+```bash
+export YGGDRASIL_ISSUER="https://id.example.com"   # any OIDC issuer URL
+export JWT_AUDIENCE="heimdall"                       # per-service audience
+```
+
+The only contract is a RS256 JWT carrying the expected claims (e.g.
+`urn:zitadel:iam:org:id` → `tenant_id`).
+
+> 🔒 Yggdrasil is private and provides only the **turnkey multi-tenant SSO
+> provisioning** (a commercial convenience on top of [Zitadel](https://github.com/zitadel/zitadel), Apache-2.0).
+> It is **not** required to run or self-host the open-core platform.
+
+---
+
 ## 🗺️ Roadmap
 
 > **[Full Roadmap with Gantt Chart →](docs/strategy/roadmap.md)**
