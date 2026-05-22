@@ -64,24 +64,27 @@ graph LR
 
 ## 📦 Components
 
-| Component | Description | Tech Stack | Tests | Status |
-|:--|:--|:--|:--|:--|
-| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 38 |
-| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) + MLX + fastembed | Benchmarked | ✅ Sprint 38 |
-| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 |
-| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 |
-| 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 |
-| 🌳 **[Yggdrasil](https://github.com/MegaWiz-Dev-Team/Yggdrasil)** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 |
-| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, native macOS Log Shipper | Rust (Axum) + Python | 5 | ✅ Sprint 38 |
-| ⚖️ **[Týr](https://github.com/MegaWiz-Dev-Team/Tyr)** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Sprint 38 |
-| 🐉 **Fáfnir** | K3s HashiCorp Vault Secrets Manager | Vault / HCL | — | ✅ Sprint 38 |
-| 🐦‍⬛ **[Huginn](https://github.com/MegaWiz-Dev-Team/Huginn)** | Security Scanner + AI Pentest Agent + Performance Test | Rust (Axum) | 51 | ✅ Active |
-| 🐦 **[Muninn](https://github.com/MegaWiz-Dev-Team/Muninn)** | Issue Watcher + LLM Auto-Fixer | Rust (Axum) | 60 | ✅ Active |
-| 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 |
-| 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 |
-| ⚖️ **[Forseti](https://github.com/MegaWiz-Dev-Team/Forseti)** | LLM-Powered E2E Testing Service — multi-project, auto-report | Python | 147 | ✅ Sprint 6 |
-| 🔨 **[Mjölnir](https://github.com/MegaWiz-Dev-Team/Mjolnir)** | HTTP Load Testing Service — MCP-compatible, Forseti linked | Rust (Axum) | — | ✅ Active |
-| 🏰 **Asgard** *(this repo)* | K3s Deployment (OrbStack), docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active |
+| Component | Description | Tech Stack | Tests | Status | Access |
+|:--|:--|:--|:--|:--|:--|
+| 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 38 | 🌐 Public |
+| 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) + MLX + fastembed | Benchmarked | ✅ Sprint 38 | 🌐 Public |
+| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 | 🌐 Public |
+| 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 | 🌐 Public |
+| 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 | 🌐 Public |
+| 🌳 **Yggdrasil** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 | 🔒 Private |
+| 🛡️ **[Várðr](https://github.com/MegaWiz-Dev-Team/Vardr)** | Monitoring Dashboard — health, logs, native macOS Log Shipper | Rust (Axum) + Python | 5 | ✅ Sprint 38 | 🌐 Public |
+| ⚖️ **Týr** | Enterprise SIEM & XDR — Wazuh log parsing, threat hunting | Wazuh + OpenSearch | — | ✅ Sprint 38 | 🔒 Private |
+| 🐉 **Fáfnir** | K3s HashiCorp Vault Secrets Manager | Vault / HCL | — | ✅ Sprint 38 | 🔒 Private |
+| 🐦‍⬛ **Huginn** | Security Scanner + AI Pentest Agent + Performance Test | Rust (Axum) | 51 | ✅ Active | 🔒 Private |
+| 🐦 **Muninn** | Issue Watcher + LLM Auto-Fixer | Rust (Axum) | 60 | ✅ Active | 🔒 Private |
+| 🐿️ **[Ratatoskr](https://github.com/MegaWiz-Dev-Team/Ratatoskr)** | Shared Browser Service — headless Chromium REST API | Rust (Axum) | — | ✅ Sprint 1 | 🌐 Public |
+| 📨 **[Hermóðr](https://github.com/MegaWiz-Dev-Team/Hermodr)** | Universal MCP Sidecar — JSON-RPC bridge for legacy REST | Rust | — | ✅ v0.1.0 | 🌐 Public |
+| ⚖️ **[Forseti](https://github.com/MegaWiz-Dev-Team/Forseti)** | LLM-Powered E2E Testing Service — multi-project, auto-report | Python | 147 | ✅ Sprint 6 | 🌐 Public |
+| 🔨 **[Mjölnir](https://github.com/MegaWiz-Dev-Team/Mjolnir)** | HTTP Load Testing Service — MCP-compatible, Forseti linked | Rust (Axum) | — | ✅ Active | 🌐 Public |
+| 🩻 **Syn** | Document OCR & PII redaction — handwriting, layout, DICOM | Rust + Python (MLX VLM) | — | ✅ Active | 🔒 Private |
+| 🏰 **Asgard** *(this repo)* | K3s Deployment (OrbStack), docs, strategy, 🔱 Odin (Supervisor) | — | — | ✅ Active | 🌐 Public |
+
+> 🔒 **Private** components are commercial / security-sensitive (cyber-security suite, auth, secrets, OCR with PHI) and are not browsable publicly. 🌐 **Public** components are open-core under AGPL-3.0. See [`DATA_LICENSE.md`](https://github.com/MegaWiz-Dev-Team/Mimir/blob/main/DATA_LICENSE.md) in Mimir for medical-terminology data licensing (SNOMED CT / ICD-10-TM / TMT / LOINC / DrugBank — code references only, never redistributed release data).
 
 > **530+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
@@ -202,8 +205,10 @@ Build a **self-hosted AI platform** that enables:
   <a href="https://github.com/MegaWiz-Dev-Team/Heimdall">Heimdall</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Bifrost">Bifrost</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Fenrir">Fenrir</a> ·
-  <a href="https://github.com/MegaWiz-Dev-Team/Yggdrasil">Yggdrasil</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Eir">Eir</a> ·
   <a href="https://github.com/MegaWiz-Dev-Team/Vardr">Várðr</a> ·
-  <a href="https://github.com/MegaWiz-Dev-Team/Ratatoskr">Ratatoskr</a>
+  <a href="https://github.com/MegaWiz-Dev-Team/Ratatoskr">Ratatoskr</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Hermodr">Hermóðr</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Forseti">Forseti</a> ·
+  <a href="https://github.com/MegaWiz-Dev-Team/Mjolnir">Mjölnir</a>
 </p>
