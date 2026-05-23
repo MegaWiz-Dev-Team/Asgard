@@ -1,4 +1,19 @@
 # ⚡ Bifrost — Agent Runtime
+#
+# This deployment is the source of truth for the running pod. Live state
+# (as of 2026-05-23) diverged from a previous git YAML that mixed
+# `envFrom: asgard-secrets` with placeholder values like `REDACTED-PW`,
+# which made `kubectl apply` fail with a value/valueFrom merge conflict.
+# All sensitive env vars now use explicit `secretKeyRef` entries against
+# the `asgard-secrets` Secret; `envFrom` is intentionally not used here.
+#
+# Known oddities preserved from live state (clean up in a follow-up):
+#   - `containerPort: 8080` is vestigial. The binary's `main()` hard-codes
+#     `0.0.0.0:8100` (see `Bifrost/src/main.rs`); the 8080 entry just keeps
+#     the deployment description honest about what the pod listens on.
+#   - `BIFROST_PORT=8080` is similarly vestigial — the env var is ignored
+#     by the current main.rs. Kept to match live; consider dropping or
+#     wiring it through main.rs in a follow-up.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,35 +36,30 @@ spec:
           image: asgard-bifrost:latest
           imagePullPolicy: Never
           ports:
+            - containerPort: 8080
             - containerPort: 8100
           env:
             - name: BIFROST_HOST
               value: "0.0.0.0"
             - name: BIFROST_PORT
-              value: "8100"
+              value: "8080"
             - name: DATABASE_URL
-              value: mysql://mimir:REDACTED-PW@mariadb.asgard-infra.svc:3306/mimir
-            - name: QDRANT_URL
-              value: http://qdrant.asgard-infra.svc:6333
-            - name: REDIS_URL
-              value: redis://redis.asgard-infra.svc:6379
-            - name: NEO4J_URI
-              value: bolt://neo4j.asgard-infra.svc:7687
-            - name: NEO4J_USER
-              value: neo4j
-            - name: NEO4J_PASSWORD
-              value: REDACTED-PW
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: MIMIR_DATABASE_URL
             - name: HEIMDALL_URL
-              value: http://host.docker.internal:8081/v1
+              value: http://heimdall-host.asgard.svc:8080/v1
+            - name: HEIMDALL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: HEIMDALL_API_KEY
             - name: MIMIR_URL
               value: http://mimir-api.asgard.svc:8080
             - name: YGGDRASIL_MCP_URL
               value: http://hermodr.asgard.svc:8090/rpc
             - name: YGGDRASIL_MCP_ENABLED
-              value: "true"
-            - name: EIR_MCP_URL
-              value: http://hermodr-eir.asgard.svc:8091/rpc
-            - name: EIR_MCP_ENABLED
               value: "true"
             - name: DEFAULT_MODEL
               value: mlx-community/Qwen3.5-9B-MLX-4bit
@@ -57,15 +67,97 @@ spec:
               value: "10"
             - name: MAX_EXECUTION_TIME
               value: "120"
-            - name: LOG_LEVEL
-              value: info
             - name: AUTH_ENABLED
               value: "false"
-            - name: VAULT_ADDR
-              value: "http://fafnir-vault.asgard.svc.cluster.local:8200"
-          envFrom:
-            - secretRef:
-                name: asgard-secrets
+            - name: LOG_LEVEL
+              value: info
+            - name: HEIMDALL_API_URL
+              value: http://192.168.139.2:8080
+            - name: NEO4J_URI
+              value: bolt://neo4j.asgard-infra.svc:7687
+            - name: NEO4J_USER
+              value: neo4j
+            - name: USE_NEO4J_GRAPH
+              value: "true"
+            - name: HEIMDALL_GATEWAY_URL
+              value: http://heimdall-host.asgard.svc:8080
+            - name: HEIMDALL_EMBEDDING_URL
+              value: http://heimdall-host.asgard.svc:8081
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: GEMINI_API_KEY
+            - name: MIMIR_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: MIMIR_DATABASE_URL
+            - name: YGGDRASIL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_CLIENT_SECRET
+            - name: EIR_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_CLIENT_SECRET
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: MARIADB_ROOT_PASSWORD
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: NEO4J_PASSWORD
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: VAULT_TOKEN
+            - name: YGGDRASIL_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_POSTGRES_PASSWORD
+            - name: EIR_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_CLIENT_ID
+            - name: LMNR_PROJECT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: LMNR_PROJECT_API_KEY
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: MARIADB_PASSWORD
+            - name: YGGDRASIL_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_ISSUER
+            - name: YGGDRASIL_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_REDIRECT_URI
+            - name: YGGDRASIL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_CLIENT_ID
+            - name: YGGDRASIL_MASTERKEY
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: YGGDRASIL_MASTERKEY
           readinessProbe:
             httpGet:
               path: /healthz
