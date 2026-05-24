@@ -34,6 +34,7 @@ graph LR
     subgraph HeimdallFam["🛡️ Heimdall Family — LLM Plane"]
         Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
         HTrace["📊 heimdall-trace<br/>(Laminar)"]
+        HHorn["📣 heimdall-horn<br/>(planned)<br/>stream / notify"]
         Skuggi["🕶️ Skuggi<br/>PII guardrail<br/>(in-process)"]
         LLM["🍎 MLX (LLM)<br/>⚡ ONNX (Embed)"]
     end
@@ -67,7 +68,13 @@ graph LR
         Bragi["🎵 Bragi · TTS"]
     end
 
+    subgraph Quality["🧪 Quality & Load"]
+        Forseti["⚖️ Forseti<br/>LLM E2E testing"]
+        Mjolnir["🔨 Mjölnir<br/>HTTP load test"]
+    end
+
     subgraph Ops["📡 Ops, Security & Secrets"]
+        Odin["🔱 Odin<br/>Supervisor"]
         Vardr["🛡️ Várðr<br/>monitoring"]
         Tyr["⚖️ Týr<br/>Wazuh SIEM"]
         TArchive["🗄️ tyr-archive<br/>cloud archive"]
@@ -91,7 +98,9 @@ graph LR
 
     Heimdall --> |"PII gate"| Skuggi
     Heimdall --> HTrace
+    Heimdall --> HHorn
     Heimdall --> LLM
+    BAgent -.-> |"SDK"| Bifrost
     Mimir --> MWell
     Mimir --> MCurator
     Syn --> SEval
@@ -110,9 +119,17 @@ graph LR
     LogShipper --> |"bulk API"| Tyr
     Skuggi -.-> |"audit"| Tyr
     Tyr --> TArchive
+    Odin -.-> |"supervise"| Vardr
+    Odin -.-> |"supervise"| Bifrost
+    Odin -.-> |"supervise"| Heimdall
+    Muninn --> |"PR"| Huginn
+    Forseti --> |"drive"| EirGW
+    Forseti --> |"drive"| Mimir
+    Forseti --> Mjolnir
 
     style Heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style HTrace fill:#052e16,stroke:#4ade80,color:#bbf7d0
+    style HHorn fill:#052e16,stroke:#4ade80,color:#bbf7d0
     style Skuggi fill:#1e1b4b,stroke:#a78bfa,color:#ddd6fe
     style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style BAgent fill:#451a03,stroke:#f59e0b,color:#fef3c7
@@ -131,6 +148,9 @@ graph LR
     style Hermodr fill:#422006,stroke:#fb923c,color:#fed7aa
     style Saga fill:#0c4a6e,stroke:#38bdf8,color:#bae6fd
     style Bragi fill:#0c4a6e,stroke:#38bdf8,color:#bae6fd
+    style Odin fill:#3f0f0f,stroke:#fcd34d,color:#fef3c7
+    style Forseti fill:#082f49,stroke:#0ea5e9,color:#bae6fd
+    style Mjolnir fill:#082f49,stroke:#0ea5e9,color:#bae6fd
     style Vardr fill:#172554,stroke:#3b82f6,color:#bfdbfe
     style Tyr fill:#450a0a,stroke:#f87171,color:#fecaca
     style TArchive fill:#450a0a,stroke:#f87171,color:#fecaca
@@ -322,6 +342,7 @@ Reposition from "Open Medical Platform" → **"Living Clinical Evidence, On Your
 | **Yggdrasil** | The world tree | Auth service | 🔒 Private |
 | **Várðr** | The guardian | Monitoring dashboard | Community |
 | **Týr** | God of justice & war | Enterprise SIEM & XDR (Wazuh) | 🔒 Odin's Ravens |
+| **Fáfnir** | Dragon hoarding treasure | K3s HashiCorp Vault — secrets manager | 🔒 Private |
 | **Huginn** | Odin's raven (Thought) | Security Scanner + AI Pentest Agent | 🔒 Odin's Ravens |
 | **Muninn** | Odin's raven (Memory) | Issue Watcher + Auto-Fixer (LLM) | 🔒 Odin's Ravens |
 | **Syn** | Goddess of watchfulness | Document OCR & PII redaction | 🔒 Private |
