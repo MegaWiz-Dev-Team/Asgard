@@ -19,47 +19,125 @@ Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved in
 
 ## 🏗️ Architecture
 
+> Components are grouped into **5 active families** (parent + submodules under `<parent>-<submodule>` naming). Voice components (Sága/Bragi) and `heimdall-horn` are planned.
+
 ```mermaid
 graph LR
-    User["👤 User"] --> Mimir["🧠 Mimir<br/>RAG + Agent Builder"]
-    User --> |"Chat"| EirGW["🏥 Eir GW<br/>Chat UI"]
+    User["👤 User"]
 
-    EirGW --> |"proxy"| Bifrost["⚡ Bifrost<br/>Agent Runtime"]
-    Bifrost --> |"LLM"| Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
+    subgraph EdgeAuth["🚪 Edge & Auth"]
+        EirGW["🏥 Eir GW<br/>Chat + OpenEMR"]
+        Yggdrasil["🌳 Yggdrasil<br/>Zitadel OIDC"]
+        YggMail["📧 yggdrasil-mail<br/>SMTP relay"]
+    end
+
+    subgraph HeimdallFam["🛡️ Heimdall Family — LLM Plane"]
+        Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
+        HTrace["📊 heimdall-trace<br/>(Laminar)"]
+        Skuggi["🕶️ Skuggi<br/>PII guardrail<br/>(in-process)"]
+        LLM["🍎 MLX (LLM)<br/>⚡ ONNX (Embed)"]
+    end
+
+    subgraph BifrostFam["⚡ Bifrost Family — Agent Plane"]
+        Bifrost["⚡ Bifrost<br/>Agent Runtime"]
+        BAgent["🤖 bifrost-agent<br/>SDK"]
+        BJobs["🛠️ bifrost-jobs<br/>cron monitor UI"]
+    end
+
+    subgraph MimirFam["🧠 Mimir Family — Knowledge Plane"]
+        Mimir["🧠 Mimir<br/>RAG + Agent Builder"]
+        MWell["💧 mimir-well<br/>memory artifacts"]
+        MCurator["🏷️ mimir-curator<br/>Label Studio"]
+    end
+
+    subgraph SynFam["🩻 Syn Family — Document Plane"]
+        Syn["🩻 Syn<br/>OCR + redact"]
+        SEval["📐 syn-eval-ingest<br/>layout eval"]
+        SDicom["🩺 syn-dicom<br/>imaging ingest"]
+    end
+
+    subgraph Tools["🔧 Tool Plane"]
+        Fenrir["🐺 Fenrir<br/>Computer Use"]
+        Ratatoskr["🐿️ Ratatoskr<br/>Browser"]
+        Hermodr["📨 Hermóðr<br/>MCP bridge"]
+    end
+
+    subgraph Voice["🎙️ Voice (planned)"]
+        Saga["📜 Sága · STT"]
+        Bragi["🎵 Bragi · TTS"]
+    end
+
+    subgraph Ops["📡 Ops, Security & Secrets"]
+        Vardr["🛡️ Várðr<br/>monitoring"]
+        Tyr["⚖️ Týr<br/>Wazuh SIEM"]
+        TArchive["🗄️ tyr-archive<br/>cloud archive"]
+        Huginn["🐦‍⬛ Huginn<br/>scanner"]
+        Muninn["🐦 Muninn<br/>auto-fix"]
+        Fafnir["🐉 Fáfnir<br/>Vault"]
+        LogShipper["📡 Log Shipper<br/>(macOS native)"]
+    end
+
+    User --> EirGW
+    User --> Mimir
+    EirGW --> |"proxy"| Bifrost
+    Bifrost --> |"LLM"| Heimdall
     Bifrost --> |"MCP"| Mimir
-    Bifrost --> |"MCP"| Fenrir["🐺 Fenrir<br/>Computer Use"]
+    Bifrost --> |"MCP"| Fenrir
+    Bifrost --> |"MCP"| Hermodr
     Bifrost --> |"MCP"| EirGW
-    Bifrost --> |"MCP"| Huginn["🐦‍⬛ Huginn<br/>Security Scanner"]
-
-    Mimir --> |"scrape"| Ratatoskr["🐿️ Ratatoskr<br/>Browser Service"]
+    Mimir --> |"scrape"| Ratatoskr
     Bifrost --> |"browse"| Ratatoskr
+    Fenrir --> EirGW
 
-    EirGW --> |"proxy"| Eir["📋 OpenEMR<br/>FHIR R4"]
-    Fenrir --> |"Browser"| Eir
+    Heimdall --> |"PII gate"| Skuggi
+    Heimdall --> HTrace
+    Heimdall --> LLM
+    Mimir --> MWell
+    Mimir --> MCurator
+    Syn --> SEval
+    Syn --> SDicom
+    Mimir --> |"OCR"| Syn
+    Bifrost --> BJobs
 
-    Heimdall --> |"PII/DLP gate"| Skuggi["🕶️ Skuggi<br/>Guardrail (in-process)"]
-    Heimdall --> LLM["🍎 MLX Backend (LLM)<br/>⚡ ONNX (Embedding)"]
-
-    Yggdrasil["🌳 Yggdrasil<br/>Auth (Zitadel)"] -.-> Heimdall
+    Yggdrasil -.-> Heimdall
     Yggdrasil -.-> Mimir
     Yggdrasil -.-> Bifrost
+    Yggdrasil -.-> EirGW
+    Yggdrasil --> YggMail
+    Fafnir -.-> |"secrets"| Heimdall
 
-    Vardr["🛡️ Várðr<br/>Monitoring"] -.-> |"Metrics"| K3s["Kubernetes (OrbStack)"]
-    LogShipper["📡 Log Shipper<br/>(macOS Native)"] --> |"Bulk API"| Tyr["⚖️ Týr<br/>(Wazuh SIEM)"]
+    Vardr -.-> |"metrics"| Bifrost
+    LogShipper --> |"bulk API"| Tyr
+    Skuggi -.-> |"audit"| Tyr
+    Tyr --> TArchive
 
-    style Mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
-    style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
     style Heimdall fill:#052e16,stroke:#4ade80,color:#bbf7d0
+    style HTrace fill:#052e16,stroke:#4ade80,color:#bbf7d0
+    style Skuggi fill:#1e1b4b,stroke:#a78bfa,color:#ddd6fe
+    style Bifrost fill:#451a03,stroke:#f59e0b,color:#fef3c7
+    style BAgent fill:#451a03,stroke:#f59e0b,color:#fef3c7
+    style BJobs fill:#451a03,stroke:#f59e0b,color:#fef3c7
+    style Mimir fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
+    style MWell fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
+    style MCurator fill:#1e1b4b,stroke:#818cf8,color:#c7d2fe
+    style Syn fill:#3b0764,stroke:#c084fc,color:#f3e8ff
+    style SEval fill:#3b0764,stroke:#c084fc,color:#f3e8ff
+    style SDicom fill:#3b0764,stroke:#c084fc,color:#f3e8ff
+    style Yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
+    style YggMail fill:#14532d,stroke:#86efac,color:#bbf7d0
+    style EirGW fill:#4a1942,stroke:#e879f9,color:#fae8ff
     style Fenrir fill:#1c1917,stroke:#a8a29e,color:#e7e5e4
     style Ratatoskr fill:#422006,stroke:#fb923c,color:#fed7aa
-    style Eir fill:#4a1942,stroke:#e879f9,color:#fae8ff
-    style EirGW fill:#4a1942,stroke:#e879f9,color:#fae8ff
-    style Yggdrasil fill:#14532d,stroke:#86efac,color:#bbf7d0
+    style Hermodr fill:#422006,stroke:#fb923c,color:#fed7aa
+    style Saga fill:#0c4a6e,stroke:#38bdf8,color:#bae6fd
+    style Bragi fill:#0c4a6e,stroke:#38bdf8,color:#bae6fd
     style Vardr fill:#172554,stroke:#3b82f6,color:#bfdbfe
-    style Huginn fill:#020617,stroke:#94a3b8,color:#e2e8f0
     style Tyr fill:#450a0a,stroke:#f87171,color:#fecaca
+    style TArchive fill:#450a0a,stroke:#f87171,color:#fecaca
     style LogShipper fill:#450a0a,stroke:#f87171,color:#fecaca
-    style Skuggi fill:#1e1b4b,stroke:#a78bfa,color:#ddd6fe
+    style Huginn fill:#020617,stroke:#94a3b8,color:#e2e8f0
+    style Muninn fill:#020617,stroke:#94a3b8,color:#e2e8f0
+    style Fafnir fill:#1c0f00,stroke:#fbbf24,color:#fde68a
 ```
 
 ---
@@ -88,7 +166,24 @@ graph LR
 
 > 🔒 **Private** components are commercial / security-sensitive (cyber-security suite, auth, secrets, OCR with PHI) and are not browsable publicly. 🌐 **Public** components are open-core under AGPL-3.0. See [`DATA_LICENSE.md`](https://github.com/MegaWiz-Dev-Team/Mimir/blob/main/DATA_LICENSE.md) in Mimir for medical-terminology data licensing (SNOMED CT / ICD-10-TM / TMT / LOINC / DrugBank — code references only, never redistributed release data).
 
-> **530+ tests** across the entire platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
+### Active Submodules
+
+> Norse names are reserved for top-level components. New capabilities extend a parent as `<parent>-<submodule>` with a plain-English label.
+
+| Family | Submodule | Purpose | Status |
+|:--|:--|:--|:--|
+| 🛡️ **Heimdall** | `heimdall-trace` *(Laminar)* | LLM call tracing & observability | 🚧 Absorbing |
+| 🛡️ **Heimdall** | `heimdall-horn` | Streaming/notification fan-out | 📋 Planned |
+| 🧠 **Mimir** | `mimir-well` *(Mímisbrunnr)* | Tulving 3-tier memory artifacts + PROV-AGENT | 🚧 Sprint 56 (schemas applied 2026-05-23) |
+| 🧠 **Mimir** | `mimir-curator` | Label Studio embed for OCR-GT + oracle-review | 📋 Planned |
+| 🌳 **Yggdrasil** | `yggdrasil-mail` | SMTP relay / notification email | 📋 Planned |
+| 🩻 **Syn** | `syn-eval-ingest` | Region-detection / layout eval (mAP, Rust) | ✅ Active |
+| 🩻 **Syn** | `syn-dicom` | DICOM ingest pipeline | 🚧 Skeleton (PR #18, Syn) |
+| ⚡ **Bifrost** | `bifrost-agent` | Agent SDK / client crate | ✅ Active |
+| ⚡ **Bifrost** | `bifrost-jobs` | GitHub-Actions-style cron monitor UI | 📋 Planned |
+| ⚖️ **Týr** | `tyr-archive` | ISO-27001 cloud archive daemon (Rust) | ✅ v1 shipped 2026-05-20 |
+
+> **600+ tests** across the platform · **MCP** for tool calls · **A2A** for task delegation · **Odin's Ravens** for security
 
 ---
 
@@ -182,15 +277,24 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 - [x] Asgard `skills/` — 5 built-in skills (DeerFlow-compatible SKILL.md format)
 
 ### Phase 2: Integration & Growth 🚧
-- [ ] Eir Sprint 4 — MCP Server (FHIR tools) + Chat UI widget
-- [ ] Bifrost Sprint 5 — MCP Integration (Eir + Fenrir clients)
-- [ ] Mimir → Bifrost agent deployment via MCP
-- [ ] Fenrir MVP — OpenEMR form automation
-- [ ] Visual Workflow Builder (ReactFlow)
-- [ ] Documentation site (asgardai.dev)
 - [x] Developer Preview — core repos public on GitHub under AGPL-3.0 (open-core; security/auth/OCR repos remain private)
+- [x] Skuggi W1 — Text Tier 1 PII guardrail shipped in Heimdall (ADR-007, 2026-05-09)
+- [x] S1 RefGraph — insurance retrieval baseline (Hit Rate@3 = 93.3%, gate PASS 2026-05-19)
+- [x] Sprint 51e secret rotation — 7/8 rotations complete across the platform
+- [x] `tyr-archive` v1 — Rust daemon for ISO-27001 cloud archive (2026-05-20)
+- [ ] **S52-54 Insurance Launch** — multi-insurer underwriting (asgard_insurance tenant, Skuggi-gated cloud)
+- [ ] **S55 Mimir Guideline Lineage** — HL7 FHIR CPG-IG + Neo4j subgraph + MAGICapp ingest
+- [ ] **S56 Mimir Well** — Mímisbrunnr memory artifacts + Tulving 3-tier + PROV-AGENT → Tyr
+- [ ] **S57-58 Living Evidence** — UI + eval + scale + deep research + feedback
+- [ ] `heimdall-trace` absorption (Laminar → submodule)
+- [ ] `bifrost-jobs` cron monitor UI
+- [ ] `mimir-curator` Label Studio embed
+- [ ] `syn-dicom` ingest pipeline
 
-### Phase 3: Community Launch
+### Phase 3: Living Clinical Evidence 🩺
+Reposition from "Open Medical Platform" → **"Living Clinical Evidence, On Your Premises"**. Borrows Cochrane/Elliott 2014 living-systematic-review model; commercial space empty. Tracked in Asgard PR #74 (Sprint 55-58 sequence).
+
+### Phase 4: Community Launch
 - [ ] v1.0 Community Edition
 - [ ] Product Hunt / HackerNews launch
 - [ ] 3-5 Design Partners
@@ -231,7 +335,7 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 
 > 🔒 = private repository (commercial / security-sensitive). **Odin's Ravens** = the cyber-security suite (Huginn · Muninn · Týr).
 >
-> † **Skuggi** is not a standalone repo — it is in-process Rust middleware. The text-tier engine (Tier 1 regex + audit, ADR-007) ships **public** inside Heimdall (`gateway/src/skuggi.rs`) and Mimir's benchmarks; product-specific applications are private (Underwriter/Iris patient-name masking, Týr archive redaction). The image-tier model that gates cloud OCR is a runtime model, not committed code.
+> † **Skuggi** is not a standalone repo — it is in-process Rust middleware. **W1 Text Tier 1 (regex + audit, ADR-007) shipped 2026-05-09** inside Heimdall (`gateway/src/skuggi.rs`) and Mimir's benchmarks. **W2 (image-tier model gating cloud OCR), W3 (NER), W4** still pending. Product-specific applications are private (Underwriter/Iris patient-name masking, Týr archive redaction).
 >
 > ‡ **Planned** — not yet built; no repository exists yet. Intended to be open-core (public) when created. Laminar is being absorbed as the `heimdall-trace` submodule rather than a new top-level service.
 >
