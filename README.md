@@ -25,55 +25,55 @@ Originally built to power AI NPCs for **Ragnarok Online**, Asgard has evolved in
 graph LR
     User["👤 User"]
 
-    subgraph EdgeAuth["🚪 Edge & Auth"]
+    subgraph EdgeAuth["Edge and Auth"]
         EirGW["🏥 Eir GW<br/>Chat + OpenEMR"]
         Yggdrasil["🌳 Yggdrasil<br/>Zitadel OIDC"]
         YggMail["📧 yggdrasil-mail<br/>SMTP relay"]
     end
 
-    subgraph HeimdallFam["🛡️ Heimdall Family — LLM Plane"]
+    subgraph HeimdallFam["Heimdall Family"]
         Heimdall["🛡️ Heimdall<br/>LLM Gateway"]
-        HTrace["📊 heimdall-trace<br/>(Laminar)"]
-        HHorn["📣 heimdall-horn<br/>(planned)<br/>stream / notify"]
-        Skuggi["🕶️ Skuggi<br/>PII guardrail<br/>(in-process)"]
-        LLM["🍎 MLX (LLM)<br/>⚡ ONNX (Embed)"]
+        HTrace["📊 heimdall-trace<br/>Laminar"]
+        HHorn["📣 heimdall-horn<br/>planned"]
+        Skuggi["🕶️ Skuggi<br/>PII guardrail"]
+        LLM["🍎 MLX LLM<br/>⚡ ONNX Embed"]
     end
 
-    subgraph BifrostFam["⚡ Bifrost Family — Agent Plane"]
+    subgraph BifrostFam["Bifrost Family"]
         Bifrost["⚡ Bifrost<br/>Agent Runtime"]
         BAgent["🤖 bifrost-agent<br/>SDK"]
         BJobs["🛠️ bifrost-jobs<br/>cron monitor UI"]
     end
 
-    subgraph MimirFam["🧠 Mimir Family — Knowledge Plane"]
+    subgraph MimirFam["Mimir Family"]
         Mimir["🧠 Mimir<br/>RAG + Agent Builder"]
         MWell["💧 mimir-well<br/>memory artifacts"]
         MCurator["🏷️ mimir-curator<br/>Label Studio"]
     end
 
-    subgraph SynFam["🩻 Syn Family — Document Plane"]
+    subgraph SynFam["Syn Family"]
         Syn["🩻 Syn<br/>OCR + redact"]
         SEval["📐 syn-eval-ingest<br/>layout eval"]
         SDicom["🩺 syn-dicom<br/>imaging ingest"]
     end
 
-    subgraph Tools["🔧 Tool Plane"]
+    subgraph Tools["Tool Plane"]
         Fenrir["🐺 Fenrir<br/>Computer Use"]
         Ratatoskr["🐿️ Ratatoskr<br/>Browser"]
         Hermodr["📨 Hermóðr<br/>MCP bridge"]
     end
 
-    subgraph Voice["🎙️ Voice (planned)"]
-        Saga["📜 Sága · STT"]
-        Bragi["🎵 Bragi · TTS"]
+    subgraph Voice["Voice planned"]
+        Saga["📜 Sága STT"]
+        Bragi["🎵 Bragi TTS"]
     end
 
-    subgraph Quality["🧪 Quality & Load"]
+    subgraph Quality["Quality and Load"]
         Forseti["⚖️ Forseti<br/>LLM E2E testing"]
         Mjolnir["🔨 Mjölnir<br/>HTTP load test"]
     end
 
-    subgraph Ops["📡 Ops, Security & Secrets"]
+    subgraph Ops["Ops Security and Secrets"]
         Odin["🔱 Odin<br/>Supervisor"]
         Vardr["🛡️ Várðr<br/>monitoring"]
         Tyr["⚖️ Týr<br/>Wazuh SIEM"]
@@ -81,7 +81,7 @@ graph LR
         Huginn["🐦‍⬛ Huginn<br/>scanner"]
         Muninn["🐦 Muninn<br/>auto-fix"]
         Fafnir["🐉 Fáfnir<br/>Vault"]
-        LogShipper["📡 Log Shipper<br/>(macOS native)"]
+        LogShipper["📡 Log Shipper<br/>macOS native"]
     end
 
     User --> EirGW
