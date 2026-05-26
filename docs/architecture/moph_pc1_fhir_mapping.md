@@ -1,14 +1,41 @@
-# MOPH-PC1 → FHIR R5 Element Mapping (Canonical Reference)
+# MOPH-PC1 → FHIR R5 Element Mapping (Informative Reference)
 
-**Status:** Active reference
-**Version:** v1 (2026-05-23)
+**Status:** Active reference — **PC1 is informative, not strictly binding** (updated 2026-05-26 per Aj. Rath Panyowat consultation)
+**Version:** v2 (2026-05-26)
 **Source:** [MOPH-PC1 Data Element Mapping](https://docs.google.com/spreadsheets/d/1n9FvDjd0Wnyx91g-X9UIFnFjLUUp3D6cLZH5OByGPh0/edit?gid=1809761923) — Thailand MOH Primary Care 1 dataset
-**FHIR Version:** R5 (per [ADR-013](../decisions/ADR-013-fhir-r5-canonical-version.md))
-**Scope:** All Asgard FHIR adapter implementations, Hermodr MCP tool schemas, and `mimir-fhir` ingest/emit paths MUST conform to this mapping.
+**FHIR Version:** R5 (per [ADR-013](../decisions/ADR-013-fhir-r5-canonical-version.md), endorsed by PC1 architect 2026-05-26)
+**Scope:** Asgard FHIR profile is **Asgard's own**, informed by PC1 but not strictly bound to it. PC1 mapping below is the starting reference; Asgard may diverge where use cases warrant.
+
+## Strategic posture (NEW 2026-05-26)
+
+After consultation with **Aj. Rath Panyowat** (PC1 architect), the strategic posture for Asgard FHIR profile design is:
+
+> **PC1 is an informative reference for the Thai primary-care data domain — not a strict conformance target for Asgard.**
+
+**Implications:**
+
+- Asgard defines its **own FHIR profile family** (`Asgard FHIR Profile`), informed by PC1's clinical data ontology but free to deviate where:
+  - PC1 design choices conflict with Asgard's broader scope (clinical decision support, multi-specialty, insurance, document-level summaries)
+  - PC1 has methodology gaps the architect himself acknowledged
+  - A different FHIR R5 idiom serves Asgard use cases better
+- Where PC1 and Asgard align, we use PC1's element-to-resource mapping as a starting point
+- Where they diverge, Asgard documents the divergence in this file (see [Asgard divergence from PC1](#asgard-divergence-from-pc1)) — **not as errata, but as deliberate design choice**
+- Existing examples of Asgard divergence already locked:
+  - **+1 Resource (Composition)** — per [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md), Asgard adds `Composition` for UC2 Cross-Encounter Patient Summary; PC1 does not include `Composition` because it is data-element-level, not document-level
+  - **`Practitioner` reference targets** — required by Asgard for `Encounter.participant`, `MedicationRequest.requester`, etc.; PC1 mapping does not list Practitioner directly
+  - **`Address` sub-district extension URL** — Asgard uses `https://fhir.moph.go.th/StructureDefinition/sub-district` (Asgard-stable URL until MOPH publishes official)
+
+**Why this posture (architect's reasoning):**
+
+Aj. Rath confirmed that PC1 was written as a primary-care data dictionary, not as a vendor conformance spec. He acknowledged methodology disagreements in his own work and explicitly recommended Asgard build a profile suited to Asgard's actual use cases. Asgard is also the first real adopter — there is no installed base to break by deviating.
+
+This **does not** weaken the FHIR R5 + MOPH-PC1 alignment: Asgard still uses R5 ([ADR-013](../decisions/ADR-013-fhir-r5-canonical-version.md), R5 endorsed by Aj. Rath), still maps every PC1 element where it fits, still bridges legacy 43Files data. We just stop treating PC1 element-list as a closed scope rule.
 
 ## Purpose
 
-This document is the canonical reference for **how MOPH-PC1 data elements map to FHIR R5 resources** and **how legacy MOPH 43-Files columns project into FHIR R5**. Adapter implementers, Hermodr tool authors, and `mimir-fhir` reviewers consult this file for ground truth. Updates require PR + ADR amendment if scope changes.
+This document is the **informative reference** for how Asgard FHIR profile relates to MOPH-PC1's 78 data elements and how legacy MOPH 43-Files columns project into Asgard's FHIR R5 shape. Adapter implementers, Hermodr tool authors, and `mimir-fhir` reviewers consult this file for the starting mapping. Where Asgard diverges from PC1, the divergence is documented inline + summarised in [Asgard divergence from PC1](#asgard-divergence-from-pc1).
+
+Updates do **not** require ADR amendment unless they change Asgard scope (resource list, version, ownership). They DO require PR + brief rationale.
 
 ## How to read this table
 
@@ -270,33 +297,77 @@ Coverage statistics over 78 elements:
 - `NCDSCREEN.*` → BP, height, weight, smoking, alcohol (multiple IDs)
 - `LABFU.*` → Lab Observation (IDs 55-56)
 
-## Known Issues / Discrepancies in the source spec
+## Asgard divergence from PC1
 
-These items in the source MOPH-PC1 spreadsheet appear inconsistent or ambiguous — adapter implementers should follow this canonical doc, not the raw spreadsheet:
+After PC1 architect consultation (2026-05-26), the following items are no longer treated as "errata in the source spec" but as **deliberate Asgard design choices** that differ from PC1. PC1 architect endorses Asgard's freedom to make these calls.
 
-1. **ID 54 (Immunization)** — spreadsheet shows FHIR Path = `valueCodeableConcept`, but `Immunization` is its own resource, not an Observation. Canonical use is `Immunization.vaccineCode`. Spreadsheet likely auto-pasted from preceding Observation row.
-2. **ID 39 (Encounter disposition)** — spreadsheet note says "ใน profile ไม่ได้ระบุให้มี element นี้" (the MoPH-PC profile does not specify this element) — Asgard stores it anyway under base R5 conformance.
-3. **ID 39 43Files mapping** — spreadsheet remark "ไม่ตรงกันเสียทีเดียว" (not a perfect match) — `SERVICE.TYPEOUT` / `ADMISSION.DISCHTYPE` need a value-set crosswalk. Defer to Phase 3 detail design.
-4. **ID 40 (Facility identifier)** — spreadsheet remark "ไม่ใช่รหัสสถานที่" (`SERVICE.MAIN` is NOT a location code) — confirms Organization, not Location.
-5. **ID 49 (Pregnancy status)** — 43Files source is inferred (`PRENATAL.GRAVIDA` or `LABFU.LABRESULT`); spreadsheet says "อาจใช้แฟ้มกลุ่มการตั้งครรภ์อนุมานว่า..." (can infer from prenatal file group). Adapter prefers explicit field; inference is fallback.
+### Resource scope additions (beyond PC1's 78 elements)
 
-## Open Questions
+| Resource | Why Asgard adds | ADR |
+|---|---|---|
+| **Composition** | Cross-encounter patient summary (UC2). PC1 is data-element-level, not document-level. | [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md) |
+| **Practitioner** | Required for `Encounter.participant`, `MedicationRequest.requester`, `DocumentReference.author`, `Annotation.authorReference`. PC1 does not list it because PC1 is element-level. | ADR-006 scope (15 + 5 Amendment 1 + 1 Composition = 20 + Practitioner already in 20). |
 
-1. **Practitioner mapping** — not in MOPH-PC1 but required for `Encounter.participant`, `MedicationRequest.requester`, `DocumentReference.author`. Add a non-PC1 row set?
-2. **Thai citizen ID** — `Patient.identifier` slice for the 13-digit Thai national ID needs a specific profile slice. Defer to TH Core profile review.
-3. **Address structure** — Thai address (province/district/sub-district hierarchy) needs TH Core address extension. Verify extension URL.
-4. **TMT / SNOMED bindings** — drug allergy uses TMT (Thai Medication Terminology), medication uses TMT, diagnosis uses ICD-10-TM. Codify code system URLs.
-5. **Time zone** — Thailand is UTC+7 with no DST. Standard ISO 8601 with offset is sufficient; confirm.
+Further resource additions require their own ADR (no scope creep without explicit review).
+
+### Element interpretation differences
+
+These items in the source MOPH-PC1 spreadsheet looked ambiguous on first audit. After architect consultation, Asgard's interpretation is locked:
+
+| PC1 ID | PC1 says | Asgard chooses | Rationale |
+|---|---|---|---|
+| 54 (Immunization) | FHIR Path = `valueCodeableConcept` | `Immunization.vaccineCode` (FHIR R5 native field) | The spreadsheet auto-paste error in PC1; FHIR R5 `Immunization` has its own resource — does not nest under Observation |
+| 39 (Encounter disposition) | "ใน profile ไม่ได้ระบุให้มี element นี้" | Store as `Encounter.admission.dischargeDisposition` (R5) under base R5 | PC1 omission, not Asgard problem. Required for discharge-summary use case (UC4 in [as-is-problem-analysis](../use-cases/as-is-problem-analysis.md)) |
+| 39 (43Files mapping) | "`SERVICE.TYPEOUT` / `ADMISSION.DISCHTYPE` ไม่ตรงกันเสียทีเดียว" | Use value-set crosswalk in 43Files adapter (Sprint 8) | Map both 43Files columns into Asgard-defined ValueSet; expose as `dischargeDisposition.coding[0]` |
+| 40 (Facility identifier) | "`SERVICE.MAIN` ไม่ใช่รหัสสถานที่" | Map to `Organization.identifier` (not Location) | Confirmed by PC1 spreadsheet note; Asgard does the same |
+| 49 (Pregnancy status) | 43Files source inferred from prenatal-file group | Prefer explicit field; fall back to inference only if prenatal field present | Conservative interpretation matches Asgard's "single source of truth" principle |
+
+### Extension URLs (Asgard-stable, pending MOPH official)
+
+Asgard uses these extension URLs until MOPH publishes official ones. When MOPH publishes, Asgard migrates adapters; the public-facing FHIR resource will honor both URLs during a transition window.
+
+| Purpose | URL | Resource using |
+|---|---|---|
+| Thai sub-district (ตำบล/แขวง) | `https://fhir.moph.go.th/StructureDefinition/sub-district` | `Address.extension` |
+| R5-only `MedicationStatement.adherence` bridged to R4 emit | `http://asgard.local/fhir/r5-only/medication-adherence` | `Extension` per ADR-013 D4 |
+
+### Code-system URLs (informative; Asgard-locked until TH Core official)
+
+| System | URL Asgard uses | Notes |
+|---|---|---|
+| Thai citizen ID (13-digit) | `https://fhir.moph.go.th/identifier/citizen-id` | Confirm with MOPH if official URL differs |
+| LOINC | `http://loinc.org` | Standard, no Thai-specific override |
+| SNOMED CT | `http://snomed.info/sct` | Standard |
+| ICD-10-TM | TBD — likely `https://terminology.moph.go.th/CodeSystem/icd-10-tm` | Confirm via TH Core profile JSON when downloaded |
+| TMT (Thai Medication Terminology) | TBD — TMT canonical URL | Confirm via TH Core profile JSON |
+
+## Resolved / closed (no longer open)
+
+The following items from the v1 Open Questions list were resolved during 2026-05-26 architect consultation:
+
+| Was open | Resolution |
+|---|---|
+| Practitioner mapping | Asgard adds Practitioner as required reference target (Day 4 datatypes done; Sprint 2 Resource implementation) — does not require PC1 inclusion |
+| Thai citizen ID slice URL | Asgard uses `https://fhir.moph.go.th/identifier/citizen-id` pending MOPH official confirmation |
+| Thai address sub-district extension | Asgard-stable URL `https://fhir.moph.go.th/StructureDefinition/sub-district` (migrate when MOPH official lands) |
+| Time zone | Standard ISO 8601 with `+07:00` offset; UTC+7 with no DST confirmed |
+| Strategic posture (PC1 = strict / informative?) | **Informative** per architect; see [Strategic posture](#strategic-posture-new-2026-05-26) at top of this doc |
+
+## Open Questions (remaining after consultation)
+
+1. **TMT / ICD-10-TM canonical URLs** — confirm official URLs once TH Core profile JSON downloaded (Step 0.2 of [implementation-steps](../technical/mimir-fhir-implementation-steps.md))
+2. **TH Core vs MoPH-PC profile hierarchy** — currently Asgard treats MoPH-PC as tightest binding; Aj. Rath's view on whether MoPH-PC should be promoted to or absorbed by TH Core not yet captured
+3. **Asgard FHIR Profile publishing** — should Asgard publish its profile (StructureDefinition resources) to a public URL for downstream consumers? Or keep internal? Decision deferred to Sprint 7
 
 ## Maintenance
 
-This file is the canonical reference. Changes require:
+This file is the **informative** reference. Changes require:
 
-1. Pull request with rationale
-2. ADR amendment if scope (resource list or core decision) changes
+1. Pull request with rationale (no ADR amendment required for content-level updates)
+2. ADR amendment ONLY if scope (resource list, version, ownership) changes
 3. Adapter test fixture updates in `mimir-fhir/tests/moph_pc1/`
 
-The source spreadsheet may be updated by MOPH independently — when that happens, re-run the audit and produce a v2 of this file with a diff.
+The source MOPH spreadsheet may be updated independently — when that happens, re-run the audit and produce a v3 of this file with a diff. **Asgard profile divergence is the new normal**, not an exception to fix.
 
 ## References
 
