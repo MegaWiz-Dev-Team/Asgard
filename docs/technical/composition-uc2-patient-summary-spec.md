@@ -1191,6 +1191,105 @@ A `patient_summary_uc2_summary` view aggregates by `run_id` for dashboarding:
 | Human spot-check workflow doc | demo lead | `Asgard/docs/runbooks/patient-summary-human-spotcheck.md` |
 | CI integration | mimir-fhir maintainer | GitHub Action on `mimir-fhir/**` + `Asgard/skills/patient-summary/**` paths |
 
+## 6c. Skill-loader runtime — integration requirements for UC2
+
+The Bifrost skill-loader design (`Bifrost/docs/design/skill-loader-runtime.md`, draft 2026-05-22) defines a general-purpose runtime for **reasoning skills** — modules that contribute a `reasoning_frame` (extra preamble) + `allowed_tools` subset to the host agent's free-text reasoning. UC2 patient-summary is a different category: a **structured-output skill** that constrains the host agent's output to a specific FHIR resource shape with FHIR-specific provenance metadata.
+
+This section names the 4 integration gaps where the runtime today is insufficient for UC2, with a recommended resolution for each. None require breaking changes to existing skills — these are additive capability extensions.
+
+### Gap 1 — Direct activation bypass
+
+**Current runtime** (skill-loader §3.1): selection is `POST /api/v1/skills/select` with a natural-language `query` → embedding lookup → top-k skills returned. Hard invariant 1: "Selection is retrieval, never an LLM call."
+
+**UC2 need:** the EHR launches the patient-summary skill from an explicit button (`?skill=patient-summary` per ADR-021 D3). There is no natural-language query to embed. Performing a dummy embedding lookup wastes ~18ms and risks the wrong skill being selected if the dummy query happens to match a different skill above the score floor.
+
+**Recommended resolution:** extend `/api/v1/skills/select` to accept a `skill_id_hint` parameter that bypasses embedding when set:
+
+```
+POST /api/v1/skills/select
+{ "query": "<optional, empty for direct>",
+  "agent_id": "eir-clinical",
+  "tenant_id": "asgard_medical",
+  "skill_id_hint": "patient-summary",   // NEW — direct activation
+  "top_k": 1,
+  "score_floor": 0.0 }
+```
+
+When `skill_id_hint` is set, the endpoint returns that skill's record directly if it exists and is `status=active`; otherwise returns an empty result (caller falls back to bare agent per invariant 3). All other guards (status check, narrow-only) still apply. The "selection is retrieval, never an LLM call" invariant is preserved — direct lookup is not retrieval, but also not LLM. Add an audit field `selection_mode = direct | retrieval` to distinguish.
+
+### Gap 2 — Structured-output skill category
+
+**Current runtime** (skill-loader §2.1 skill record schema): no field constrains the host agent's output format. The implicit assumption is that skills shape *reasoning* (`reasoning_frame`) but the output is whatever the agent normally produces (free text, possibly with tool-call traces).
+
+**UC2 need:** the patient-summary skill MUST produce a single JSON object conformant to `Composition-asgard-patient-summary.schema.json` (§3). The skill body §Output section enforces this in the preamble, but preamble enforcement is best-effort — the runtime should validate the output before returning to the caller.
+
+**Recommended resolution:** add an optional `output_schema_ref` field to the skill record:
+
+```jsonc
+{
+  "skill_id": "patient-summary",
+  ...
+  "output_schema_ref": "http://asgard.local/fhir/Composition-asgard-patient-summary.schema.json",
+  "output_kind": "fhir-resource",   // free-text | json-object | fhir-resource
+  ...
+}
+```
+
+When `output_schema_ref` is set, the runtime calls the schema validator (cached locally) on the agent's final output. Validation modes:
+
+- **strict** (UC2 default): fail the turn if output does not validate; emit error JSON; record validation failure in Tyr. Skill body §Hard rule 15 has the same shape.
+- **warn** (optional for future skills): record validation failure but pass output through.
+
+The validator dependency is shared with §6b L1 — same schema, same validator binary.
+
+### Gap 3 — FHIR Composition author injection
+
+**Current runtime:** no concept of FHIR resource provenance. Output is opaque text/JSON; runtime only logs it.
+
+**UC2 need:** per ADR-021 D2, `Composition.author` MUST contain both `Device/asgard-eir-clinical-v{N}` and `Device/asgard-patient-summary-skill-v{N}`. The agent could in principle generate this itself from preamble instructions (skill body §Hard rule 4 attempts this), but the Device version `{N}` is a runtime-resolved value, not knowable at preamble-author time. If the skill body hardcodes `v1` and the runtime is actually `v2`, the audit trail breaks.
+
+**Recommended resolution:** add a post-output transformer hook (`output_transformer`) the runtime applies when `output_kind = fhir-resource`:
+
+1. Parse the agent's output JSON
+2. Replace any `Device/asgard-eir-clinical-v{N}` placeholder in `author[]` with the actual current `eir-clinical` Device reference
+3. Replace any `Device/asgard-patient-summary-skill-v{N}` placeholder with the skill's current Device reference (resolved from `skill.device_id`)
+4. Re-validate against `output_schema_ref` after substitution
+5. Return to caller
+
+Placeholder convention: skill body emits `{N}` as the literal version placeholder. Runtime substitutes. The runtime knows its own boundary agent + skill versions from the registry, not the LLM.
+
+If the agent emits a hardcoded numeric version, the runtime overwrites it (with a Tyr warning). Skill body should explicitly emit `{N}` to make the intent clear.
+
+### Gap 4 — Output kind dispatch
+
+**Current runtime:** the overseer treats all output uniformly — captures, audits, returns to caller. Two-Device authorship, schema validation, and Composition-specific transformations all assume `output_kind = fhir-resource`. Other future structured-output skills (FHIR Bundle, CDS Hooks Card, OpenAPI response object) need similar treatment.
+
+**Recommended resolution:** treat `output_kind` as a small dispatch table. Phase 1 supports two values:
+
+| `output_kind` | Behaviour |
+|---|---|
+| `free-text` (default — backward-compatible for existing reasoning skills) | Today's behaviour: return verbatim. No validation. |
+| `fhir-resource` | Parse JSON → run author-substitution transformer (Gap 3) → validate against `output_schema_ref` (Gap 2) → return |
+
+`json-object` is reserved for future use (validate against schema without FHIR-specific transforms). Adding new kinds in future is non-breaking.
+
+### Acceptance for Gap closure
+
+These 4 gaps must be closed in the skill-loader implementation before UC2 demo gate (acceptance §6.10). Suggested closure path:
+
+| Gap | Bifrost work | Owner |
+|---|---|---|
+| 1 — Direct activation | extend `/api/v1/skills/select` + audit field | skill-loader maintainer + Mimir maintainer |
+| 2 — Structured-output category | add `output_schema_ref` + `output_kind` to skill record schema + validator hook | skill-loader maintainer |
+| 3 — Author injection | post-output transformer for `fhir-resource` kind | skill-loader maintainer |
+| 4 — Output kind dispatch | dispatch table + extension point | skill-loader maintainer |
+
+Each gap is independently shippable (per skill-loader §8 phased rollout pattern). For Sprint 10 demo viability, all 4 must be done or the ADR-015 [fallback path](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md#fallback-path) (legacy `agent_configs` row) applies.
+
+### Cross-reference
+
+Open questions in `Bifrost/docs/design/skill-loader-runtime.md` §9 do not currently cover these 4 gaps. If/when skill-loader-runtime.md is committed, suggest cross-referencing this §6c as the structured-output extension requirements doc.
+
 ## 7. Out of scope (deferred to Phase 2)
 
 - Strict IPS R5 conformance (waits for IPS R5 normative)
