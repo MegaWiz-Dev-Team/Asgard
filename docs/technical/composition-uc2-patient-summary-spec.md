@@ -292,6 +292,8 @@ Context budget guideline: `max_observations=30 + max_encounters=15` keeps Bundle
 
 > **R4↔R5 translator note (per [ADR-017](../decisions/ADR-017-fhir-r4r5-translation-framework.md)):** when the input EHR is R4 (e.g., legacy OpenEMR), `mimir-fhir::translate::r4_to_r5` runs at adapter ingress. For UC2's input contract, every input resource type is supported by ADR-017's 8-category × 4-severity framework. `Composition` itself (when emitted back to R4 clients) is **category 1 Identical** for the UC2 field set (`type`, `status`, `subject`, `date`, `author`, `title`, `section[]`) — no R4↔R5 breaking changes in this subset. The translator's macro guard (ADR-017 D8) is the compile-time assurance.
 
+> **HOSxP data source note (per [ADR-020](../decisions/ADR-020-43files-hosxp-fhir-adapter.md)):** in production Thai hospital deployments, the Bundle is materialised by the Sprint 8 `mimir-43files-adapter` from HOSxP MariaDB tables, not from OpenEMR. The tool name `openemr_patient_bundle_fetch` is retained for backward compatibility; underlying source is whichever `mimir-fhir` resource store is populated by the adapter(s) configured at the site. Patient resources carry **four identifier slices** (CID, HN, PID, Asgard UUID per ADR-020 D3); `subject` reference uses `Patient/{asgard-uuid}` form. Sprint 10 demo realism (vs synthetic-only) depends on Sprint 8 being complete — synthetic fallback per ADR-015 fallback path is acceptable for demo recording if Sprint 8 slips.
+
 ## 4a. Additional MCP tools (4) — enrichment and grounding
 
 The skill body (§5) lists 5 tools total in its `tool_subset`. The first (`openemr_patient_bundle_fetch`) is fully specified in §4 above. The 4 additional tools are specified here. All four are subsets of the `eir-clinical` tool ceiling (per [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md) D1) and are routed through Hermodr to their respective backends.
@@ -1091,6 +1093,8 @@ Per dimension, judge returns score + 1-sentence rationale. Total dimensions: 7 �
 Judge is the same model across runs to maintain comparability. Judge version + prompt hash recorded in eval row.
 
 **Layer 3 — Human spot-check** (monthly, 10% sample).
+
+The annotation workflow may run on the shared `mimir-curator` Label Studio infrastructure (per [ADR-011](../decisions/ADR-011-mimir-well-memory-artifacts.md) D3 + [[mimir_curator_label_studio.md]]) — a `patient-summary-review` project sibling to `well-consolidation` and `ocr-region-gt`. Confirmation deferred to harness owner; alternative is a lightweight standalone tool.
 
 A licensed Thai clinician reviews 10% of recent Compositions (anonymised) per month. Records:
 
