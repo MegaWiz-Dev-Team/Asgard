@@ -1036,6 +1036,161 @@ Edge-case coverage matrix:
 
 Add **P0** (empty-Bundle fixture, Patient-only) as a 4th fixture purely for refusal-path testing — does not generate Composition but emits `{"error": "input_bundle_invalid"}` per rule 15.
 
+## 6b. Eval harness (closes [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md) Open Q3)
+
+ADR-021 left the parity benchmark for patient-summary quality as an open question. This section defines that benchmark: a **three-layer eval harness** that runs against the P0/P1/P2/P3 fixtures on every change to the skill body, the 5 tool schemas, or the Composition profile, and persists results to Mimir eval (tenant `asgard_platform`, agent_name `patient-summary-skill-v{N}`) following the pattern of [[primekg_resolver_regression]].
+
+### 6b.1 Three layers
+
+**Layer 1 — Machine validation** (deterministic, fast, must pass 100%).
+
+Validates the structural contract end-to-end. Implemented in Rust as part of `mimir-fhir/tests/eval/` or in Python as `Mimir/scripts/persist_patient_summary_eval.py` — choice deferred to harness owner, output schema identical.
+
+| Check | What it verifies |
+|---|---|
+| JSON parses | output is valid JSON, single object |
+| Schema valid | conforms to `Composition-asgard-patient-summary.schema.json` (§3) |
+| Profile valid | passes HAPI FHIR R5 validator with `Composition-asgard-patient-summary` profile bound (Sprint 7 dep) |
+| Author shape | exactly two Devices: `Device/asgard-eir-clinical-v{N}` + `Device/asgard-patient-summary-skill-v{N}` |
+| Status = preliminary | skill never emits `final` |
+| Section count = 6 | fixed cardinality |
+| Section order | Problems, Medications, Allergies, Vitals, Results, Plan (by LOINC code) |
+| Entry resolvability | every `section.entry[].reference` resolves to a resource in the input Bundle |
+| Code authenticity | every coded value in narrative references a coding present in input or returned by a tool call (anti-fabrication rule 14) |
+| XHTML well-formed | each `section.text.div` parses as XHTML rooted at `<div xmlns="http://www.w3.org/1999/xhtml">` |
+| Tool-call budget | total tool calls ≤6 per Composition |
+| Tool sequencing rules | per §4b — no double-fetch, no single-condition disease_relations, no resolved-drug re-search |
+| Tyr audit completeness | one event with all required fields: `input_bundle_hash`, `boundary_agent`, `skill`, `model`, `tool_calls`, `output_composition_hash`, `latency_ms` |
+| Latency p50 | per-fixture target — P1 ≤10s, P2 ≤30s, P3 ≤45s (acceptance test §6.8) |
+| P0 refusal | Patient-only Bundle → `{"error": "input_bundle_invalid"}`, NOT a Composition |
+
+L1 is a pass/fail gate. Any failure blocks the eval run from reaching L2.
+
+**Layer 2 — LLM-as-judge scoring** (rubric, range 0–5 per dimension).
+
+Uses **gemini-3.1-flash-lite** as judge (cloud champion per [[mimir_eir_baseline]], allowed because the judge sees only the Composition output + the input Bundle — both already PII-hash-only at this layer per [[asgard_platform_tenant]] convention).
+
+Judge prompt is rubric-driven; each rubric dimension scored 0 (broken) → 5 (excellent). Dimensions:
+
+| Dim | Question | What 5/5 looks like |
+|---|---|---|
+| **Coverage** | Are all clinically significant resources from the input represented in the appropriate section? | Every active Condition appears in Problems; every active Med in Medications; every Allergy in Allergies; recent vitals + labs present; nothing material omitted |
+| **Faithfulness** | Does every claim in narrative trace to an entry in the same section or to a tool-call return? | Zero claims unsupported by entries/tool returns; no invented codes, dates, or values |
+| **Clinical priority** | Is the section ordering and within-section emphasis appropriate for the clinical context? | Chronic conditions lead in Problems; ESRD flag surfaced when present; adherence concerns surfaced in Medications |
+| **Narrative quality** | Is the narrative clear, concise, and appropriate for clinician audience? | Reads like a clinician note, not a marketing summary; no colloquialisms; no apologies or LLM-style hedging |
+| **Language correctness** | Thai narrative for Thai patient, English for non-Thai; codes in canonical Latin form regardless | Uniform language per section; no mixed-script narrative; LOINC/ICD/TMT in Latin |
+| **Plan reasonableness** | If Plan emitted from inference (no CarePlan in Bundle), is the inferred plan clinically sensible? | Continues current regimen, recommends labs aligned with active Problems, refers when indicated; no over-reaching directives |
+| **Citation correctness** | If `evidence_citation_fetch` was called, are citations attached to claims that genuinely need grounding? | Citations on plan recommendations, not on factual statements about the patient |
+
+Per dimension, judge returns score + 1-sentence rationale. Total dimensions: 7 → max 35.
+
+**Pass threshold L2:** average ≥ 4.0/5.0 across dimensions per fixture (28/35 total). No single dimension below 3.0.
+
+Judge is the same model across runs to maintain comparability. Judge version + prompt hash recorded in eval row.
+
+**Layer 3 — Human spot-check** (monthly, 10% sample).
+
+A licensed Thai clinician reviews 10% of recent Compositions (anonymised) per month. Records:
+
+- Agree with `status=preliminary` decision? (always yes by design)
+- Would attest to `status=final` after review? (target ≥70%)
+- Any clinical errors that L1/L2 missed?
+- Confidence in deploying to live use (1–5)?
+
+Findings feed back into skill body refinement (preamble updates → bumps `skill.version`) and into rubric tuning (if a class of issues consistently misses L2 scoring).
+
+### 6b.2 Corpus
+
+Initial corpus = fixtures **P0, P1, P2, P3** (per §5a + §6a). Each invocation produces:
+
+- 1 Composition (P1/P2/P3) or 1 error JSON (P0)
+- 1 tool-call sequence log
+- 1 Tyr audit event
+- 1 L1 validator report (pass/fail per check)
+- 1 L2 judge scorecard (7 dims × score + rationale)
+- 1 eval row in Mimir
+
+Per [[primekg_resolver_regression]] cadence, full corpus runs:
+
+- **On every change** to skill body, tool schema, or Composition profile (CI gate on PR)
+- **Nightly** scheduled run (catch drift from upstream changes — gemma model rev, primekg KB update, mimir-fhir version)
+- **Manual** before any Sprint 10 demo recording
+
+Expanded corpus (post-Phase 1): add anonymised real HOSxP slice patients (≥20) once §8 Q4 is closed.
+
+### 6b.3 Persistence schema
+
+Reuse Mimir eval table structure per [[primekg_resolver_regression]]:
+
+```
+tenant_id        = "asgard_platform"
+agent_name       = "patient-summary-skill-v{N}"
+eval_set         = "patient_summary_uc2"
+run_id           = ULID
+fixture_id       = "P0" | "P1" | "P2" | "P3"
+boundary_agent   = "eir-clinical-v{N}"
+skill_version    = "patient-summary-v{N}"
+model            = "gemma-4-26b"
+judge_model      = "gemini-3.1-flash-lite"
+judge_prompt_hash= sha256(judge_prompt)
+
+# Layer 1
+l1_pass          = bool
+l1_failures      = [{check, message}]   # empty if pass
+latency_ms       = int
+tool_calls       = [{name, args_hash, latency_ms}]
+
+# Layer 2
+l2_scores        = {coverage:N, faithfulness:N, clinical_priority:N,
+                    narrative_quality:N, language_correctness:N,
+                    plan_reasonableness:N, citation_correctness:N}
+l2_rationales    = {<same keys>: "1-sentence rationale"}
+l2_average       = float
+l2_min           = int
+
+# Output traces (hash-only per asgard_platform tenant convention)
+input_bundle_hash    = sha256(bundle_json)
+output_composition_hash = sha256(composition_json) | null
+error_payload_hash   = sha256(error_json) | null  # for P0
+```
+
+A `patient_summary_uc2_summary` view aggregates by `run_id` for dashboarding:
+
+- L1 pass rate (target 100%)
+- L2 average per fixture (target ≥4.0)
+- L2 dimension-level mean (identify dimensions trending down)
+- Latency p50 per fixture (against acceptance targets)
+- Tool-call count distribution
+
+### 6b.4 Gate semantics
+
+| Gate | Condition | Action on failure |
+|---|---|---|
+| **PR gate** | All 4 fixtures L1 100% pass + L2 avg ≥ 4.0 + no dim < 3.0 + latency within targets | Block merge; comment on PR with failing fixture + dimension |
+| **Nightly drift gate** | Same as PR gate, against latest skill body + Composition profile | Emit alert to skill owner; do not auto-revert |
+| **Sprint 10 demo gate** | All 4 fixtures L1 100% + L2 avg ≥ 4.5 + zero dim < 4.0 + human spot-check on P2 + P3 passed | Demo NOT recorded; remediate first |
+
+### 6b.5 What the harness does NOT measure (Phase 1 cuts)
+
+- Patient outcomes (downstream — Phase 5+)
+- Comparison vs. another vendor / baseline LLM (parity test is internal-only; cross-vendor comparison is Phase 2+)
+- Cost per Composition (gemma local is free per [[feedback_paid_model_confirm]])
+- Clinician time saved (Phase 2 user research)
+- Multilingual edge cases beyond Thai/English (Phase 2)
+- Drug-drug interaction *accuracy* against a curated source — Phase 1 trusts PrimeKG output; full DDI validation is a separate eval track
+
+### 6b.6 Implementation deliverable for Sprint 10
+
+| Item | Owner | Path |
+|---|---|---|
+| L1 validators (Rust) | mimir-fhir maintainer | `mimir-fhir/tests/eval/l1_validators.rs` |
+| L2 judge prompt + runner (Python) | eval maintainer | `Mimir/scripts/persist_patient_summary_eval.py` |
+| Judge prompt | eval maintainer | `Mimir/scripts/patient_summary_judge_prompt.md` |
+| Mimir eval table schema migration | Mimir DBA | added in Sprint 6 alongside REST API persistence |
+| Dashboard view | Mimir UI maintainer | added in Mimir eval UI as new tab (per [[eval_all_types_refactor]]) |
+| Human spot-check workflow doc | demo lead | `Asgard/docs/runbooks/patient-summary-human-spotcheck.md` |
+| CI integration | mimir-fhir maintainer | GitHub Action on `mimir-fhir/**` + `Asgard/skills/patient-summary/**` paths |
+
 ## 7. Out of scope (deferred to Phase 2)
 
 - Strict IPS R5 conformance (waits for IPS R5 normative)
