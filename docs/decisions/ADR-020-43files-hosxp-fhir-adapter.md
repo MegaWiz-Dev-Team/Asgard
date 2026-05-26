@@ -12,13 +12,13 @@ The 43Files dataset (43 แฟ้ม) is the Thai Ministry of Public Health's ma
 
 For Asgard to function inside a Thai hospital, it must ingest from HOSxP without disrupting hospital operations. This means: read-only access, eventual consistency, idempotent retries, and resilience to schema variance across HOSxP versions (3.x / 4.x / Standard / Premier).
 
-Sprint 8 is the largest sprint in Phase 1 because the adapter spans 12 priority tables × ~200 fields × code-system translation × identity reconciliation × sync infrastructure × encoding/date normalisation. Without a locked architecture, the sprint risks scope creep into Sprint 9 (Smart-on-FHIR), or arrival at hospital sites with silent data-quality gaps.
+Sprint 8 is the largest sprint in Phase 1 because the adapter spans **11 priority mapping groups (covering 17 HOSxP tables)** × ~200 fields × code-system translation × identity reconciliation × sync infrastructure × encoding/date normalisation. Without a locked architecture, the sprint risks scope creep into Sprint 9 (Smart-on-FHIR), or arrival at hospital sites with silent data-quality gaps.
 
 This ADR locks the design before Sprint 8 begins.
 
 ## Decision
 
-Build `mimir-43files-adapter` as a separate Rust crate that ingests 12 priority HOSxP tables, translates them into 11 Asgard FHIR Profile resource types, and writes through the `mimir-fhir` REST API with full profile validation. Sync defaults to polling; CDC via Debezium is an opt-in upgrade.
+Build `mimir-43files-adapter` as a separate Rust crate that ingests 17 priority HOSxP tables (organised into 11 mapping groups), translates them into 11 Asgard FHIR Profile resource emitters, and writes through the `mimir-fhir` REST API with full profile validation. Sync defaults to polling; CDC via Debezium is an opt-in upgrade.
 
 ### D1. Crate placement and naming
 
@@ -29,7 +29,7 @@ Build `mimir-43files-adapter` as a separate Rust crate that ingests 12 priority 
 
 The adapter is a **separate crate**, not a module of `mimir-fhir`. Rationale: clear boundary (FHIR types vs HOSxP ingest), independent test corpus, optional dependency (deployments without HOSxP can omit it), and reusability for future MOPH-format consumers (PC2, NHSO E-claim).
 
-### D2. Phase 1 table scope — 12 priority tables → 11 FHIR resources
+### D2. Phase 1 table scope — 11 mapping groups (17 HOSxP tables → 11 FHIR resource emitters)
 
 | Tier | HOSxP Table(s) | FHIR Resource(s) |
 |---|---|---|
@@ -88,12 +88,12 @@ Two sync modes are supported:
 
 | Mode | Trigger | Latency | DBA access requirement |
 |---|---|---|---|
-| Polling (default) | Cron every 5 min: `SELECT ... WHERE update_datetime > last_sync` | 5 min p95 | Read-only user with SELECT on the 12 tables |
+| Polling (default) | Cron every 5 min: `SELECT ... WHERE update_datetime > last_sync` | 5 min p95 | Read-only user with SELECT on the 17 HOSxP tables |
 | CDC (opt-in upgrade) | Debezium reads MariaDB binlog → Kafka/NATS → consumer | 1-5 sec p95 | Binlog access + replication user |
 
 **Polling is default** because most Thai hospital DBAs are unwilling to grant binlog access without significant deliberation. Polling works on a vanilla read-only user. CDC is offered as an upgrade path for hospitals where ≤5 sec latency materially improves a use case (real-time CDS during prescribing).
 
-Initial deployment runs a **snapshot** pass over all 12 tables to backfill historical data (1-5 years typical), then enters polling or CDC steady-state.
+Initial deployment runs a **snapshot** pass over all 17 HOSxP tables to backfill historical data (1-5 years typical), then enters polling or CDC steady-state.
 
 Sync state (last polling timestamp per table, CDC offset, snapshot completion markers) lives in `mimir_43files_sync` table in Asgard MariaDB, not in HOSxP DB. The adapter is a strict consumer of HOSxP; it never writes back.
 
@@ -170,7 +170,7 @@ Higher throughput (≥1000 resources/sec) is a Sprint 8.5+ optimization candidat
 | Polling-only sync (no CDC) | Real-time CDS use case needs <5s latency; CDC opt-in path preserves option |
 | Write directly to MariaDB / Neo4j (bypass mimir-fhir REST) | Skips profile validation, audit, future API authentication; introduces a second write path |
 | Attempt cross-hospital MPI in Phase 1 | Identity matching is a hard problem with regulatory implications; defer until customer demand + governance framework |
-| Map all 43 tables in Sprint 8 | Sprint 8 would balloon to 8+ weeks; 12 tables cover the documented use cases (UC1 OPD HT/DM, UC3 paeds vaccine) |
+| Map all 43 tables in Sprint 8 | Sprint 8 would balloon to 8+ weeks; the 11 priority mapping groups (17 HOSxP tables) cover the documented use cases (UC1 OPD HT/DM, UC3 paeds vaccine) |
 | Hot-reload mapping configuration | Mapping changes are profile-bearing — they need the same compile-time discipline as profiles (ADR-019) |
 
 ## What we explicitly do NOT do
@@ -187,7 +187,7 @@ Higher throughput (≥1000 resources/sec) is a Sprint 8.5+ optimization candidat
 
 **Positive:**
 
-- Bounded sprint scope (12 tables → 11 resources) — predictable 4-week duration
+- Bounded sprint scope (11 mapping groups / 17 HOSxP tables → 11 resource emitters) — predictable 4-week duration
 - Adapter is a separate optional crate — deployments without HOSxP omit it cleanly
 - Idempotent design — backfill is safely re-runnable; retry is built in
 - Profile validation gate — canonical store never contains invalid resources
@@ -229,7 +229,7 @@ Higher throughput (≥1000 resources/sec) is a Sprint 8.5+ optimization candidat
 This ADR is validated when:
 
 - [ ] `mimir-43files-adapter` crate exists, depends on `mimir-fhir`, compiles cleanly
-- [ ] 12 priority tables are read via sqlx; types match HOSxP 4.x Standard DDL byte-for-byte
+- [ ] 17 priority HOSxP tables are read via sqlx; types match HOSxP 4.x Standard DDL byte-for-byte
 - [ ] 11 mappers emit resources that pass ADR-019 profile validators (no profile violations in golden corpus)
 - [ ] Stable UUID generation is deterministic — re-running snapshot yields identical UUIDs
 - [ ] Polling sync demonstrates 5-minute end-to-end latency on synthetic load

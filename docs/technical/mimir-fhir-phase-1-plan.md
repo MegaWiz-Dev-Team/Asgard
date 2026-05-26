@@ -376,7 +376,7 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 
 ---
 
-### Sprint 8 — 43Files-to-FHIR Adapter (~14 days, biggest sprint)
+### Sprint 8 — 43Files-to-FHIR Adapter (~20 days / 4 weeks, biggest sprint)
 
 **Goal:** Bidirectional adapter between MOPH 43-Files MariaDB schema (HOSxP/OpenEMR backend) and FHIR R5 canonical store.
 
@@ -430,7 +430,7 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 
 ---
 
-### Sprint 9 — Smart-on-FHIR Launch + OpenEMR Integration (~10 days)
+### Sprint 9 — Smart-on-FHIR Launch + OpenEMR Integration (~20 days, expanded for standalone launch + Backend Services per ADR-022)
 
 > **2026-05-27 update:** SMART on FHIR 2.0 architecture now specified by [ADR-022 — SMART on FHIR 2.0 Launch and Authorization](../decisions/ADR-022-smart-on-fhir-launch.md). Key locks: (1) 4 client types — EHR launch, standalone, CDS Hooks (separate JWT), Backend Services (private_key_jwt for `mimir-43files-adapter` + `eir-cqm`); (2) hybrid 5-min fat JWT + refresh; (3) static client registration (3 pre-registered: asgard-cds, asgard-eir-ui, asgard-admin); (4) patient context = signed JWT claim, NOT header; (5) Yggdrasil extended (not replaced); (6) discovery endpoint on mimir-fhir at `/fhir/R5/.well-known/smart-configuration`. Sprint expanded from 10 to ~20 days to include standalone launch + Backend Services flows.
 
