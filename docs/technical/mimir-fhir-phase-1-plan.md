@@ -129,6 +129,8 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 
 **Goal:** First two clinical resources implemented; R4↔R5 translator module exists for these two resources.
 
+> **2026-05-27 update:** R4↔R5 translator framework now specified in detail by [ADR-017 — R4↔R5 Translation Framework](../decisions/ADR-017-fhir-r4r5-translation-framework.md). Sprint 2 task list below remains correct; the translator scaffold follows ADR-017's 8-category × 4-severity-level discipline with compile-time macro guard and Tyr audit on lossy events.
+
 **Tasks:**
 
 - [ ] **Patient resource** (R5):
@@ -338,6 +340,8 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 
 **Goal:** Profile validators implement tightest-binding-wins per MOPH-PC1 mapping doc Section "Profile Layers".
 
+> **2026-05-27 update:** Cascade order revised by [ADR-016 — Asgard FHIR Profile Family](../decisions/ADR-016-asgard-fhir-profile-family.md) and [ADR-019 — Profile Validation Tightest-Binding-Wins](../decisions/ADR-019-fhir-profile-validation-tightest-binding-wins.md). Cascade is now **symmetric across Base R5 + TH Core (when adopted) + Asgard FHIR Profile** — MoPH-PC1 is informative-only and does NOT participate in validation. Asgard's profile does NOT authoritatively override; tightest binding wins uniformly. Irreconcilable bindings produce BUILD ERROR (not runtime warning). Validators are compile-time generated. See ADR-019 for the 6-dimension merge algorithm + performance target (≥1k r/s).
+
 **Tasks:**
 
 - [ ] **TH Core profile validators** for each resource:
@@ -375,6 +379,8 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 ### Sprint 8 — 43Files-to-FHIR Adapter (~14 days, biggest sprint)
 
 **Goal:** Bidirectional adapter between MOPH 43-Files MariaDB schema (HOSxP/OpenEMR backend) and FHIR R5 canonical store.
+
+> **2026-05-27 update:** Adapter architecture now specified by [ADR-020 — 43Files HOSxP→FHIR Adapter](../decisions/ADR-020-43files-hosxp-fhir-adapter.md) + companion [mapping matrix](../architecture/43files-fhir-mapping-matrix.md). Key refinements that supersede the in-plan task list below: (1) crate is **separate** `mimir-43files-adapter` (not `mimir-fhir/src/adapters/`), (2) sync strategy = polling default + CDC opt-in (binlog), (3) identity = stable UUID v5(hospital_id, CID/HN-fallback), (4) Phase 1 scope = 12 priority tables → 11 resources (CHARGE/DEATH/SURGERY deferred), (5) TIS-620 + Buddhist year auto-normalize at boundary, (6) every resource passes ADR-019 validators pre-store, (7) Tyr `fhir.ingest.*` quality events. Sprint duration is 4 weeks (~20 days) not 14.
 
 **Tasks:**
 
@@ -425,6 +431,8 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 ---
 
 ### Sprint 9 — Smart-on-FHIR Launch + OpenEMR Integration (~10 days)
+
+> **2026-05-27 update:** SMART on FHIR 2.0 architecture now specified by [ADR-022 — SMART on FHIR 2.0 Launch and Authorization](../decisions/ADR-022-smart-on-fhir-launch.md). Key locks: (1) 4 client types — EHR launch, standalone, CDS Hooks (separate JWT), Backend Services (private_key_jwt for `mimir-43files-adapter` + `eir-cqm`); (2) hybrid 5-min fat JWT + refresh; (3) static client registration (3 pre-registered: asgard-cds, asgard-eir-ui, asgard-admin); (4) patient context = signed JWT claim, NOT header; (5) Yggdrasil extended (not replaced); (6) discovery endpoint on mimir-fhir at `/fhir/R5/.well-known/smart-configuration`. Sprint expanded from 10 to ~20 days to include standalone launch + Backend Services flows.
 
 **Goal:** Smart-on-FHIR app can launch from OpenEMR (or HAPI sandbox if OpenEMR Smart-on-FHIR support is partial), receive launch context, fetch FHIR resources from `mimir-fhir`.
 

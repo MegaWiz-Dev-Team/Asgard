@@ -109,10 +109,12 @@ Additional pre-Sprint-2 work:
 
 ## Open Questions for Sprint 2+
 
+> **2026-05-27 status update:** Question 4 is now answered by [ADR-017 — R4↔R5 Translation Framework](../decisions/ADR-017-fhir-r4r5-translation-framework.md). Questions 1-3 remain open per their original deferral targets. Additionally, downstream Sprints 7, 8, and 9 now have detailed ADRs — see ADR-019, ADR-020, ADR-022 respectively.
+
 1. **Resource ID strategy** — server-generated ULID per [`mimir_well` pattern](../decisions/ADR-011-mimir-well-memory-artifacts.md) vs client-supplied? Defer to Sprint 6 (REST endpoint design).
 2. **Bundle.entry closed enum** — per ADR-006 D1. Day 7 finished all 20 resource-supporting datatypes; the enum becomes possible to construct in Sprint 5 after the 20th resource lands.
 3. **`External*` newtype pattern** for lenient inbound parsing (ADR-006 D4) — Phase 1 Sprint 5 starts; design the type-state transition pattern then.
-4. **`r4_to_r5` translator** scaffolding — Sprint 2-3 alongside Patient + Encounter (the highest-translation-cost resources per [mapping doc R4↔R5 diff](../architecture/moph_pc1_fhir_mapping.md#r4-→-r5-element-name-diff-full-list)).
+4. **`r4_to_r5` translator** scaffolding — Sprint 2-3 alongside Patient + Encounter. **Resolved 2026-05-27 by [ADR-017](../decisions/ADR-017-fhir-r4r5-translation-framework.md)** — 8-category × 4-severity-level framework with compile-time macro guard, Tyr audit on lossy events, golden corpus 3-tier test discipline, extension namespace `asgard.megawiz.co.th/fhir/extension/r4r5/*`.
 
 ## What I'd Do Differently Next Sprint
 

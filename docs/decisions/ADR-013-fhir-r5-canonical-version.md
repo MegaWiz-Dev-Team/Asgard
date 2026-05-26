@@ -1,11 +1,11 @@
 # ADR-013: FHIR R5 as Canonical Version (Supersedes R4 Choice in ADR-006)
 
-**Status:** Accepted
+**Status:** Accepted (textually amended 2026-05-27 — D4 extension URL aligned with ADR-017 D5 namespace)
 **Date:** 2026-05-23
 **Deciders:** paripol@megawiz.co
 **Scope:** Locks the FHIR specification version used as the canonical type system across `mimir-fhir`, `asgard-doc-pipeline-core`, all Layer 2 clinical modules, and all Hermodr MCP tool schemas. Supersedes the implicit R4 lock in [ADR-006](ADR-006-fhir-canonical-design.md) — the type design decisions in ADR-006 still apply, but the version is now R5.
 **Supersedes (partial):** [ADR-006](ADR-006-fhir-canonical-design.md) — version-of-FHIR aspect only. Bundle.entry enum, audit-via-Tyr versioning, schemars, parsing strictness, and i18n decisions remain valid.
-**Related:** [ADR-012 FHIR-native data plane](ADR-012-fhir-native-data-plane-no-ehr-replacement.md), [ADR-009 single-tenant Mac mini](ADR-009-single-tenant-mac-mini-deployment.md)
+**Related:** [ADR-012 FHIR-native data plane](ADR-012-fhir-native-data-plane-no-ehr-replacement.md), [ADR-009 single-tenant Mac mini](ADR-009-single-tenant-mac-mini-deployment.md), [ADR-017 R4↔R5 translation framework](ADR-017-fhir-r4r5-translation-framework.md) (textual amendment 2026-05-27)
 
 ## Context
 
@@ -37,7 +37,7 @@ If a field changed shape between R4 and R5 (e.g., `MedicationRequest.medication`
 
 ### D4. R5-only fields are first-class
 
-`MedicationStatement.adherence` (R5-new, ID 72 in MOPH-PC1) is supported natively. We do not synthesize an R4 equivalent on R4-emit; instead, we drop the field with an extension hint (`http://asgard.local/fhir/r5-only/medication-adherence`) so R5 clients can still consume it via extension semantics.
+`MedicationStatement.adherence` (R5-new, ID 72 in MOPH-PC1) is supported natively. We do not synthesize an R4 equivalent on R4-emit; instead, we drop the field with an extension hint (`https://asgard.megawiz.co.th/fhir/extension/r4r5/MedicationStatement.adherence`) so R5 clients can still consume it via extension semantics. The extension URL namespace is formalised by [ADR-017](ADR-017-fhir-r4r5-translation-framework.md) D5; the original draft URL `http://asgard.local/fhir/r5-only/...` is superseded.
 
 ### D5. TH Core profile binding follows R5 baseline
 
