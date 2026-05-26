@@ -1,6 +1,6 @@
 # UC2 — Cross-Encounter Patient Summary: Design Spec
 
-**Status:** Draft (paired with [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md) + [ADR-016](../decisions/ADR-016-patient-summary-as-skill.md))
+**Status:** Draft (paired with [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md) + [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md))
 **Date:** 2026-05-26
 **Owner:** paripol@megawiz.co
 **Sprints affected:** 4 (Composition type), 7 (profile validator), 9 (UI binding), 10 (demo)
@@ -11,11 +11,11 @@ Define the concrete schema, section structure, agent preamble, and contracts for
 
 ## 0. Terminology mapping (ADR-016 alignment)
 
-This spec was originally written assuming an `eir-summary` boundary agent (legacy 19-agent roster pattern). Per [ADR-016](../decisions/ADR-016-patient-summary-as-skill.md), the execution unit is reclassified as the **`patient-summary` skill** hosted on the **`eir-clinical`** boundary agent (per [ADR-010](../decisions/ADR-010-agents-as-boundaries-skills-as-expertise.md) framework).
+This spec was originally written assuming an `eir-summary` boundary agent (legacy 19-agent roster pattern). Per [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md), the execution unit is reclassified as the **`patient-summary` skill** hosted on the **`eir-clinical`** boundary agent (per [ADR-010](../decisions/ADR-010-agents-as-boundaries-skills-as-expertise.md) framework).
 
 The sections below retain "eir-summary" wording where it reads naturally — interpret per this mapping:
 
-| In this spec | Skill mode (ADR-016 Accepted) | Fallback mode (ADR-010 not Accepted) |
+| In this spec | Skill mode (ADR-021 Accepted) | Fallback mode (ADR-010 not Accepted) |
 |---|---|---|
 | "eir-summary agent" | `patient-summary` skill composed on `eir-clinical` boundary agent | legacy `agent_configs` row `eir-summary`, model `gemma-4-26b` |
 | "agent preamble" (§5) | skill `preamble_fragment` — composed on top of `eir-clinical` system prompt | full `agent_configs.system_prompt` value |

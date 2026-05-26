@@ -1,4 +1,4 @@
-# ADR-016: Patient Summary is a Skill on `eir-clinical`, Not a Boundary Agent
+# ADR-021: Patient Summary is a Skill on `eir-clinical`, Not a Boundary Agent
 
 **Status:** Proposed
 **Date:** 2026-05-26
