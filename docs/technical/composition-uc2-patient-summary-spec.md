@@ -290,6 +290,8 @@ Phase 1 demo uses **mimir-fhir REST** directly (not eir-gateway → OpenEMR tran
 
 Context budget guideline: `max_observations=30 + max_encounters=15` keeps Bundle ≤ ~25k tokens for gemma-4-26b (32k context window). For P2 chronic-complex patient with 3y history, this may need to be adjusted; defer tuning to Sprint 10 demo prep.
 
+> **R4↔R5 translator note (per [ADR-017](../decisions/ADR-017-fhir-r4r5-translation-framework.md)):** when the input EHR is R4 (e.g., legacy OpenEMR), `mimir-fhir::translate::r4_to_r5` runs at adapter ingress. For UC2's input contract, every input resource type is supported by ADR-017's 8-category × 4-severity framework. `Composition` itself (when emitted back to R4 clients) is **category 1 Identical** for the UC2 field set (`type`, `status`, `subject`, `date`, `author`, `title`, `section[]`) — no R4↔R5 breaking changes in this subset. The translator's macro guard (ADR-017 D8) is the compile-time assurance.
+
 ## 4a. Additional MCP tools (4) — enrichment and grounding
 
 The skill body (§5) lists 5 tools total in its `tool_subset`. The first (`openemr_patient_bundle_fetch`) is fully specified in §4 above. The 4 additional tools are specified here. All four are subsets of the `eir-clinical` tool ceiling (per [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md) D1) and are routed through Hermodr to their respective backends.
@@ -1050,7 +1052,7 @@ Validates the structural contract end-to-end. Implemented in Rust as part of `mi
 |---|---|
 | JSON parses | output is valid JSON, single object |
 | Schema valid | conforms to `Composition-asgard-patient-summary.schema.json` (§3) |
-| Profile valid | passes HAPI FHIR R5 validator with `Composition-asgard-patient-summary` profile bound (Sprint 7 dep) |
+| Profile valid | passes the generated profile validator for `Composition-asgard-patient-summary` per [ADR-019](../decisions/ADR-019-fhir-profile-validation-tightest-binding-wins.md) (Rust-generated via `build.rs` from JSON profile artifact at compile time — not external HAPI runtime). Tightest-binding-wins merge across Base R5 + Asgard layers; TH Core layer if/when MOPH publishes Composition profile (currently absent). Sprint 7 dep |
 | Author shape | exactly two Devices: `Device/asgard-eir-clinical-v{N}` + `Device/asgard-patient-summary-skill-v{N}` |
 | Status = preliminary | skill never emits `final` |
 | Section count = 6 | fixed cardinality |
@@ -1289,6 +1291,23 @@ Each gap is independently shippable (per skill-loader §8 phased rollout pattern
 ### Cross-reference
 
 Open questions in `Bifrost/docs/design/skill-loader-runtime.md` §9 do not currently cover these 4 gaps. If/when skill-loader-runtime.md is committed, suggest cross-referencing this §6c as the structured-output extension requirements doc.
+
+### Generalization to CDS Cards ([ADR-018](../decisions/ADR-018-cds-cqm-as-eir-agent-family.md))
+
+The 4 gaps above are not UC2-only — they apply to any **structured-output Eir output** the runtime emits. ADR-018 establishes a second instance: `eir-cds-*` agents emit **CDS Hooks Cards** (JSON conforming to CDS Hooks 2.0 spec), with `link.url` provenance back to S55 `PlanDefinition` resources. ADR-018 places CDS as *boundary agents* (specialty fan-out) rather than skills, but the runtime gaps still apply because the agent emits a typed JSON envelope, not free text.
+
+If/when CDS Hooks lands (per ADR-018 Sprint 59), the same runtime extensions close gaps:
+
+| Gap | UC2 patient-summary (skill) | `eir-cds-*` (boundary agent) |
+|---|---|---|
+| 1 Direct activation | `?skill=patient-summary` URL param | CDS Hooks endpoint URL (already direct by spec) — runtime support still needs activation-source recording |
+| 2 Structured-output category | `output_kind = fhir-resource`, schema = `Composition-asgard-patient-summary.schema.json` | `output_kind = cds-card`, schema = CDS Hooks 2.0 Card schema |
+| 3 Author injection | substitute Device versions in `Composition.author` | substitute service-id + version in CDS Card `serviceId` + `link.url` PlanDefinition reference |
+| 4 Output kind dispatch | `fhir-resource` branch | new `cds-card` branch in same dispatch table |
+
+The CQM family in ADR-018 D2 also emits a `Composition` (different profile: `Composition-asgard-cqm-narrative` — separate from `Composition-asgard-patient-summary`), so gap 2/3 already covers it without new code. **Two profiles, one resource type (Composition), shared `output_kind = fhir-resource`.**
+
+This generalization is part of the rationale for keeping these gap fixes in the runtime rather than baking UC2-specific logic into Bifrost.
 
 ## 7. Out of scope (deferred to Phase 2)
 
