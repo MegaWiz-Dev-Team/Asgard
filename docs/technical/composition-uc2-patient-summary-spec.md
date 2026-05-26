@@ -290,6 +290,259 @@ Phase 1 demo uses **mimir-fhir REST** directly (not eir-gateway → OpenEMR tran
 
 Context budget guideline: `max_observations=30 + max_encounters=15` keeps Bundle ≤ ~25k tokens for gemma-4-26b (32k context window). For P2 chronic-complex patient with 3y history, this may need to be adjusted; defer tuning to Sprint 10 demo prep.
 
+## 4a. Additional MCP tools (4) — enrichment and grounding
+
+The skill body (§5) lists 5 tools total in its `tool_subset`. The first (`openemr_patient_bundle_fetch`) is fully specified in §4 above. The 4 additional tools are specified here. All four are subsets of the `eir-clinical` tool ceiling (per [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md) D1) and are routed through Hermodr to their respective backends.
+
+Total tool-call budget per Composition is **6** (per skill body rule). Typical distribution: 1 bundle_fetch + 0–2 enrichment calls. Heavy polypharmacy (P3) may use up to 4 calls.
+
+### 4a.1 `primekg_disease_relations`
+
+Existing PrimeKG tool per [[primekg_graph_agent]] (agent id=7). The patient-summary skill reuses it, no new code.
+
+```json
+{
+  "name": "primekg_disease_relations",
+  "description": "Retrieve disease-disease and disease-symptom relationships from PrimeKG for grounded multi-morbidity narrative. Use when the patient has ≥2 chronic conditions and you want to mention disease interrelations in the Problems section narrative.",
+  "input_schema": {
+    "type": "object",
+    "required": ["disease_codes"],
+    "properties": {
+      "disease_codes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 6,
+        "items": {
+          "type": "object",
+          "required": ["system", "code"],
+          "properties": {
+            "system": {"enum": ["http://hl7.org/fhir/sid/icd-10-tm", "http://hl7.org/fhir/sid/icd-10", "http://snomed.info/sct"]},
+            "code": {"type": "string"}
+          }
+        }
+      },
+      "relation_types": {
+        "type": "array",
+        "default": ["disease_disease", "disease_symptom"],
+        "items": {"enum": ["disease_disease", "disease_symptom", "disease_pathway", "disease_phenotype"]}
+      },
+      "max_relations_per_disease": {"type": "integer", "default": 3, "maximum": 5}
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "relations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["source_code", "target_code", "relation_type", "confidence"],
+          "properties": {
+            "source_code": {"type": "string"},
+            "target_code": {"type": "string"},
+            "target_display": {"type": "string"},
+            "relation_type": {"type": "string"},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "evidence_count": {"type": "integer"}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Backing service:** Bifrost `/agents/primekg/invoke` per [[primekg_graph_agent]]. Header `X-Tenant-Id: asgard_medical` required.
+**Errors:** `disease_not_found` (code not in PrimeKG), `tenant_header_missing` (Bifrost rejects without X-Tenant-Id).
+**Token budget:** typical response 200–800 tokens for 3 diseases × 3 relations.
+**Usage rule:** cite at most 2 relations per Problems narrative (per skill body §Tool use).
+
+### 4a.2 `mimir_drug_search`
+
+```json
+{
+  "name": "mimir_drug_search",
+  "description": "Resolve a Thai or English drug name string to canonical TMT code(s) and alias set. Use when the input MedicationStatement or MedicationRequest lacks a TMT code, or when the drug name in the Bundle differs from common usage and you need to normalise for narrative.",
+  "input_schema": {
+    "type": "object",
+    "required": ["query"],
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "Drug name (Thai or English, brand or generic). Examples: 'enalapril', 'อีนาลาพริล', 'Renitec'"
+      },
+      "limit": {"type": "integer", "default": 5, "maximum": 10},
+      "min_score": {"type": "number", "default": 0.7, "minimum": 0.5}
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "matches": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["tmt_code", "canonical_name", "score"],
+          "properties": {
+            "tmt_code": {"type": "string", "description": "TMT (Thai Medication Terminology) code"},
+            "canonical_name": {"type": "string", "description": "Generic name in English, preferred form"},
+            "thai_name": {"type": "string"},
+            "aliases": {"type": "array", "items": {"type": "string"}},
+            "atc_code": {"type": "string", "description": "ATC classification code if known"},
+            "score": {"type": "number"}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Backing service:** Mimir `/knowledge/search` against the Thai drug alias KB (26 entries per [[l3_cross_kb_findings_2026_05_19]]) + TMT lookup KB, fused by BGE-M3 cosine score per [[mimir_eir_baseline]]. Tenant = `asgard_platform` (cross-tenant shared KB per [[asgard_shared_knowledge_surface]]).
+**Errors:** `no_match` (score below `min_score`), `query_too_short` (< 2 characters).
+**Token budget:** ~150–400 tokens typical (5 matches).
+**Usage rule:** call only when the input Bundle has a MedicationStatement/MedicationRequest without TMT code, OR when the user explicitly asks about a drug not in the Bundle. Do not call for drugs already resolved.
+
+### 4a.3 `drug_interaction_check`
+
+```json
+{
+  "name": "drug_interaction_check",
+  "description": "Check for clinically significant drug-drug interactions among the patient's active medications. Use when the active medication list has ≥4 drugs, OR when any MedicationStatement.adherence indicates non-adherence (poor adherence + polypharmacy = high-risk combination).",
+  "input_schema": {
+    "type": "object",
+    "required": ["medications"],
+    "properties": {
+      "medications": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 15,
+        "items": {
+          "type": "object",
+          "required": ["tmt_code"],
+          "properties": {
+            "tmt_code": {"type": "string"},
+            "display": {"type": "string"}
+          }
+        }
+      },
+      "min_severity": {
+        "type": "string",
+        "default": "moderate",
+        "enum": ["minor", "moderate", "major", "contraindicated"]
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "interactions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["drug_a_tmt", "drug_b_tmt", "severity", "mechanism", "clinical_effect"],
+          "properties": {
+            "drug_a_tmt": {"type": "string"},
+            "drug_b_tmt": {"type": "string"},
+            "severity": {"enum": ["minor", "moderate", "major", "contraindicated"]},
+            "mechanism": {"type": "string", "description": "Brief mechanistic explanation"},
+            "clinical_effect": {"type": "string", "description": "Expected clinical consequence"},
+            "recommendation": {"type": "string", "description": "What clinician should consider (monitor / avoid / dose-adjust)"},
+            "evidence_source": {"type": "string", "description": "PrimeKG edge or guideline reference"}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Backing service:** PrimeKG drug-drug edge traversal via Bifrost `/agents/primekg/invoke` with `tool=drug_drug_interactions` (new sub-tool, Sprint 4-5 delivery alongside Composition type). Fallback to a static curated DDI table during demo if PrimeKG drug-drug edges incomplete for the demo drug set.
+**Errors:** `tmt_code_not_in_graph` (one or more drugs absent from PrimeKG drug nodes; non-fatal — return interactions for the subset that resolves), `service_unavailable`.
+**Token budget:** ~200–600 tokens for 4–8 drug pairs returned.
+**Usage rule:** trigger only when ≥4 active meds OR adherence concern present. Surface in **Medications section narrative**, not as a separate section. Phrase as "consider" / "monitor for" — never as a directive.
+
+### 4a.4 `evidence_citation_fetch`
+
+**Status:** stub interface for Phase 1; full implementation gated on [[mimir_guideline_lineage_plan]] (Sprint 55). Phase 1 demo (Sprint 10) returns hardcoded citations for the 3 demo conditions (HT, DM, dyslipidemia).
+
+```json
+{
+  "name": "evidence_citation_fetch",
+  "description": "Fetch a clinical guideline citation for a recommended next step in the Plan of care section. Use when emitting a Plan narrative that recommends a specific clinical action (recheck HbA1c at 3 months, escalate ACE inhibitor dose, refer to nephrology) and you want to ground the recommendation in a citable guideline.",
+  "input_schema": {
+    "type": "object",
+    "required": ["condition_code", "recommendation_intent"],
+    "properties": {
+      "condition_code": {
+        "type": "object",
+        "required": ["system", "code"],
+        "properties": {
+          "system": {"type": "string"},
+          "code": {"type": "string"}
+        }
+      },
+      "recommendation_intent": {
+        "type": "string",
+        "enum": ["follow_up_interval", "lab_recheck", "medication_escalation", "specialist_referral", "lifestyle"]
+      },
+      "patient_context": {
+        "type": "object",
+        "description": "Optional context for personalised citation (age range, sex, comorbidities)",
+        "properties": {
+          "age_band": {"enum": ["pediatric", "adult", "elderly"]},
+          "comorbidities": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["recommendation_text", "guideline_title", "guideline_society", "year"],
+          "properties": {
+            "recommendation_text": {"type": "string", "description": "Verbatim guideline recommendation"},
+            "guideline_title": {"type": "string"},
+            "guideline_society": {"type": "string", "description": "RCPT, ACC/AHA, etc."},
+            "year": {"type": "integer"},
+            "evidence_level": {"type": "string", "description": "e.g., GRADE 1A"},
+            "url": {"type": "string", "format": "uri"}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Backing service (Phase 1 stub):** hardcoded JSON fixture in `Mimir/scripts/eir-summary-citation-fixture.json` covering the demo patient conditions. Returns one citation per (condition_code, recommendation_intent) pair.
+**Backing service (Sprint 55+):** Neo4j subgraph query over MAGICapp-ingested guidelines + Mimir Well memory artifacts per [[mimir_guideline_lineage_plan]] [[mimir_well_memory_artifacts]].
+**Errors:** `no_citation_available` (no guideline match) — non-fatal, narrative falls back to inferred clinical reasoning.
+**Token budget:** ~150–300 tokens per citation.
+**Usage rule:** at most 2 citations per Plan of care narrative. Optional — skip the tool if the inferred plan is uncontroversial (e.g., "continue current regimen, recheck in 3 months" for stable HT).
+
+### 4b. Tool-use sequencing rules
+
+The skill body §Tool use limits to ≤6 calls per Composition. Recommended sequencing:
+
+1. `openemr_patient_bundle_fetch` — always first, once.
+2. (optional) `mimir_drug_search` — only if Bundle has un-coded medications.
+3. (conditional) `drug_interaction_check` — only if ≥4 active meds OR adherence concern.
+4. (optional) `primekg_disease_relations` — only if ≥2 chronic conditions.
+5. (optional) `evidence_citation_fetch` — at most 2 calls, only if Plan narrative will make a specific clinical recommendation.
+
+**Anti-patterns** (skill body refuses):
+
+- Calling `mimir_drug_search` for drugs already resolved with valid TMT codes
+- Calling `drug_interaction_check` with fewer than 2 medications
+- Calling `primekg_disease_relations` for a single condition
+- Calling any tool more than twice
+- Calling `openemr_patient_bundle_fetch` a second time (re-use the first result)
+
 ## 5. Skill body (production preamble)
 
 The skill body is composed onto the `eir-clinical` system prompt by the Bifrost skill-loader (per [ADR-021](../decisions/ADR-021-patient-summary-as-skill.md) D1). It inherits safety floor, refusal policy, model, and tool ceiling from the host; the body below only narrows behaviour for the patient-summary task.
