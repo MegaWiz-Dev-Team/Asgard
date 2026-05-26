@@ -1,6 +1,6 @@
 # UC2 — Cross-Encounter Patient Summary: Design Spec
 
-**Status:** Draft (paired with [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md))
+**Status:** Draft (paired with [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md) + [ADR-016](../decisions/ADR-016-patient-summary-as-skill.md))
 **Date:** 2026-05-26
 **Owner:** paripol@megawiz.co
 **Sprints affected:** 4 (Composition type), 7 (profile validator), 9 (UI binding), 10 (demo)
@@ -8,6 +8,23 @@
 ## Purpose
 
 Define the concrete schema, section structure, agent preamble, and contracts for the **UC2 Cross-Encounter Patient Summary** demo in Sprint 10. This spec is the implementation handoff for the type-level work (Sprint 4) and the demo wiring (Sprint 10).
+
+## 0. Terminology mapping (ADR-016 alignment)
+
+This spec was originally written assuming an `eir-summary` boundary agent (legacy 19-agent roster pattern). Per [ADR-016](../decisions/ADR-016-patient-summary-as-skill.md), the execution unit is reclassified as the **`patient-summary` skill** hosted on the **`eir-clinical`** boundary agent (per [ADR-010](../decisions/ADR-010-agents-as-boundaries-skills-as-expertise.md) framework).
+
+The sections below retain "eir-summary" wording where it reads naturally — interpret per this mapping:
+
+| In this spec | Skill mode (ADR-016 Accepted) | Fallback mode (ADR-010 not Accepted) |
+|---|---|---|
+| "eir-summary agent" | `patient-summary` skill composed on `eir-clinical` boundary agent | legacy `agent_configs` row `eir-summary`, model `gemma-4-26b` |
+| "agent preamble" (§5) | skill `preamble_fragment` — composed on top of `eir-clinical` system prompt | full `agent_configs.system_prompt` value |
+| "tool allowlist" | skill `tool_subset` — intersect with `eir-clinical` ceiling | row tool allowlist JSON |
+| `Device(asgard-eir-summary-v1)` (§1.2, §6) | `[Device/asgard-eir-clinical-v{N}, Device/asgard-patient-summary-skill-v1]` in `Composition.author` | `Device(asgard-eir-summary-v1)` single-element author array |
+| `Bifrost POST /agents/eir-summary/invoke` | `POST /agents/eir-clinical/invoke?skill=patient-summary` (or cosine-retrieved activation) | `POST /agents/eir-summary/invoke` |
+| "agent_configs row" registration step | skill registry record via Bifrost skill-loader API | `agent_configs` row insert |
+
+Output contract (Composition profile, JSON schema, acceptance criteria) is **identical** in both modes — only registration mechanism and author attribution differ.
 
 ## 1. Profile: `Composition-asgard-patient-summary`
 
