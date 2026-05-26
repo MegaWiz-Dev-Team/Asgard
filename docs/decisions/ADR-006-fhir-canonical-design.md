@@ -104,8 +104,12 @@ pub enum BundleEntry {
     Specimen(Specimen),
     ImagingStudy(ImagingStudy),
     Device(Device),
+    // Added 2026-05-26 (Amendment 2) per ADR-015 — clinical document support for UC2:
+    Composition(Composition),
 }
 ```
+
+**Amendment 2 (2026-05-26)** — `Composition` (R5) added as the 21st canonical resource to support **UC2 Cross-Encounter Patient Summary**. Rationale, profile design, and Sprint 4/7/9/10 impact documented in [ADR-015](ADR-015-add-composition-and-uc2-patient-summary.md). The "bounded by MOPH-PC1" scope rule is relaxed by exactly one resource for clinical-document semantics; further additions require their own ADR.
 
 (Field shapes inside each variant follow FHIR R5 per [ADR-013](ADR-013-fhir-r5-canonical-version.md); see [MOPH-PC1 mapping](../architecture/moph_pc1_fhir_mapping.md) for R4↔R5 element diffs.)
 

@@ -200,9 +200,11 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 
 ---
 
-### Sprint 4 — Clinical Resources Set (~10 days)
+### Sprint 4 — Clinical Resources Set (~11 days)
 
-**Goal:** Condition, MedicationRequest, MedicationStatement, Procedure, AllergyIntolerance, DiagnosticReport, DocumentReference implemented.
+**Goal:** Condition, MedicationRequest, MedicationStatement, Procedure, AllergyIntolerance, DiagnosticReport, DocumentReference, **Composition** implemented.
+
+> Sprint 4 was originally scoped at ~10 days / 7 resources. Per [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md) (2026-05-26), `Composition` (R5) is added as the 21st canonical resource to support UC2 Cross-Encounter Patient Summary in Sprint 10. Budget +1 day.
 
 **Tasks:**
 
@@ -226,21 +228,32 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
   - `reaction.manifestation` (SNOMED)
 - [ ] **DiagnosticReport** (R5)
 - [ ] **DocumentReference** (R5)
+- [ ] **Composition** (R5) — *added 2026-05-26 per ADR-015*
+  - `type` (LOINC binding; UC2 uses `60591-5` "Patient summary Document")
+  - `status` (`preliminary` / `final` / `amended` / `entered-in-error`)
+  - `subject` (required, `Patient` reference)
+  - `date`, `author[]` (`Practitioner` OR `Device` — LLM-authored = `Device(asgard-eir-summary-v{N})`)
+  - `title`, `section[]` with `section.text.div` (XHTML narrative) + `section.entry[]` (references to leaf resources in same Bundle)
+  - Helper builder: `Composition::asgard_patient_summary(subject, author, sections)`
+  - R4↔R5 translator: identity transform (no breaking changes for fields in UC2 scope)
 - [ ] R4↔R5 translator rules for:
   - MedicationRequest.medication: R4 `medicationCodeableConcept`/`medicationReference` → R5 `medication` CodeableReference
   - MedicationRequest.reason / Procedure.reason: R4 `reasonCode`/`reasonReference` → R5 `reason` CodeableReference
   - MedicationStatement.adherence: R5 → R4 extension `http://asgard.local/fhir/r5-only/medication-adherence`; R4 → R5 read extension back
+  - Composition: identity (R4≡R5 for UC2 fields)
 
 **Acceptance:**
-- All resources compile + round-trip
+- All 8 resources compile + round-trip (7 clinical + Composition)
 - R4↔R5 translator handles polymorphism merges + adherence extension correctly
 - MOPH-PC1 corpus rows 19-28, 66-78 (allergies, documents, meds, problems, procedures) pass
+- Composition round-trips a fixture with 6 sections + leaf-resource entry references
 
-**Dependencies:** Sprint 2 (Patient + Encounter references)
+**Dependencies:** Sprint 2 (Patient + Encounter references), Sprint 3 (Observation for Composition entries)
 
 **Risks:**
 - TMT code system not bundled in repo — needs reference table; coordinate with Mimir KB on T7 ([[mimir_data_on_t7]])
 - R5 CodeableReference is a new type combining `concept` + `reference` — may need helper
+- Composition.section recursion (sections containing sub-sections) — UC2 scope uses flat 6-section structure, defer recursive support to Phase 2
 
 **Backup gate:** ☐ Not required
 
@@ -448,9 +461,11 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
 
 ---
 
-### Sprint 10 — UC1 + UC3 Demo + Phase 1 Acceptance (~10 days)
+### Sprint 10 — UC1 + UC2 + UC3 Demo + Phase 1 Acceptance (~12 days)
 
-**Goal:** Two minimum-viable demos working end-to-end; Phase 1 acceptance criteria green; demo deck ready.
+**Goal:** Three minimum-viable demos working end-to-end; Phase 1 acceptance criteria green; demo deck ready.
+
+> Sprint 10 was originally scoped at ~10 days / 2 demos (UC1 + UC3). Per [ADR-015](../decisions/ADR-015-add-composition-and-uc2-patient-summary.md) (2026-05-26), UC2 Cross-Encounter Patient Summary is added as a third demo. Budget +2 days for UC2 demo prep.
 
 **Tasks:**
 
@@ -463,6 +478,20 @@ Verified during Sprint 0 (pre-flight). Sprint 1 cannot start until all pass.
     - HbA1c trend from LABFU Observation
     - Active problems (Condition)
     - Active medications (MedicationRequest)
+- [ ] **UC2 Cross-Encounter Patient Summary demo:** *(added 2026-05-26 per ADR-015)*
+  - Pre-populate 43Files test DB with 3 patients of varying complexity:
+    - **P1 simple** — 1 chronic condition (HT), 1-2 medications, ≤5 encounters
+    - **P2 chronic-complex** — 4+ chronic conditions (HT+DM+dyslipidemia+CKD3), 6-10 active meds, ≥20 encounters across 3 years
+    - **P3 polypharmacy** — 8+ active meds with at least 2 known drug-drug interactions, 1+ adherence concern (per `MedicationStatement.adherence` R5 field)
+  - Insert `eir-summary` agent row in `agent_configs` (asgard_medical tenant, model `gemma-4-26b`, tool allowlist `["openemr_patient_bundle_fetch"]`)
+  - Smart-on-FHIR launch → eir-summary fetches Bundle via mimir-fhir REST → LLM generates Composition JSON → validates against `Composition-asgard-patient-summary` profile (Sprint 7) → app renders with per-section navigation
+  - Acceptance criteria:
+    - All 3 demo patients produce valid `Composition` (profile-conformant)
+    - Each Composition has all 6 required sections (Problems, Medications, Allergies, Results, Vital signs, Plan)
+    - `section.entry[]` references resolve to leaf resources in mimir-fhir store
+    - `author = Device(asgard-eir-summary-v{N})` with `status = preliminary`
+    - Tyr audit chain records: input resource hashes, model + version, output Composition hash, generation latency
+    - p50 generation latency < 30 s on Mac mini for P2 patient (chronic-complex baseline)
 - [ ] **UC3 paediatric immunization demo:**
   - Pre-populate 43Files EPI table with ~5 children at different ages
   - Run nightly adapter
