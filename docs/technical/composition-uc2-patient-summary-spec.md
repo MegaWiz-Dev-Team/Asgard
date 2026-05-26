@@ -817,15 +817,224 @@ Each demo patient (P1, P2, P3) must produce a Composition that satisfies all of:
 3. Validates against the StructureDefinition profile (HAPI R5 validator)
 4. All `section.entry[]` references resolve to resources in mimir-fhir store
 5. All 6 sections present (with `emptyReason` if no data)
-6. `author = [Device/asgard-eir-summary-v1]`, `status = preliminary`
+6. `author = [Device/asgard-eir-clinical-v{N}, Device/asgard-patient-summary-skill-v1]` (per ADR-021 D2), `status = preliminary`
 7. Narrative (`text.div`) does not contain content unsupported by `section.entry[]`
 8. p50 latency from tool-call → final JSON < 30 s on Mac mini for P2
 
 Additional acceptance for the demo as a whole:
 
 9. Smart-on-FHIR app fetches the Composition by ID and renders 6-section navigation
-10. Tyr audit chain has one event per Composition with: `input_bundle_hash`, `model = gemma-4-26b`, `agent_version = asgard-eir-summary-v1`, `output_composition_hash`, `latency_ms`
+10. Tyr audit chain has one event per Composition with: `input_bundle_hash`, `boundary_agent = eir-clinical-v{N}`, `skill = patient-summary-v1`, `model = gemma-4-26b`, `tool_calls = [...]`, `output_composition_hash`, `latency_ms`
 11. Demo deck slide pair (before/after) recorded for prospect conversations
+
+## 6a. Demo patient fixtures (P2 + P3)
+
+P1 is fully specified in §5a as the few-shot reference. P2 (chronic-complex) and P3 (polypharmacy) are specified below as fixture *requirements* — not full FHIR JSON. Fixture generation lives in `Mimir/scripts/demo-patients/` (Sprint 10 deliverable); each script produces a valid R5 Bundle conformant to the input contract in §4.
+
+Both P2 and P3 use a fictional Thai hospital `กรุงเทพคลินิก สาขาทดสอบ` (Organization id `org-demo-001`) and a single Practitioner `น.พ. วรรณา ศรีสุวรรณ` (Practitioner id `pract-demo-001`). All Encounters reference both.
+
+### P2 — Chronic-complex (HT + DM + dyslipidemia + CKD3 + stable angina)
+
+**Demographics**
+
+| Field | Value |
+|---|---|
+| Patient id | `p002` |
+| Name | สุดา จันทร์เพ็ญ |
+| Gender | female |
+| birthDate | 1958-08-22 (age 67) |
+| Address | กรุงเทพมหานคร 10400 |
+| Citizen ID identifier | use `https://fhir.moph.go.th/identifier/citizen-id` slice per Asgard FHIR Profile |
+
+**Active Conditions (5)**
+
+| id | system | code | display | recordedDate | priority |
+|---|---|---|---|---|---|
+| `c002-01` | ICD-10-TM | I10 | Essential hypertension | 2016-04-12 | chronic |
+| `c002-02` | ICD-10-TM | E11.9 | Type 2 diabetes mellitus | 2018-09-03 | chronic |
+| `c002-03` | ICD-10-TM | E78.5 | Hyperlipidaemia, unspecified | 2018-09-03 | chronic |
+| `c002-04` | ICD-10-TM | N18.3 | CKD stage 3 | 2022-11-20 | chronic — flag ESRD risk |
+| `c002-05` | ICD-10-TM | I25.10 | Atherosclerotic heart disease, stable | 2023-06-15 | chronic |
+
+All have `clinicalStatus.code=active`, `verificationStatus.code=confirmed`.
+
+**Active Medications (8)** — mix of `MedicationStatement` (5) + `MedicationRequest` (3)
+
+| id | drug | TMT code | dose | adherence | notes |
+|---|---|---|---|---|---|
+| `m002-01` | Enalapril maleate | 100123 | 10mg BID | taking | ACE-i, dose-adjusted for CKD |
+| `m002-02` | Metformin HCl | 100445 | 500mg BID | **on-hold** (intermittent GI side effects) | high-value signal |
+| `m002-03` | Atorvastatin Ca | 100789 | 20mg HS | taking | |
+| `m002-04` | Aspirin | 100231 | 81mg QD | taking | secondary prevention |
+| `m002-05` | Amlodipine besylate | 100456 | 5mg QD | taking | second-line antihypertensive |
+| `m002-06` | Glipizide | 100567 | 5mg QD | taking | oral hypoglycaemic |
+| `m002-07` | Furosemide | 100678 | 20mg QD | taking | volume management for CKD |
+| `m002-08` | Isosorbide mononitrate ER | 100890 | 30mg QD | taking | anti-anginal |
+
+**Allergies (1)**
+
+| id | code | severity | reaction | notes |
+|---|---|---|---|---|
+| `a002-01` | NSAIDs (RxNorm 5640) | severe | hives + angioedema 2019 | high-impact — affects analgesic choice |
+
+**Recent vital signs (most recent encounter 2026-05-18)**
+
+| code | value | flag |
+|---|---|---|
+| BP (8480-6/8462-4) | 145/92 mmHg | not at goal for DM+CKD (target <130/80) |
+| HR (8867-4) | 72 /min | |
+| Weight (29463-7) | 65 kg | |
+| BMI (39156-5) | 28.1 | overweight |
+
+**Recent labs (last 90 days, 4 results)**
+
+| date | code | value | interpretation |
+|---|---|---|---|
+| 2026-04-15 | HbA1c (4548-4) | 8.2 % | **poorly controlled** (target <7) |
+| 2026-04-15 | eGFR (33914-3) | 42 mL/min/1.73m² | **CKD3a** (consistent with diagnosis) |
+| 2026-04-15 | LDL-C (13457-7) | 110 mg/dL | not at goal (<70 for CHD) |
+| 2026-04-15 | ACR (14959-1) | 60 mg/g | **microalbuminuria** — DM nephropathy progression |
+
+**CarePlan (1)** — `cp002-01` "CKD-DM combined care plan", category=`assess-plan`, intent=`plan`, status=`active`. Goals: HbA1c <7%, BP <130/80, ACR trending down. Activities: 3-month follow-up, nephrology referral pending.
+
+**Expected skill behaviour**
+
+| Tool | Triggered? | Why |
+|---|---|---|
+| `openemr_patient_bundle_fetch` | ✅ once | always first |
+| `primekg_disease_relations` | ✅ | 5 chronic conditions; expect DM↔CKD, HT↔CHD, dyslipidemia↔CHD relations |
+| `mimir_drug_search` | ❌ | all 8 meds have TMT codes |
+| `drug_interaction_check` | ✅ | 8 active meds AND adherence concern on Metformin |
+| `evidence_citation_fetch` | ✅ optional (≤2 calls) | Plan narrative recommends HbA1c recheck + nephrology referral — cite RCPT CKD guideline + ADA HbA1c target |
+
+**Expected Composition highlights**
+
+- **Problems narrative**: groups by ICD-10 chapter (Circulatory: HT+CHD; Endocrine: DM+dyslipidemia; Genitourinary: CKD3). Leads with ESRD risk flag (per skill body rule for CKD).
+- **Medications narrative**: mentions Metformin adherence concern explicitly ("รายงานพักยา Metformin เป็นช่วงๆ เนื่องจากผลข้างเคียงทางเดินอาหาร"). Surfaces drug_interaction_check output inline (e.g., ACE-i + diuretic + CKD = electrolyte monitoring needed).
+- **Allergies narrative**: NSAIDs severe — flags impact on pain management.
+- **Vitals narrative**: notes BP above target for DM+CKD; lead with "วันที่ 2026-05-18".
+- **Results narrative**: HbA1c 8.2 flagged as poorly controlled; eGFR + ACR support CKD progression assessment.
+- **Plan section**: references `CarePlan/cp002-01` in entry; narrative summarises plan + cites nephrology referral guideline.
+
+**Expected p50 latency** ≤ 30s (acceptance test #8).
+
+### P3 — Polypharmacy (10 meds, 3 known DDIs, depression + Parkinson's combo)
+
+**Demographics**
+
+| Field | Value |
+|---|---|
+| Patient id | `p003` |
+| Name | บุญส่ง กิตติชัย |
+| Gender | male |
+| birthDate | 1951-02-14 (age 75) |
+| Address | นนทบุรี 11000 |
+| Citizen ID identifier | use TH citizen-id slice |
+
+**Active Conditions (6)**
+
+| id | system | code | display | recordedDate | sensitivity |
+|---|---|---|---|---|---|
+| `c003-01` | ICD-10-TM | I10 | Essential hypertension | 2009-01-10 | |
+| `c003-02` | ICD-10-TM | E11.40 | T2DM with neuropathy | 2014-05-22 | |
+| `c003-03` | ICD-10-TM | F32.1 | Moderate depressive episode | 2026-02-10 (recent) | **sensitive PII (mental health)** |
+| `c003-04` | ICD-10-TM | G20 | Parkinson's disease | 2020-08-30 | |
+| `c003-05` | ICD-10-TM | M81.0 | Postmenopausal osteoporosis | 2022-03-15 | (note: coded incorrectly for male — fixture intentionally tests skill robustness; LLM should still include it without remarking) |
+| `c003-06` | ICD-10-TM | K21.0 | GERD with oesophagitis | 2024-07-12 | |
+
+**Active Medications (10)**
+
+| id | drug | TMT | dose | adherence | DDI flag |
+|---|---|---|---|---|---|
+| `m003-01` | Enalapril maleate | 100123 | 10mg QD | taking | |
+| `m003-02` | Metformin HCl | 100445 | 1000mg BID | **intermittent** (forgetful per family) | high-value signal |
+| `m003-03` | Gliclazide MR | 100912 | 30mg QD | taking | |
+| `m003-04` | Sertraline HCl | 101023 | 50mg QD | taking | ⚠ DDI A |
+| `m003-05` | Levodopa/Carbidopa | 101134 | 100/25mg TID | taking | |
+| `m003-06` | Alendronate Na | 101245 | 70mg QW | taking | ⚠ DDI B (timing) |
+| `m003-07` | Calcium carbonate | 101356 | 600mg BID | taking | ⚠ DDI B (timing) |
+| `m003-08` | Cholecalciferol | 101467 | 1000 IU QD | taking | |
+| `m003-09` | Omeprazole | 101578 | 20mg QD | taking | ⚠ DDI C |
+| `m003-10` | Gabapentin | 101689 | 100mg TID | taking | ⚠ DDI A |
+
+**Expected DDIs returned by `drug_interaction_check` (≥3, severity ≥ moderate)**
+
+| Pair | Severity | Mechanism | Recommendation |
+|---|---|---|---|
+| **A:** Sertraline ↔ Gabapentin | moderate | additive CNS depression in elderly | monitor sedation, fall risk |
+| **B:** Calcium ↔ Alendronate | major (timing) | chelation reduces alendronate absorption | separate ≥30 min; alendronate first AM, calcium later |
+| **C:** Omeprazole ↔ Sertraline | moderate | CYP2C19 inhibition increases sertraline level | monitor for serotonin signs; consider PPI taper |
+
+**Allergies (1)**
+
+| id | code | severity | reaction |
+|---|---|---|---|
+| `a003-01` | Sulfonamides (RxNorm 10180) | moderate | rash 2008 |
+
+**Recent vital signs (encounter 2026-05-10)**
+
+| code | value |
+|---|---|
+| BP | 138/85 mmHg |
+| HR | 68 /min |
+| Weight | 58 kg |
+| BMI | 22.0 |
+
+**Recent labs (last 90 days, 5 results)**
+
+| date | code | value | interpretation |
+|---|---|---|---|
+| 2026-04-08 | HbA1c | 7.1 % | borderline — adherence-sensitive |
+| 2026-04-08 | eGFR | 65 mL/min/1.73m² | stage 2 — preserved |
+| 2026-04-08 | Vit B12 (2132-9) | 180 pg/mL | **deficient** — chronic Metformin sequela |
+| 2026-04-08 | TSH (3016-3) | 2.4 mIU/L | normal |
+| 2026-04-08 | 25-OH Vit D (1989-3) | 22 ng/mL | insufficient |
+
+**CarePlan:** none in Bundle (test the `notstarted` + inferred plan narrative).
+
+**Expected skill behaviour**
+
+| Tool | Triggered? | Why |
+|---|---|---|
+| `openemr_patient_bundle_fetch` | ✅ once | |
+| `primekg_disease_relations` | ✅ | 6 chronic conditions; expect DM↔neuropathy↔Gabapentin chain, Parkinson↔depression comorbidity |
+| `mimir_drug_search` | ❌ | all 10 meds have TMT codes |
+| `drug_interaction_check` | ✅ **mandatory** | 10 meds + adherence concern; must surface all 3 DDIs |
+| `evidence_citation_fetch` | ✅ ≤2 calls | Plan recommends Metformin-induced B12 supplementation + adherence counselling — cite ADA + geriatric polypharmacy guideline |
+
+**Expected Composition highlights**
+
+- **Problems narrative**: 6 conditions grouped by chapter (Circulatory: HT; Endocrine: DM; **Mental health: depression** — clinical term only per sensitive-PII rule; Nervous: Parkinson's; Musculoskeletal: osteoporosis — included silently despite coding gender mismatch per rule 14 anti-fabrication; Digestive: GERD). No colloquial mental-health language.
+- **Medications narrative**: surfaces Metformin intermittent adherence ("รับประทาน Metformin ไม่สม่ำเสมอตามรายงานของผู้ดูแลครอบครัว"). Surfaces all 3 DDIs from drug_interaction_check inline — phrasing as "consider", "monitor for", "พิจารณา". Notes B12 deficiency in narrative as Metformin sequela.
+- **Allergies narrative**: Sulfonamides moderate — recommend SMX/TMP avoidance.
+- **Vitals narrative**: notes BP at goal for non-CKD elderly; low BMI flagged.
+- **Results narrative**: B12 deficiency flagged as **clinically actionable** (linked to Metformin in narrative).
+- **Plan section**: `emptyReason=notstarted`; narrative summarises: continue Parkinson regimen, supplement B12, separate Ca/alendronate timing, geriatric polypharmacy review at next visit. Cites guidelines for B12 + polypharmacy.
+- **Confidentiality**: defaults `N`. If host signals R for mental-health flag → upgrade to `R`. (Phase 1 demo: leave `N`, document in narrative without sensitive specifics.)
+
+**Expected p50 latency** ≤ 45s (longer than P2 due to 4 tool calls + 10 meds + DDI processing).
+
+### Fixture validation rules
+
+Before each demo run:
+
+1. Each fixture script must produce a Bundle that passes the input contract schema (§4)
+2. Resource IDs must be deterministic (re-running script produces same IDs)
+3. Each fixture must exercise at least one rule from §Edge cases in the skill body
+4. P2 + P3 together must exercise every tool in §4a at least once across the two patients
+5. No two fixtures may share a Patient.id (avoid Tyr audit collision)
+
+Edge-case coverage matrix:
+
+| Edge case (skill body §Edge cases) | P1 | P2 | P3 |
+|---|---|---|---|
+| Conflicting data | — | — | (add 2nd BP same day for fixture variation) |
+| Stale data | — | — | — |
+| Negation-coded data (refuted Condition) | — | (add refuted GERD for fixture variation) | — |
+| Empty Bundle | tested separately as P0 fixture | — | — |
+| Sensitive PII | — | — | ✅ depression |
+
+Add **P0** (empty-Bundle fixture, Patient-only) as a 4th fixture purely for refusal-path testing — does not generate Composition but emits `{"error": "input_bundle_invalid"}` per rule 15.
 
 ## 7. Out of scope (deferred to Phase 2)
 
