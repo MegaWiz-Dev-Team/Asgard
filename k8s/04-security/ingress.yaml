@@ -75,7 +75,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: bifrost
+                name: bifrost-proxy
                 port: { number: 8100 }
     - host: fenrir.asgard.internal
       http:
