@@ -1,0 +1,181 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: asgard
+  labels:
+    app: loki
+    tier: security-testing
+  annotations:
+    description: "Internal authorized penetration testing pod for Asgard defenses"
+    targets: "API injection, model prompt injection, data exfiltration testing"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+        tier: security-testing
+      annotations:
+        # Tyr integration: mark this pod as authorized security testing
+        tyr.asgard.io/security-test: "true"
+        tyr.asgard.io/test-authorized: "authorized-internal-testing"
+    spec:
+      serviceAccountName: loki
+      securityContext:
+        runAsNonRoot: false
+        # Allow raw socket access for network testing tools (nmap, tcpdump)
+        fsGroup: 0
+
+      containers:
+      - name: loki
+        image: asgard-loki:latest
+        imagePullPolicy: Never
+
+        stdin: true
+        tty: true
+
+        ports:
+        - name: shell
+          containerPort: 22
+          protocol: TCP
+
+        # Environment variables for test marker headers
+        env:
+        # Test traffic marker - all requests include this header
+        - name: X_LOKI_TEST_HEADER
+          value: "X-Loki-Test: true"
+        # Tenant context - mark tests in asgard_platform for isolated eval
+        - name: X_TENANT_ID
+          value: "asgard_platform"
+        # Source identification for Tyr SIEM detection rules
+        - name: LOKI_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: LOKI_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: LOKI_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+
+        # Target services for testing (from memory: asgard port map)
+        - name: BIFROST_HOST
+          value: "bifrost.asgard.svc.cluster.local"
+        - name: BIFROST_PORT
+          value: "8000"
+        - name: HEIMDALL_HOST
+          value: "heimdall.asgard.svc.cluster.local"
+        - name: HEIMDALL_PORT
+          value: "8080"
+        - name: MIMIR_HOST
+          value: "mimir-api.asgard.svc.cluster.local"
+        - name: MIMIR_PORT
+          value: "8090"
+        - name: SYN_HOST
+          value: "syn.asgard.svc.cluster.local"
+        - name: SYN_PORT
+          value: "8000"
+
+        # Test markers for audit trail
+        - name: AUTHORIZED_TEST_CONTEXT
+          value: "true"
+        - name: TEST_OWNER
+          value: "security-team"
+        - name: TEST_PURPOSE
+          value: "Authorized defense validation - API injection, prompt injection, data exfiltration"
+
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+
+        # Health check - pod is interactive, no automatic health probe
+        # Operator must manually monitor
+
+        # Security context - allow some capabilities for network testing
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+          capabilities:
+            add:
+            - NET_RAW     # For raw sockets (nmap, tcpdump)
+            - SYS_PTRACE  # For process inspection
+            drop:
+            - ALL
+
+        # Mount test payloads and scripts
+        volumeMounts:
+        - name: test-scripts
+          mountPath: /opt/loki/scripts
+          readOnly: true
+        - name: test-payloads
+          mountPath: /opt/loki/payloads
+          readOnly: true
+        - name: work-dir
+          mountPath: /opt/loki/work
+
+        # Lifespan: testing pod, no automatic restart on crash
+        restartPolicy: Never
+
+      volumes:
+      # ConfigMaps injected at deployment time
+      - name: test-scripts
+        configMap:
+          name: loki-test-scripts
+          defaultMode: 0755
+          optional: true
+      - name: test-payloads
+        configMap:
+          name: loki-test-payloads
+          defaultMode: 0644
+          optional: true
+      - name: work-dir
+        emptyDir:
+          sizeLimit: 5Gi
+
+      # Don't restart - interactive testing pod
+      restartPolicy: Never
+
+      # Affinity: run on same node as Bifrost/Mimir for latency-sensitive testing
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["bifrost", "mimir-api"]
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: asgard
+  labels:
+    app: loki
+    tier: security-testing
+spec:
+  type: ClusterIP
+  selector:
+    app: loki
+  ports:
+  - protocol: TCP
+    port: 22
+    targetPort: 22
+    name: shell

@@ -1,0 +1,165 @@
+---
+# Loki API Service — REST endpoints for MCP tool handlers
+# Hermodr proxies MCP calls to this service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki-api
+  namespace: asgard
+  labels:
+    app: loki-api
+    tier: security-testing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki-api
+  template:
+    metadata:
+      labels:
+        app: loki-api
+        tier: security-testing
+      annotations:
+        description: "Loki API — MCP tool handler for security testing"
+    spec:
+      serviceAccountName: loki
+      containers:
+      - name: loki-api
+        image: asgard-loki-api:latest
+        imagePullPolicy: Never
+
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+
+        env:
+        # Service URLs (from pod environment)
+        - name: BIFROST_URL
+          value: "http://bifrost.asgard.svc.cluster.local:8000"
+        - name: HEIMDALL_URL
+          value: "http://heimdall.asgard.svc.cluster.local:8080"
+        - name: MIMIR_URL
+          value: "http://mimir-api.asgard.svc.cluster.local:8090"
+        - name: SYN_URL
+          value: "http://syn.asgard.svc.cluster.local:8000"
+        - name: QDRANT_URL
+          value: "http://qdrant.asgard.svc.cluster.local:6333"
+        - name: MARIADB_HOST
+          value: "mariadb.asgard.svc.cluster.local"
+        - name: TENANT_ID
+          value: "asgard_platform"
+        - name: PORT
+          value: "8000"
+
+        # Logging
+        - name: RUST_LOG
+          value: "loki_api=info,warn"
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 2
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
+
+      # Run on same node as Bifrost for latency
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["bifrost"]
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-api
+  namespace: asgard
+  labels:
+    app: loki-api
+    tier: security-testing
+spec:
+  type: ClusterIP
+  selector:
+    app: loki-api
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+    name: http
+
+---
+# Network policy: allow Hermodr to call Loki API
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loki-api-ingress
+  namespace: asgard
+spec:
+  podSelector:
+    matchLabels:
+      app: loki-api
+  policyTypes:
+  - Ingress
+
+  ingress:
+  # Allow from Hermodr MCP gateway
+  - from:
+    - podSelector:
+        matchLabels:
+          app: hermodr
+    ports:
+    - protocol: TCP
+      port: 8000
+
+  # Allow from Loki pod itself
+  - from:
+    - podSelector:
+        matchLabels:
+          app: loki
+    ports:
+    - protocol: TCP
+      port: 8000

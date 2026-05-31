@@ -27,6 +27,12 @@ spec:
               value: http://mimir-api.asgard.svc:8080
             - name: NEXT_PUBLIC_YGGDRASIL_URL
               value: http://yggdrasil.asgard.svc:8080
+            # Server-side override for /api/auth/callback — NEXT_PUBLIC_* is inlined
+            # at build time, so this runtime var is required to reach mimir-api over
+            # cluster-internal HTTP instead of the public HTTPS endpoint (whose cert
+            # Node's undici can't verify without NODE_EXTRA_CA_CERTS).
+            - name: MIMIR_API_URL
+              value: http://mimir-api.asgard.svc:8080/api
           resources:
             requests:
               memory: 128Mi

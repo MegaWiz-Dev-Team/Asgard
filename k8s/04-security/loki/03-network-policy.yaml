@@ -1,0 +1,142 @@
+---
+# NetworkPolicy for Loki - egress to target services only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loki
+  namespace: asgard
+  labels:
+    app: loki
+spec:
+  podSelector:
+    matchLabels:
+      app: loki
+
+  # Allow inbound connections (interactive sessions)
+  policyTypes:
+  - Ingress
+  - Egress
+
+  # Ingress: allow from authorized operators only
+  ingress:
+  - from:
+    # Local cluster access only
+    - namespaceSelector:
+        matchLabels:
+          name: asgard
+    - podSelector:
+        matchLabels:
+          tier: admin
+    # Explicit authorization via annotation
+    - podSelector:
+        matchExpressions:
+        - key: authorized-loki-access
+          operator: In
+          values: ["true"]
+
+  # Egress: allow to target services + DNS + external repos (for tool updates)
+  egress:
+  # DNS resolution
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53
+
+  # Bifrost API - target 1
+  - to:
+    - podSelector:
+        matchLabels:
+          app: bifrost
+    ports:
+    - protocol: TCP
+      port: 8000
+
+  # Heimdall - target 2 (LLM gateway)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: heimdall
+    ports:
+    - protocol: TCP
+      port: 8080
+
+  # Mimir API - target 3 (RAG service)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mimir-api
+    ports:
+    - protocol: TCP
+      port: 8090
+
+  # Syn - target 4 (OCR service, potential injection)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: syn
+    ports:
+    - protocol: TCP
+      port: 8000
+
+  # Qdrant (vector DB injection testing)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: qdrant
+    ports:
+    - protocol: TCP
+      port: 6333
+
+  # MariaDB (data exfiltration testing)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: mariadb
+    ports:
+    - protocol: TCP
+      port: 3306
+
+  # Kubernetes API (for service discovery)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+
+  # External egress for tool updates (if needed)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS
+    - protocol: TCP
+      port: 80   # HTTP
+    # Limit to specific domains via external policy if needed
+
+---
+# Complementary: deny all traffic to Loki from untrusted sources
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loki-deny-untrusted
+  namespace: asgard
+spec:
+  podSelector:
+    matchLabels:
+      app: loki
+  policyTypes:
+  - Ingress
+
+  # Explicitly deny from untrusted namespaces
+  ingress:
+  - from:
+    # Only allow from asgard namespace and authorized pods
+    - namespaceSelector:
+        matchLabels:
+          name: asgard
+      podSelector:
+        matchExpressions:
+        - key: authorized-loki-access
+          operator: In
+          values: ["true"]
