@@ -127,7 +127,13 @@ approves). See §6 for the local-vs-cloud quality decision.
 - [x] **Skuggi** `pii_status` gate (`Pending`/`Clean`/`Flagged`) via skuggi-core Tier-1 (`pii::scan_samples`, `gate_table_column`). *Tyr audit on query/export = next increment.*
 - [x] Multi-format ingest CSV/Parquet/JSON via `SourceFormat` dispatcher (`Mimir` 213c118).
 - [x] **Registry persistence (sqlx)** — `registry::Registry` over MariaDB: register/list/get(profile)/update_pii_status/record_version/delete; env-gated integration test verified against live mimir db; **migration 0001 applied to live mimir db** (5 tables, additive) (`Mimir` 35ea46d).
-- [ ] **Remaining P1:** MinIO blob storage + Parquet/Excel/GeoJSON ingest beyond CSV/JSON + query timeout + **Tyr audit**; then `git tag mimir-lab-v0.1.0`.
+- [x] **Query timeout** — `query_readonly_timeout` via DuckDB `interrupt_handle` + watchdog (`Mimir` f78fc65).
+- [x] **Tyr audit** — `AuditSink` trait + `TracingAuditSink` (Tyr-ingestible); engine audits every query (ok/timeout/denied/error).
+- [x] **MinIO blob storage** — `storage::Storage` (rust-s3, path-style); verified live (bucket `asgard-analytics` created).
+- [x] **Tagged `mimir-lab-v0.1.0`** (`Mimir` f78fc65). 14 integration + registry + storage tests green.
+- [ ] *Deferred to later:* Parquet/Excel/GeoJSON ingest beyond CSV/JSON (Excel/GeoJSON need duckdb extensions → with mimir-geo in P4); wire registry+storage+engine into one dataset-upload flow (P2 with Hermodr).
+
+**P1 = DONE.** Next: **P2** (Hermodr MCP tools + analyst-* agents on the engine).
 
 ### P2 — Agents + MCP (≈3–4 days)
 - [ ] Hermodr tool definitions for `dataset_*`, `run_sql`, `plot`, `stats_describe/correlate`.
