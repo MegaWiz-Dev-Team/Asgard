@@ -184,6 +184,37 @@ for p in data['items']:
   else ERR "PV ${pvc} tar failed (no tar in image?)"; record "pv-${pvc}" FAIL "tar error"; fi
 }
 
+# ── 6b. MinIO (distroless image has no `tar`) ──
+# Same pattern as Neo4j: scale deploy to 0, mount the RWO PVC in a busybox helper
+# (which HAS tar+gzip), stream out, scale back. Brief MinIO downtime (~30-60s).
+backup_minio() {
+  local ns="asgard-infra" deploy="minio" pvc="minio-pvc" out="minio.tar.gz"
+  kubectl get deploy "$deploy" -n "$ns" >/dev/null 2>&1 || { SKIP "MinIO — deploy not found"; record "pv-minio-pvc" SKIP "no deploy"; return; }
+  pvc=$(kubectl get deploy "$deploy" -n "$ns" -o jsonpath='{.spec.template.spec.volumes[?(@.persistentVolumeClaim)].persistentVolumeClaim.claimName}' 2>/dev/null | awk '{print $1}'); pvc="${pvc:-minio-pvc}"
+  LOG "💾 MinIO — scale 0 → busybox helper tar → scale 1 (pvc=$pvc)"
+  local orig; orig=$(kubectl get deploy "$deploy" -n "$ns" -o jsonpath='{.spec.replicas}' 2>/dev/null); orig="${orig:-1}"
+  kubectl scale deploy/"$deploy" -n "$ns" --replicas=0 >/dev/null 2>&1
+  for i in $(seq 1 24); do kubectl get pods -n "$ns" --no-headers 2>/dev/null | grep -q "^${deploy}-" || break; sleep 5; done
+  kubectl apply -f - >/dev/null 2>&1 <<YAML
+apiVersion: v1
+kind: Pod
+metadata: {name: minio-backup-helper, namespace: ${ns}}
+spec:
+  restartPolicy: Never
+  containers:
+  - {name: tar, image: busybox:1.36, command: ["sleep","900"], volumeMounts: [{name: data, mountPath: /data}]}
+  volumes:
+  - {name: data, persistentVolumeClaim: {claimName: ${pvc}}}
+YAML
+  kubectl wait --for=condition=Ready pod/minio-backup-helper -n "$ns" --timeout=120s >/dev/null 2>&1
+  if kubectl exec -n "$ns" minio-backup-helper -- sh -c 'tar cf - -C /data . | gzip' 2>/dev/null > "${DEST}/03-pv-raw/$out" && [ -s "${DEST}/03-pv-raw/$out" ]; then
+    local sz; sz=$(du -h "${DEST}/03-pv-raw/$out" | cut -f1); OK "MinIO → $out ($sz)"; record "pv-minio-pvc" OK "$sz"
+  else ERR "MinIO helper tar failed"; record "pv-minio-pvc" FAIL "helper tar"; fi
+  kubectl delete pod minio-backup-helper -n "$ns" --wait=false >/dev/null 2>&1
+  kubectl scale deploy/"$deploy" -n "$ns" --replicas="$orig" >/dev/null 2>&1   # ALWAYS restore service
+  for i in $(seq 1 36); do kubectl get pods -n "$ns" --no-headers 2>/dev/null | grep "^${deploy}-" | grep -q "1/1 .*Running" && { OK "  minio back online"; break; }; sleep 5; done
+}
+
 # ── 7. Vault (raft snapshot, no unseal keys) ──
 backup_vault() {
   local ns="asgard" pod; pod=$(pod_for "$ns" "fafnir-vault")
@@ -230,7 +261,7 @@ backup_qdrant   asgard-infra "qdrant-5f"   "qdrant-infra"  16334
 backup_clickhouse
 backup_rabbitmq
 backup_pv_raw   asgard       "laminar-quickwit-data" "quickwit.tar.gz"
-backup_pv_raw   asgard-infra "minio-pvc"             "minio.tar.gz"
+backup_minio
 backup_pv_raw   asgard       "bifrost-data-pvc"      "bifrost-data.tar.gz"
 backup_pv_raw   asgard       "eir-sites-data"        "eir-sites.tar.gz"
 backup_pv_raw   asgard       "forseti-data"          "forseti-data.tar.gz"

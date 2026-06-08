@@ -64,6 +64,8 @@ AGPL stops competitors from closing it.
 | **Eir** | `MegaWiz-Dev-Team/Eir` (public) | Clinical agent gateway |
 | **refgraph** | `MegaWiz-Dev-Team/refgraph` (public) | Reference-graph engine |
 | **Odin** | `MegaWiz-Dev-Team/Odin` (public) | (public utility) |
+| **mimir-lab** | Mimir family (submodule) | Dataset registry + DuckDB analytics engine (ADR-024) |
+| **mimir-geo** | Mimir family (submodule) | Geospatial / spatial-stats engine (ADR-024) |
 
 > **Agent configs are not in this tier — they are not code.** The 19 Eir specialty agents,
 > tool allowlists, and medical reasoning preambles live as **rows in `agent_configs`** (DB),
