@@ -125,7 +125,9 @@ approves). See §6 for the local-vs-cloud quality decision.
 - [x] CSV ingest → schema inference (`ingest_csv`); Parquet export (`export_parquet`). *Parquet/Excel/GeoJSON ingest + MinIO catalog = next increment.*
 - [x] `run_sql` read-only path: read-only statement guard + row-cap + CAST-to-VARCHAR fetch (`Engine::query_readonly`). *Query timeout + `dataset_list/profile` (registry/sqlx) = next increment.*
 - [x] **Skuggi** `pii_status` gate (`Pending`/`Clean`/`Flagged`) via skuggi-core Tier-1 (`pii::scan_samples`, `gate_table_column`). *Tyr audit on query/export = next increment.*
-- [ ] **Remaining P1:** registry persistence (sqlx) + MinIO blobs + Parquet/Excel/GeoJSON ingest + query timeout + Tyr audit; then `git tag mimir-lab-v0.1.0`.
+- [x] Multi-format ingest CSV/Parquet/JSON via `SourceFormat` dispatcher (`Mimir` 213c118).
+- [x] **Registry persistence (sqlx)** — `registry::Registry` over MariaDB: register/list/get(profile)/update_pii_status/record_version/delete; env-gated integration test verified against live mimir db; **migration 0001 applied to live mimir db** (5 tables, additive) (`Mimir` 35ea46d).
+- [ ] **Remaining P1:** MinIO blob storage + Parquet/Excel/GeoJSON ingest beyond CSV/JSON + query timeout + **Tyr audit**; then `git tag mimir-lab-v0.1.0`.
 
 ### P2 — Agents + MCP (≈3–4 days)
 - [ ] Hermodr tool definitions for `dataset_*`, `run_sql`, `plot`, `stats_describe/correlate`.
