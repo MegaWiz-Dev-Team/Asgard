@@ -119,13 +119,13 @@ approves). See §6 for the local-vs-cloud quality decision.
 - [x] Restarted `deploy/bifrost -n asgard` (rollout OK).
 - [ ] Add shared-knowledge catalog row + UI page stub (P1 — when mimir-lab lands a KB surface).
 
-### P1 — `mimir-lab` MVP (≈4–5 days)
-- [ ] Scaffold Rust crate under Mimir family; wire `duckdb-rs` + spatial extension.
-- [ ] Migrations for the 5 tables (§1). **TDD:** schema + ingest tests first.
-- [ ] Ingest CSV/Parquet/Excel/GeoJSON → schema inference → Parquet catalog + MinIO.
-- [ ] `run_sql` read-only path (role, timeout, row-cap) + `dataset_list/profile`.
-- [ ] **Skuggi** dataset-upload PII scan policy + `pii_status` gate; **Tyr** audit on query/export.
-- [ ] Tag `mimir-lab v0.1.0`.
+### P1 — `mimir-lab` MVP (≈4–5 days) — **vertical slice DONE 2026-06-09** (`Mimir` commit 63693f9)
+- [x] Scaffold Rust crate `ro-ai-bridge/mimir-lab` (own `[workspace]` like mimir-fhir; `duckdb` bundled — no system dep, build 1m34s). Spatial ext available in bundled build, wiring deferred to P4/mimir-geo.
+- [x] Migrations for the 5 tables (§1) → `migrations/0001_init_analytics.sql`. **TDD:** 8 integration tests, all green.
+- [x] CSV ingest → schema inference (`ingest_csv`); Parquet export (`export_parquet`). *Parquet/Excel/GeoJSON ingest + MinIO catalog = next increment.*
+- [x] `run_sql` read-only path: read-only statement guard + row-cap + CAST-to-VARCHAR fetch (`Engine::query_readonly`). *Query timeout + `dataset_list/profile` (registry/sqlx) = next increment.*
+- [x] **Skuggi** `pii_status` gate (`Pending`/`Clean`/`Flagged`) via skuggi-core Tier-1 (`pii::scan_samples`, `gate_table_column`). *Tyr audit on query/export = next increment.*
+- [ ] **Remaining P1:** registry persistence (sqlx) + MinIO blobs + Parquet/Excel/GeoJSON ingest + query timeout + Tyr audit; then `git tag mimir-lab-v0.1.0`.
 
 ### P2 — Agents + MCP (≈3–4 days)
 - [ ] Hermodr tool definitions for `dataset_*`, `run_sql`, `plot`, `stats_describe/correlate`.
