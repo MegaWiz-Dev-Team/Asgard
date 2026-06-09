@@ -128,7 +128,7 @@ approves). See §6 for the local-vs-cloud quality decision.
 - [x] Multi-format ingest CSV/Parquet/JSON via `SourceFormat` dispatcher (`Mimir` 213c118).
 - [x] **Registry persistence (sqlx)** — `registry::Registry` over MariaDB: register/list/get(profile)/update_pii_status/record_version/delete; env-gated integration test verified against live mimir db; **migration 0001 applied to live mimir db** (5 tables, additive) (`Mimir` 35ea46d).
 - [x] **Query timeout** — `query_readonly_timeout` via DuckDB `interrupt_handle` + watchdog (`Mimir` f78fc65).
-- [x] **Tyr audit** — `AuditSink` trait + `TracingAuditSink` (Tyr-ingestible); engine audits every query (ok/timeout/denied/error).
+- [x] **Tyr audit** — `AuditSink` trait; engine audits every query (ok/timeout/denied/error). **Active `HttpTyrSink` forwards events to Tyr over HTTP** (same transport as Heimdall/`mimir-well::HttpProvSink`; `TYR_AUDIT_URL`/`TYR_AUDIT_TOKEN`, non-blocking channel-drained), `TracingAuditSink` fallback. wiremock-verified (`Mimir` 2f6bf54, tag `mimir-lab-v0.1.1`).
 - [x] **MinIO blob storage** — `storage::Storage` (rust-s3, path-style); verified live (bucket `asgard-analytics` created).
 - [x] **Tagged `mimir-lab-v0.1.0`** (`Mimir` f78fc65). 14 integration + registry + storage tests green.
 - [ ] *Deferred to later:* Parquet/Excel/GeoJSON ingest beyond CSV/JSON (Excel/GeoJSON need duckdb extensions → with mimir-geo in P4); wire registry+storage+engine into one dataset-upload flow (P2 with Hermodr).
