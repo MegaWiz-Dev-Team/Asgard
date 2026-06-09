@@ -135,11 +135,12 @@ approves). See §6 for the local-vs-cloud quality decision.
 
 **P1 = DONE.** Next: **P2** (Hermodr MCP tools + analyst-* agents on the engine).
 
-### P2 — Agents + MCP (≈3–4 days)
-- [ ] Hermodr tool definitions for `dataset_*`, `run_sql`, `plot`, `stats_describe/correlate`.
-- [ ] Seed `analyst-*` agents; verify UI tool labels == runtime names (Agent Studio footgun).
-- [ ] ReAct loop end-to-end: ask → route → run_sql → plot spec (gemma-4-26b local).
-- [ ] E2E JSON-RPC verification of MCP tools (mirror Hermodr PrimeKG verification).
+### P2 — Agents + MCP (≈3–4 days) — **MCP tools + backend contract DONE 2026-06-09**
+- [x] **Hermodr tool definitions** — `services/analytics.rs`: `dataset_list`/`dataset_profile`/`run_sql`/`plot` (names match analyst-* allowlist); registered under SERVICE_NAME~='analytics' (hermodr-analytics sidecar). 3 tests green. (`Hermodr` 922d08c, branch `feat/asgard-analytics-tools`).
+- [x] **Backend contract** — `mimir-lab::api`: `run_sql` (read-only/capped/timed/audited → columns+rows), `plot` (→ ECharts option bar/line/scatter/pie), `dataset_list/profile` over registry. 5 handler tests green. (`Mimir` 2569724 on `feat/asgard-analytics-p0`).
+- [x] `analyst-*` agents seeded (P0) with matching tool names. *Still owed: verify UI tool labels == runtime names in Agent Studio once deployed.*
+- [ ] **Remaining P2:** stand up `analytics-api` server (axum bin over `mimir-lab::api`, spawn_blocking; dataset→table attachment from registry/MinIO) + deploy `hermodr-analytics` sidecar (UPSTREAM_URL) → then ReAct loop e2e (ask→route→run_sql→plot on gemma-4-26b) + E2E JSON-RPC verification (mirror Hermodr PrimeKG).
+- *Note:* `stats_*`/`geo_*`/`lit_search` tools come with mimir-geo (P4) / research (P5).
 
 ### P3 — Portal visualization (≈4 days)
 - [ ] ECharts render of `plot` specs in `asgard-portal`.
