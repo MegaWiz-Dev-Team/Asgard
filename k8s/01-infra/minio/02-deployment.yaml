@@ -34,8 +34,8 @@ spec:
               valueFrom:
                 secretKeyRef: { name: minio-credentials, key: secret-key }
           ports:
-            - containerPort: 9000
-            - containerPort: 9001
+            - { containerPort: 9000, name: api }
+            - { containerPort: 9001, name: console }
           volumeMounts:
             - name: storage
               mountPath: "/data"
