@@ -1,0 +1,41 @@
+# 🛡️ Asgard — Ingress Security Headers (Odin scan 2026-06-14 / PR-1)
+#
+# Closes the Low/Med web-hardening findings for host/eir/eir-gateway/bifrost/
+# yggdrasil/mimir-dashboard at one layer (ingress-nginx) without per-app changes.
+#
+# - server-tokens: hides nginx version (Low: version leak — eir nginx/1.31.1)
+# - add-headers: points the controller at the headers ConfigMap below
+#
+# The controller reads its config from the ConfigMap named in its
+# --configmap=$(POD_NAMESPACE)/ingress-nginx-controller flag. Namespace
+# `ingress-nginx` matches the upstream Helm/static manifest default; adjust
+# if installed elsewhere.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: asgard
+data:
+  server-tokens: "false"
+  add-headers: "ingress-nginx/custom-response-headers"
+---
+# Baseline security headers applied to every response served via ingress-nginx.
+# Defense-in-depth: per-app CSP (e.g. fafnir-vault PR-3) can tighten further.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-response-headers
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: asgard
+data:
+  X-Content-Type-Options: "nosniff"
+  X-Frame-Options: "SAMEORIGIN"
+  Referrer-Policy: "no-referrer"
+  # Baseline CSP — permissive enough for current dashboards (inline styles in
+  # mimir-dashboard / fafnir-vault UI); tighten per-app in follow-up PRs.
+  Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; frame-ancestors 'self'; base-uri 'self'"
