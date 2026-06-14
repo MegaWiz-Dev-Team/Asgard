@@ -1,0 +1,46 @@
+# Ingress-nginx hardening — Odin scan 2026-06-14 (Asgard#99 PR-1)
+# Closes 6 Medium findings (missing CSP / anti-clickjacking / CORS) +
+# Low header-hygiene finding by setting global response headers and
+# hiding the nginx version banner.
+#
+# The ingress-nginx controller must be started with:
+#   --configmap=ingress-nginx/ingress-nginx-controller
+# (default), which is wired to read both ConfigMaps below via the
+# `add-headers` key pointing at `ingress-nginx/custom-response-headers`.
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+data:
+  # Hide nginx version in Server header + error pages (header hygiene)
+  server-tokens: "false"
+  # Wire the custom-response-headers ConfigMap below into every response
+  add-headers: "ingress-nginx/custom-response-headers"
+  # CORS: deny by default. Per-ingress opt-in via
+  # nginx.ingress.kubernetes.io/enable-cors + cors-allow-origin annotations.
+  enable-cors: "false"
+  # TLS hardening that pairs with the security headers
+  ssl-protocols: "TLSv1.2 TLSv1.3"
+  ssl-redirect: "true"
+  hsts: "true"
+  hsts-include-subdomains: "true"
+  hsts-max-age: "63072000"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-response-headers
+  namespace: ingress-nginx
+data:
+  # Anti-clickjacking: block framing entirely. CSP frame-ancestors is the
+  # modern replacement; X-Frame-Options kept for legacy browser coverage.
+  X-Frame-Options: "DENY"
+  Content-Security-Policy: "frame-ancestors 'none'"
+  # Other standard security headers flagged by the scan
+  X-Content-Type-Options: "nosniff"
+  Referrer-Policy: "strict-origin-when-cross-origin"
+  Permissions-Policy: "geolocation=(), microphone=(), camera=()"
