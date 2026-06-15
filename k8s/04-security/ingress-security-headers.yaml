@@ -1,0 +1,76 @@
+# 🛡️ Asgard — Ingress Security Headers (Odin scan 2026-06-14 / Asgard#99 PR-1)
+#
+# RECONCILED: supersedes the two overlapping Muninn auto-fix drafts —
+#   • PR #103 (fix/muninn-99-agent)  → k8s/04-security/ingress-security-headers.yaml
+#   • PR #105 (fix/muninn-101-agent) → k8s/04-security/ingress-nginx-config.yaml
+# Both defined the SAME two ConfigMaps (ingress-nginx-controller +
+# custom-response-headers) with CONFLICTING values, so applying both would be
+# last-write-wins. This file is the single source of truth — close #103 and
+# #105 in favour of it. Closes the Low/Med header + version-leak + CORS
+# findings for host (#101), eir/eir-gateway (#102), bifrost (#22),
+# yggdrasil (#1) and mimir-dashboard (#370) at the ingress layer.
+#
+# Conflict resolution (103 vs 105):
+#   • X-Frame-Options: SAMEORIGIN — keeps the epic's documented value (#99 PR-1)
+#     and allows same-origin framing the React dashboards may use; pure-API
+#     ingresses can tighten to DENY via per-ingress annotation if desired.
+#   • CSP: kept #103's full policy (default-src/script-src/object-src/base-uri),
+#     which is real XSS hardening, not just #105's bare `frame-ancestors`.
+#   • Referrer-Policy: strict-origin-when-cross-origin (#105) — safer for the
+#     Zitadel/Yggdrasil SSO flows than a blanket `no-referrer`.
+#   • Adopted from #105: enable-cors:false default, TLS-version floor, HSTS,
+#     Permissions-Policy.
+#
+# The controller reads its config from the ConfigMap named in its
+# --configmap=$(POD_NAMESPACE)/ingress-nginx-controller flag. Namespace
+# `ingress-nginx` matches the upstream Helm/static manifest default; adjust if
+# installed elsewhere.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: asgard
+data:
+  # Hide nginx version in Server header + error pages (Low: version leak — eir nginx/1.31.1)
+  server-tokens: "false"
+  # Point the controller at the response-headers ConfigMap below
+  add-headers: "ingress-nginx/custom-response-headers"
+  # CORS denied by default; per-ingress opt-in via
+  # nginx.ingress.kubernetes.io/enable-cors + cors-allow-origin annotations.
+  # (App-level CORS allowlists are still handled in mimir-api #364 / syn-api #26.)
+  enable-cors: "false"
+  # TLS-version floor that pairs with the security headers.
+  ssl-protocols: "TLSv1.2 TLSv1.3"
+  # HSTS header (emitted on HTTPS responses only). NOTE: this cluster sits
+  # behind a TLS-terminating cloudflared tunnel — if ingress sees plain HTTP
+  # the header is simply not sent, so this is safe to leave on. `ssl-redirect`
+  # is intentionally NOT forced globally here to avoid redirect loops behind
+  # the tunnel; set it per-ingress where ingress itself terminates TLS.
+  hsts: "true"
+  hsts-include-subdomains: "true"
+  hsts-max-age: "63072000"
+---
+# Baseline security headers applied to every response served via ingress-nginx.
+# Defense-in-depth: per-app CSP (e.g. fafnir-vault PR-3, Asgard#100) can tighten further.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-response-headers
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: asgard
+data:
+  X-Content-Type-Options: "nosniff"
+  # Anti-clickjacking. SAMEORIGIN + CSP frame-ancestors 'self' is the safe
+  # cluster-wide default; legacy header kept alongside CSP for old browsers.
+  X-Frame-Options: "SAMEORIGIN"
+  Referrer-Policy: "strict-origin-when-cross-origin"
+  Permissions-Policy: "geolocation=(), microphone=(), camera=()"
+  # Baseline CSP — permissive enough for current dashboards (inline styles in
+  # mimir-dashboard / fafnir-vault UI). Roll out report-only first on the React
+  # dashboards, verify they render, then enforce. Tighten per-app in follow-ups.
+  Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; frame-ancestors 'self'; base-uri 'self'"
