@@ -86,15 +86,9 @@ spec:
               service:
                 name: forseti
                 port: { number: 5555 }
-    - host: vault.asgard.internal
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: fafnir-vault
-                port: { number: 8200 }
+    # vault.asgard.internal moved to its own Ingress (fafnir/04-ingress-csp.yaml)
+    # so a tightened, Vault-specific CSP can be applied without affecting the
+    # other hosts on this shared Ingress. See Asgard#100.
     - host: monitor.asgard.internal
       http:
         paths:

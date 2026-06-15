@@ -1,0 +1,42 @@
+# 🐲 Fáfnir (Vault) — dedicated Ingress with a tightened Content-Security-Policy
+# Addresses Asgard#100 (Odin scan 2026-06-14): fafnir-vault flagged for CSP
+# `style-src 'unsafe-inline'`.
+#
+# HONEST NOTE on the finding: Vault's web UI is an Ember.js app that emits its
+# own CSP requiring `style-src 'unsafe-inline'`. Dropping `unsafe-inline` for
+# styles BREAKS the Vault UI, so we cannot satisfy the finding literally. The
+# real-world mitigation is to scope the CSP tightly everywhere ELSE (no
+# `unsafe-eval`, no `unsafe-inline` for scripts, deny framing/objects) and keep
+# only the unavoidable style exception. `more_set_headers` REPLACES the header,
+# so this also collapses the duplicate-CSP situation (cluster baseline header +
+# Vault's own header) into one authoritative policy for this host.
+#
+# Split out of the shared `asgard-ingress` (k8s/04-security/ingress.yaml) so the
+# snippet applies to vault.asgard.internal ONLY.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fafnir-vault-ingress
+  namespace: asgard
+  annotations:
+    cert-manager.io/cluster-issuer: "asgard-ca-issuer"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # Replace (not append) the CSP for this host. style-src keeps 'unsafe-inline'
+    # because the Vault Ember UI requires it; everything else is locked down.
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
+      more_set_headers "X-Frame-Options: DENY";
+spec:
+  tls:
+    - hosts: ["vault.asgard.internal"]
+      secretName: asgard-tls-secret
+  rules:
+    - host: vault.asgard.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fafnir-vault
+                port: { number: 8200 }
