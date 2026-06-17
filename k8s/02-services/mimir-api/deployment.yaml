@@ -1,4 +1,8 @@
 # 🧠 Mimir API — Knowledge Platform
+# Regenerated from the live deployment 2026-06-02 to fix manifest drift
+# (file predated YGGDRASIL/GEMINI/AUTH env; HEIMDALL_API_KEY was a plaintext
+# literal in live — converted to secretKeyRef:asgard-secrets/HEIMDALL_API_KEY).
+# Image stays :latest (imagePullPolicy:Never) per scripts/k3s-deploy.sh build flow.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,78 +21,92 @@ spec:
         app: mimir-api
     spec:
       containers:
-        - name: mimir-api
-          image: asgard-mimir-api:latest
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 8080
-          env:
-            - name: PORT
-              value: "8080"
-            # DATABASE_URL + NEO4J_PASSWORD now come from envFrom: asgard-secrets
-            # (defined below). Setting them here would override envFrom values
-            # since `env` takes precedence over `envFrom` for matching keys.
-            - name: QDRANT_URL
-              value: http://qdrant.asgard-infra.svc:6333
-            - name: REDIS_URL
-              value: redis://redis.asgard-infra.svc:6379
-            - name: NEO4J_URI
-              value: bolt://neo4j.asgard-infra.svc:7687
-            - name: NEO4J_USER
-              value: neo4j
-            - name: USE_NEO4J_GRAPH
-              value: "true"
-            - name: OLLAMA_API_URL
-              value: http://host.docker.internal:8080/v1
-            - name: OLLAMA_URL
-              value: http://192.168.1.172:8080
-            - name: HEIMDALL_API_URL
-              value: http://host.docker.internal:8080/v1
-            - name: HEIMDALL_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: asgard-secrets
-                  key: HEIMDALL_API_KEY
-            - name: EMBEDDING_HOST
-              value: host.docker.internal
-            - name: EMBEDDING_PORT
-              value: "8001"
-            - name: BIFROST_URL
-              value: http://bifrost.asgard.svc:8100
-            - name: S3_ENDPOINT
-              value: http://minio.asgard-infra.svc:9000
-            - name: S3_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: mimir-api-secrets
-                  key: s3-access-key
-            - name: S3_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: mimir-api-secrets
-                  key: s3-secret-key
-            - name: S3_BUCKET
-              value: mimir-uploads
-            - name: VAULT_ADDR
-              value: "http://fafnir-vault.asgard.svc.cluster.local:8200"
-            - name: RUST_LOG
-              value: info
-          envFrom:
-            - secretRef:
-                name: asgard-secrets
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          resources:
-            requests:
-              memory: 256Mi
-              cpu: 200m
-            limits:
-              memory: 1Gi
-              cpu: 1000m
+      - name: mimir-api
+        image: asgard-mimir-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: '8080'
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: MIMIR_DATABASE_URL
+              name: asgard-secrets
+        - name: QDRANT_URL
+          value: http://qdrant.asgard-infra.svc:6333
+        - name: REDIS_URL
+          value: redis://redis.asgard-infra.svc:6379
+        - name: NEO4J_URI
+          value: bolt://neo4j.asgard-infra.svc:7687
+        - name: NEO4J_USER
+          value: neo4j
+        - name: NEO4J_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: NEO4J_PASSWORD
+              name: asgard-secrets
+        - name: OLLAMA_API_URL
+          value: http://host.docker.internal:8080/v1
+        - name: OLLAMA_URL
+          value: http://192.168.1.172:8080
+        - name: RUST_LOG
+          value: debug
+        - name: YGGDRASIL_ISSUER
+          value: https://sso.asgard.internal
+        - name: YGGDRASIL_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: YGGDRASIL_CLIENT_ID
+              name: asgard-secrets
+        - name: YGGDRASIL_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: YGGDRASIL_CLIENT_SECRET
+              name: asgard-secrets
+        - name: HEIMDALL_API_URL
+          value: http://heimdall-host.asgard.svc:8080/v1
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: GEMINI_API_KEY
+              name: asgard-secrets
+        - name: HEIMDALL_EMBEDDING_URL
+          value: http://heimdall-host.asgard.svc:8081
+        - name: USE_NEO4J_GRAPH
+          value: 'true'
+        - name: SYNC_HEIMDALL_URL
+          value: http://heimdall-host.asgard.svc:8080
+        - name: SYNC_OLLAMA_URL
+          value: http://heimdall-host.asgard.svc:8080
+        - name: HEIMDALL_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: asgard-secrets
+              key: HEIMDALL_API_KEY
+        - name: AUTH_DISABLED
+          value: 'true'
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /data/medical/documents
+          name: medical-docs
+      volumes:
+      - name: medical-docs
+        persistentVolumeClaim:
+          claimName: mimir-medical-docs
 ---
 apiVersion: v1
 kind: Service
@@ -99,7 +117,7 @@ spec:
   selector:
     app: mimir-api
   ports:
-    - port: 8080
-      targetPort: 8080
-      nodePort: 30000
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30000
   type: NodePort

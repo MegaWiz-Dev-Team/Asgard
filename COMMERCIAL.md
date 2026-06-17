@@ -1,5 +1,10 @@
 # 🏰 Asgard AI Platform — Commercial Licensing
 
+> **Which components are open vs closed?** See the canonical [Open-Core Policy](OPEN_CORE_POLICY.md)
+> ([ADR-023](docs/decisions/ADR-023-open-core-ip-boundary.md)). That document is the source of truth;
+> if anything below conflicts with it, the policy wins. Note: some components listed below as public
+> (e.g. Yggdrasil) are now **private/commercial** per the policy — table pending reconciliation.
+
 ## Open Source License
 
 The Asgard AI Platform is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.

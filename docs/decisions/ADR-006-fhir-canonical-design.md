@@ -1,11 +1,57 @@
-# ADR-006: FHIR R4 Canonical Design — Locked Decisions
+# ADR-006: FHIR Canonical Design — Locked Decisions
 
-**Status:** Accepted
-**Date:** 2026-05-18
+**Status:** Accepted (amended 2026-05-23 — see [Amendment 1](#amendment-1--2026-05-23))
+**Date:** 2026-05-18 (original); 2026-05-23 (Amendment 1)
 **Deciders:** paripol@megawiz.co
-**Scope:** `asgard-doc-pipeline-core` FHIR types implementation
-**Sprint:** 2 W2.6
-**Related:** [ADR-003 Shared crate boundary](ADR-003-shared-doc-pipeline-crate.md), [FHIR R4 resource selection](../architecture/fhir_r4_resource_selection.md), [ADR-002 Audit sink](ADR-002-audit-sink-architecture.md)
+**Scope:** `asgard-doc-pipeline-core` and `mimir-fhir` FHIR types implementation
+**Sprint:** 2 W2.6 (original); Phase 1 of [ADR-012](ADR-012-fhir-native-data-plane-no-ehr-replacement.md) for Amendment 1
+**Related:** [ADR-003 Shared crate boundary](ADR-003-shared-doc-pipeline-crate.md), [FHIR resource selection](../architecture/fhir_r4_resource_selection.md), [ADR-002 Audit sink](ADR-002-audit-sink-architecture.md), [ADR-012 FHIR-native data plane](ADR-012-fhir-native-data-plane-no-ehr-replacement.md), [ADR-013 FHIR R5 as canonical version](ADR-013-fhir-r5-canonical-version.md), [MOPH-PC1 FHIR mapping](../architecture/moph_pc1_fhir_mapping.md)
+
+## Amendment 1 — 2026-05-23
+
+After audit of the [MOPH-PC1 Data Element Mapping](../architecture/moph_pc1_fhir_mapping.md), three aspects of this ADR are amended:
+
+**A1.1 — FHIR version: R4 → R5 (superseded by [ADR-013](ADR-013-fhir-r5-canonical-version.md))**
+
+The original "R4" qualifier in this ADR's title was an implicit assumption, not an explicit decision. MOPH-PC1 spec targets R5. [ADR-013](ADR-013-fhir-r5-canonical-version.md) locks R5 as canonical with R4 supported only at the adapter boundary. Decisions 1-5 in this ADR remain valid — only the version label changes. The `BundleEntry` enum in [Decision 1](#decision-1--bundleentry-typing) below uses R5 resource shapes; R4 fields are translated via the ADR-013 adapter.
+
+**A1.2 — Resource scope: 15 → 20 resources**
+
+Five resources are added to bring scope into alignment with MOPH-PC1. The `BundleEntry` enum [Decision 1](#decision-1--bundleentry-typing) is updated below with the new variants. Translation cost is paper-only because Phase 1 implementation has not started.
+
+| Added | MOPH-PC1 IDs | Rationale |
+|---|---|---|
+| `Location` | 41 | Required: `Encounter.location` reference (ID 38) needs a target |
+| `Immunization` | 54 | Primary Care core workflow; cannot be folded into Observation |
+| `Specimen` | 62-64 | Three lab-specimen elements need a dedicated resource |
+| `ImagingStudy` | 32 | Radiology workflow distinct from `DiagnosticReport`; image interpretation text stays as Observation (ID 33) |
+| `Device` | 65 | UDI tracking required by Thai FDA medical device class regulations |
+
+**A1.3 — `Observation` has 7+ specialized sub-profiles**
+
+The original ADR treated `Observation` as a single resource. MOPH-PC1 uses 8 distinct profiles on Observation that drive different LOINC bindings and validators:
+
+| Sub-profile | Elements |
+|---|---|
+| `TH Core Observation: Vital Signs` | 8 (rows 11-18) |
+| `TH Core Observation: Laboratory Result` | 7 (rows 55-61) |
+| `TH Core Observation: Occupation` | 1 (row 10) |
+| `TH Core Observation: Pregnancy Status` | 1 (row 49) |
+| `TH Core Observation: Alcohol Status` | 1 (row 50) |
+| `TH Core Observation: Smoking Status` | 1 (row 53) |
+| `TH Core Observation: Imaging Result` | 1 (row 33) |
+| `TH Core Observation` (generic) | 5 (rows 29-31, 47-48, 51-52) |
+
+Implementation implication: `mimir-fhir/src/resources/observation/` ships **typed builders per profile** (`VitalSignBuilder`, `LabResultBuilder`, `OccupationBuilder`, etc.) rather than a single `ObservationBuilder`. This catches code-system mismatches (e.g., assigning a non-vital LOINC to a vital-signs profile) at compile time.
+
+**A1.4 — Canonical mapping reference**
+
+The 78-element mapping is canonicalized in [`docs/architecture/moph_pc1_fhir_mapping.md`](../architecture/moph_pc1_fhir_mapping.md). All adapter implementations, Hermodr MCP tool schemas, and `mimir-fhir` ingest/emit paths MUST conform to that mapping. Changes to scope require PR + amendment to this ADR.
+
+---
+
+## Original ADR (2026-05-18)
+
 
 ## Context
 
@@ -52,8 +98,20 @@ pub enum BundleEntry {
     ClaimResponse(ClaimResponse),
     Practitioner(Practitioner),
     Organization(Organization),
+    // Added 2026-05-23 (Amendment 1) per MOPH-PC1 mapping audit:
+    Location(Location),
+    Immunization(Immunization),
+    Specimen(Specimen),
+    ImagingStudy(ImagingStudy),
+    Device(Device),
+    // Added 2026-05-26 (Amendment 2) per ADR-015 — clinical document support for UC2:
+    Composition(Composition),
 }
 ```
+
+**Amendment 2 (2026-05-26)** — `Composition` (R5) added as the 21st canonical resource to support **UC2 Cross-Encounter Patient Summary**. Rationale, profile design, and Sprint 4/7/9/10 impact documented in [ADR-015](ADR-015-add-composition-and-uc2-patient-summary.md). The "bounded by MOPH-PC1" scope rule is relaxed by exactly one resource for clinical-document semantics; further additions require their own ADR.
+
+(Field shapes inside each variant follow FHIR R5 per [ADR-013](ADR-013-fhir-r5-canonical-version.md); see [MOPH-PC1 mapping](../architecture/moph_pc1_fhir_mapping.md) for R4↔R5 element diffs.)
 
 ### Why
 
