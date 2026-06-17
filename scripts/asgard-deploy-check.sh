@@ -32,9 +32,9 @@ echo "▶ asgard-deploy-check: $SVC  (repo=$REPO ns=$NS)"
 
 # ── 1. build source: right branch, clean tree, not behind main ──────────────
 echo "1) build source"
-if [ -d "$REPO/.git" ]; then
+if git -C "$REPO" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   cd "$REPO" || exit 3
-  BR="${BRANCH:-$(git branch --show-current)}"
+  BR="${BRANCH:-$(git branch --show-current)}"; [ -z "$BR" ] && BR="(detached $(git rev-parse --short HEAD))"
   echo "   branch: $BR"
   [ -n "$(git status --porcelain)" ] && warn "working tree DIRTY — docker build snapshots the dir; uncommitted/other-session edits will leak into the image. Commit/stash first." || ok "working tree clean"
   git fetch origin main --quiet 2>/dev/null
