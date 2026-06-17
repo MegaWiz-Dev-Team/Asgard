@@ -25,6 +25,13 @@ spec:
           env:
             - name: PORT
               value: "8080"
+            # CORS allowlist (Mimir#364/#372) — replaces the old wildcard
+            # `Access-Control-Allow-Origin: *`. Comma-separated trusted origins;
+            # the dashboard reaches mimir-api server-side (cluster DNS) so these
+            # cover any browser-side caller. Without this the binary falls back
+            # to localhost-only, which would block the real dashboard origin.
+            - name: ALLOWED_ORIGINS
+              value: "https://mimir.asgard.internal,https://portal.asgard.internal,http://localhost:3000,http://localhost:5173"
             # DATABASE_URL + NEO4J_PASSWORD now come from envFrom: asgard-secrets
             # (defined below). Setting them here would override envFrom values
             # since `env` takes precedence over `envFrom` for matching keys.
