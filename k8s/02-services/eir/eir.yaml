@@ -299,11 +299,23 @@ metadata:
   namespace: asgard
 data:
   default.conf: |
+    # Hide nginx version in Server header (Odin scan 2026-06-14, eir Low finding)
+    server_tokens off;
+
     server {
         listen 8080;
         listen 8443 ssl;
         ssl_certificate /tmp/ssl-secret/tls.crt;
         ssl_certificate_key /tmp/ssl-secret/tls.key;
+
+        # Security headers (Odin scan 2026-06-14, eir-gateway Medium ×11 findings)
+        # `always` ensures headers are sent on error responses too.
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "no-referrer-when-downgrade" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'" always;
+        add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
         location /eir-chat-widget.js {
             proxy_pass http://eir-gateway:3000/eir-chat-widget.js;
