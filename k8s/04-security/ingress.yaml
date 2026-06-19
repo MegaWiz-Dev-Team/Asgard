@@ -9,6 +9,19 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: "asgard-ca-issuer"
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # Security response headers (Odin 2026-06-14 scan, Asgard#99 — PR-1).
+    # Applied at the single shared ingress so every fronted host gets them at once.
+    # Conservative set only: no source-restricting CSP (default-src/script-src),
+    # which would break inline-script/style UIs (portal, mimir-dashboard) — that
+    # stricter CSP is tracked as a follow-up. `frame-ancestors 'self'` is the
+    # modern anti-clickjacking control and is safe (it restricts framing only).
+    # Requires `allow-snippet-annotations: "true"` on the ingress-nginx controller.
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-Frame-Options: SAMEORIGIN";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Content-Security-Policy: frame-ancestors 'self'";
+      more_clear_headers "Server";
 spec:
   tls:
     - hosts: ["*.asgard.internal", "portal.asgard.internal", "asgard.internal"]
