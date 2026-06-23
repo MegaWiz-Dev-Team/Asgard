@@ -42,6 +42,17 @@ spec:
                   name: {{ .Values.global.secretsName | default "asgard-secrets" }}
                   key: HEIMDALL_API_KEY
             - { name: MIMIR_URL, value: "http://mimir-api.{{ .Release.Namespace }}.svc:8080" }
+            # KB grounding whitelist (chat agents). Multi-seed A/B 2026-05-31:
+            # stacking all KBs regressed -16pp; a single KB was neutral vs none
+            # (within seed noise, n=20). So chat defaults to OFF — KB grounding
+            # is reserved for the deterministic coding/factual path (Iris).
+            # Set to a single kb_id (e.g. "symptoms") to re-enable; never stack.
+            - { name: KB_ALLOW_KBS, value: {{ .Values.kbAllowKbs | default "none" | quote }} }
+            # OTLP traces -> otel-collector -> Laminar. Code default is
+            # localhost:4317 (wrong in k8s) so spans silently stopped landing on
+            # 2026-05-21; this points it at the in-cluster collector.
+            - { name: OTEL_EXPORTER_OTLP_ENDPOINT, value: "http://otel-collector.{{ .Release.Namespace }}.svc:4317" }
+            - { name: OTEL_SERVICE_NAME, value: "bifrost" }
             - { name: YGGDRASIL_MCP_URL, value: "http://hermodr.{{ .Release.Namespace }}.svc:8090/rpc" }
             - { name: YGGDRASIL_MCP_ENABLED, value: "true" }
             - { name: DEFAULT_MODEL, value: {{ .Values.defaultModel | default "mlx-community/Qwen3.5-9B-MLX-4bit" | quote }} }
