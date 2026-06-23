@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.asgard.watchdog</string>
+
+    <!-- Host-side health watchdog: runs asgard-preflight every 5 min and alerts
+         to OpenSearch on degradation. Independent of the cluster it watches. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/mimir/Developer/Asgard/scripts/asgard-watchdog.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/mimir/Developer/Asgard/scripts</string>
+
+    <!-- kubectl/curl live in the user's shell PATH; provide a sane default -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- Re-run every 300s (periodic task, not a daemon → no KeepAlive) -->
+    <key>StartInterval</key>
+    <integer>300</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/watchdog-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/watchdog-stderr.log</string>
+</dict>
+</plist>

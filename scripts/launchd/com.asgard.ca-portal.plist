@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.asgard.ca-portal</string>
+
+    <!-- Serves the public root CA + install page on the LAN so phones and other
+         devices can fetch it at http://<host>:8079/ . Drops to user 'mimir'
+         (no root needed to serve a world-readable file on a high port).
+         Plain HTTP is fine: the payload is a PUBLIC cert and the page shows
+         its SHA-256 so clients verify integrity out of band. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>-m</string>
+        <string>http.server</string>
+        <string>8079</string>
+        <string>--bind</string>
+        <string>0.0.0.0</string>
+        <string>--directory</string>
+        <string>/usr/local/share/asgard/ca-dist</string>
+    </array>
+
+    <key>UserName</key>
+    <string>mimir</string>
+
+    <key>KeepAlive</key>
+    <true/>
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/ca-portal-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/ca-portal-stderr.log</string>
+</dict>
+</plist>
