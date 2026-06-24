@@ -6,14 +6,16 @@
     <string>com.asgard.watchdog</string>
 
     <!-- Host-side health watchdog: runs asgard-preflight every 5 min and alerts
-         to OpenSearch on degradation. Independent of the cluster it watches. -->
+         to OpenSearch on degradation. Independent of the cluster it watches.
+         Runs from a STABLE deploy path (~/bin), NOT the git working tree, so a
+         branch checkout can't swap the live script (deploy: install-watchdog.sh). -->
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/mimir/Developer/Asgard/scripts/asgard-watchdog.sh</string>
+        <string>/Users/mimir/bin/asgard-watchdog.sh</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/mimir/Developer/Asgard/scripts</string>
+    <string>/Users/mimir/bin</string>
 
     <!-- kubectl/curl live in the user's shell PATH; provide a sane default -->
     <key>EnvironmentVariables</key>
@@ -30,8 +32,8 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/Users/mimir/Developer/Asgard/logs/watchdog-stdout.log</string>
+    <string>/Users/mimir/Library/Logs/asgard-watchdog.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/mimir/Developer/Asgard/logs/watchdog-stderr.log</string>
+    <string>/Users/mimir/Library/Logs/asgard-watchdog.err.log</string>
 </dict>
 </plist>
