@@ -25,6 +25,7 @@ REPEAT_EVERY="${REPEAT_EVERY:-12}"        # re-alert every N ticks while degrade
 # the cluster is disruptive; set AUTO_RECOVER=1 to enable. Guards: wedge signal
 # only, at most once per cooldown, alert before + after.
 AUTO_RECOVER="${AUTO_RECOVER:-0}"
+RECOVER_AFTER_TICKS="${RECOVER_AFTER_TICKS:-3}"       # require N consecutive wedge ticks (~15min @5min) before restarting — debounce transient blips
 RECOVER_COOLDOWN="${RECOVER_COOLDOWN:-3600}"          # seconds (max 1 restart/hour)
 RECOVER_STATE="${RECOVER_STATE:-$HOME/.asgard-watchdog.recover}"
 ORBCTL="${ORBCTL:-$(command -v orbctl 2>/dev/null || echo /usr/local/bin/orbctl)}"
@@ -132,12 +133,18 @@ print(json.dumps({"embeds":[{
 }
 
 # Opt-in: restart OrbStack on a sustained runtime wedge (INC-2026-06-15). Only
-# fires on the wedge signal, at most once per cooldown, alerts before + after.
-# No-op unless AUTO_RECOVER=1, so it can't surprise-restart the cluster.
+# fires on the wedge signal, after ≥RECOVER_AFTER_TICKS consecutive degraded
+# ticks (debounce), at most once per cooldown, alerts before + after. No-op
+# unless AUTO_RECOVER=1, so it can't surprise-restart the cluster.
 maybe_auto_recover() {
   [[ "$AUTO_RECOVER" == "1" ]] || return 0
   degraded "$CODE" || return 0
   printf '%s' "$JSON" | grep -qiE 'cluster unreachable|Terminating >1h|sandbox|PLEG|OrbStack' || return 0
+  # debounce: only on a SUSTAINED wedge, not a one-off blip. SINCE is the
+  # consecutive-degraded counter from the state machine above.
+  if (( SINCE < RECOVER_AFTER_TICKS )); then
+    echo "[watchdog] auto-recover armed (wedge ${SINCE}/${RECOVER_AFTER_TICKS} ticks — holding)"; return 0
+  fi
   local last=0 now; [[ -f "$RECOVER_STATE" ]] && last=$(cat "$RECOVER_STATE" 2>/dev/null || echo 0)
   now=$(date +%s)
   if (( now - last < RECOVER_COOLDOWN )); then
@@ -155,9 +162,14 @@ maybe_auto_recover() {
 }
 
 case "$ACTION" in
-  degraded)  echo "[watchdog] OK→DEGRADED (code=$CODE)"; send_alert "degraded"; maybe_auto_recover ;;
-  reminder)  echo "[watchdog] still degraded (${SINCE} ticks)"; send_alert "reminder"; maybe_auto_recover ;;
+  degraded)  echo "[watchdog] OK→DEGRADED (code=$CODE)"; send_alert "degraded" ;;
+  reminder)  echo "[watchdog] still degraded (${SINCE} ticks)"; send_alert "reminder" ;;
   recovered) echo "[watchdog] DEGRADED→RECOVERED"; send_alert "recovered" ;;
   none)      echo "[watchdog] code=$CODE, no state change" ;;
 esac
+
+# Evaluated EVERY tick (not only on alert transitions) so the ≥N-tick debounce
+# can fire mid-streak; its own guards decide whether it actually restarts.
+maybe_auto_recover
+
 exit 0
