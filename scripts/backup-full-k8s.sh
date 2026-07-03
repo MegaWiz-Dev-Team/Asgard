@@ -267,6 +267,7 @@ backup_pv_raw   asgard       "eir-sites-data"        "eir-sites.tar.gz"
 backup_pv_raw   asgard       "forseti-data"          "forseti-data.tar.gz"
 backup_pv_raw   asgard       "mjolnir-data"          "mjolnir-data.tar.gz"
 backup_pv_raw   asgard       "mimir-medical-docs"    "mimir-medical-docs.tar.gz"
+backup_pv_raw   asgard       "askr-data"             "askr-data.tar.gz"      # Askr faculty studio (exams·catalog·OSCE analytics)
 backup_vault
 backup_k8s
 
