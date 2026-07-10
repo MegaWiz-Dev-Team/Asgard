@@ -6,7 +6,8 @@
 #   guard (T7 mounted) → disk headroom check → backup → rotate → heartbeat → notify
 #
 # Scheduled via launchd `com.asgard.nightly-backup` (03:00 daily).
-# Retention: keep last RETAIN dated backup dirs on T7.
+# Retention (tiered): keep last KEEP_DAILY days + Sunday weeklies up to
+# KEEP_WEEKLY_DAYS old. Steady state ≈ 10 dirs (~40 GB) instead of 30 (~120 GB).
 #
 # Manual run / dry test:  ./scripts/nightly-backup.sh
 set -uo pipefail
@@ -15,7 +16,8 @@ T7="/Volumes/T7 Shield"
 SCRIPT_DIR="/Users/mimir/Developer/Asgard/scripts"
 LOG_DIR="/Users/mimir/Developer/Asgard/logs"
 HEARTBEAT="${T7}/asgard-backups/last-backup-status.txt"
-RETAIN=30
+KEEP_DAILY=7        # every backup from the last N days
+KEEP_WEEKLY_DAYS=35 # Sunday backups kept this many days back
 TS=$(date +%Y-%m-%d_%H%M%S)
 
 mkdir -p "$LOG_DIR"
@@ -57,9 +59,17 @@ fi
 RC=$?
 log "backup-full-k8s.sh exit=${RC}"
 
-# 4. Rotate — keep the newest RETAIN dated dirs, delete older
-ls -dt "${T7}"/asgard-backup-* 2>/dev/null | tail -n +$((RETAIN+1)) | while read -r d; do
-  log "rotate: removing old backup ${d}"
+# 4. Rotate — tiered: keep last KEEP_DAILY days, plus Sundays ≤ KEEP_WEEKLY_DAYS old
+NOW_EPOCH=$(date +%s)
+for d in "${T7}"/asgard-backup-*; do
+  [ -d "$d" ] || continue
+  dt="${d##*/asgard-backup-}"
+  dt_epoch=$(date -j -f "%Y-%m-%d" "$dt" +%s 2>/dev/null) || continue  # skip non-dated dirs
+  age_days=$(( (NOW_EPOCH - dt_epoch) / 86400 ))
+  dow=$(date -j -f "%Y-%m-%d" "$dt" +%u 2>/dev/null)
+  [ "$age_days" -le "$KEEP_DAILY" ] && continue
+  [ "$dow" = "7" ] && [ "$age_days" -le "$KEEP_WEEKLY_DAYS" ] && continue
+  log "rotate: removing old backup ${d} (age=${age_days}d)"
   rm -rf "$d"
 done
 
