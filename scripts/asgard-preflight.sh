@@ -127,6 +127,25 @@ else
   fi
 fi
 
+# ── 5. Nótt HB (prod-facing, via the Cloudflare tunnel) ───────────────────
+# Prod Doctor-Consult reaches the Nótt engine over nott.megawiz.co.th. If that's
+# down, prod HB/severity/triage return a clean 503 → a FAIL here so the watchdog
+# raises the Discord alert (with its debounce + recovery). Longer timeout than the
+# LAN hc() since it traverses Cloudflare.
+section "🩸 Nótt HB (prod)"
+NOTT_URL="${NOTT_URL:-https://nott.megawiz.co.th}"
+if curl -sf --max-time 8 "$NOTT_URL/healthz" >/dev/null 2>&1; then
+  ok "Nótt HB engine reachable ($NOTT_URL)"
+  if curl -sf --max-time 8 -X POST "$NOTT_URL/triage" -H 'Content-Type: application/json' \
+       -d '{"ahi":25,"hb":150}' 2>/dev/null | grep -q '"hb_severity"'; then
+    ok "Nótt /triage computes HB severity"
+  else
+    warn "Nótt reachable but /triage not returning hb_severity (HB compute may be broken / stale image)"
+  fi
+else
+  fail "Nótt HB engine unreachable ($NOTT_URL/healthz) — prod Doctor-Consult HB features are DOWN (503)"
+fi
+
 # ── verdict ───────────────────────────────────────────────────────────────
 CODE=0; (( ${#WARNS[@]} > 0 )) && CODE=1; (( ${#FAILS[@]} > 0 )) && CODE=2
 if [[ $JSON -eq 1 ]]; then
