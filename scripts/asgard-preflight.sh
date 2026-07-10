@@ -127,23 +127,32 @@ else
   fi
 fi
 
-# ── 5. Nótt HB (prod-facing, via the Cloudflare tunnel) ───────────────────
-# Prod Doctor-Consult reaches the Nótt engine over nott.megawiz.co.th. If that's
-# down, prod HB/severity/triage return a clean 503 → a FAIL here so the watchdog
-# raises the Discord alert (with its debounce + recovery). Longer timeout than the
-# LAN hc() since it traverses Cloudflare.
+# ── 5. Nótt HB (prod) — HB engine on Cloud Run (critical), chat/agents on Mac ─
+# De-SPOF'd 2026-07-10: prod HB compute (/analyze, /triage) is served by the GCP Cloud Run
+# engine (nott-engine); /chat + Sleep-Expert agents stay on the Mac (local-LLM). So the two
+# probes have different severities:
+#   • Cloud Run HB engine down → FAIL — the live HB decision-support feature is DOWN.
+#   • Mac tunnel down          → WARN — HB is unaffected (on Cloud Run); only /chat + agents degrade.
+# NB: Cloud Run RESERVES /healthz (GFE 404s it before the app) → probe /viewer/index.html for liveness.
 section "🩸 Nótt HB (prod)"
-NOTT_URL="${NOTT_URL:-https://nott.megawiz.co.th}"
-if curl -sf --max-time 8 "$NOTT_URL/healthz" >/dev/null 2>&1; then
-  ok "Nótt HB engine reachable ($NOTT_URL)"
-  if curl -sf --max-time 8 -X POST "$NOTT_URL/triage" -H 'Content-Type: application/json' \
+NOTT_ENGINE_URL="${NOTT_ENGINE_URL:-https://nott-engine-842423068850.asia-southeast1.run.app}"
+if curl -sf --max-time 10 "$NOTT_ENGINE_URL/viewer/index.html" >/dev/null 2>&1; then
+  ok "Nótt HB engine reachable (Cloud Run)"
+  if curl -sf --max-time 10 -X POST "$NOTT_ENGINE_URL/triage" -H 'Content-Type: application/json' \
        -d '{"ahi":25,"hb":150}' 2>/dev/null | grep -q '"hb_severity"'; then
-    ok "Nótt /triage computes HB severity"
+    ok "Nótt HB engine /triage computes severity"
   else
-    warn "Nótt reachable but /triage not returning hb_severity (HB compute may be broken / stale image)"
+    warn "Nótt HB engine reachable but /triage not returning hb_severity (stale / broken image)"
   fi
 else
-  fail "Nótt HB engine unreachable ($NOTT_URL/healthz) — prod Doctor-Consult HB features are DOWN (503)"
+  fail "Nótt HB engine (Cloud Run) unreachable — prod Doctor-Consult Hypoxic Burden is DOWN"
+fi
+# chat + Sleep-Expert agents run on the Mac (local-LLM). Tunnel down = degrade only (HB unaffected).
+NOTT_CHAT_HC="${NOTT_CHAT_HC:-https://nott.megawiz.co.th}"
+if curl -sf --max-time 8 "$NOTT_CHAT_HC/healthz" >/dev/null 2>&1; then
+  ok "Nótt chat/agent engine reachable (Mac tunnel)"
+else
+  warn "Nótt chat engine (Mac tunnel) unreachable — /nott-chat + Sleep-Expert degrade (HB unaffected, on Cloud Run)"
 fi
 
 # ── verdict ───────────────────────────────────────────────────────────────
