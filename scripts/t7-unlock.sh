@@ -23,10 +23,11 @@ if [ ! -f "$PF" ]; then
 fi
 
 # Wait up to ~60s for the disk to enumerate after boot, then unlock by name.
+# apfs-list line: "APFS Volume Disk (Role):   disk4s1 (No specific role)" → id is $5.
 for i in $(seq 1 12); do
-  VOLID=$(diskutil apfs list 2>/dev/null | awk '/APFS Volume Disk/{id=$4} /Name:.*T7 Shield/{print id; exit}')
+  VOLID=$(diskutil apfs list 2>/dev/null | awk '/APFS Volume Disk/{id=$5} /Name:.*T7 Shield/{print id; exit}')
   if [ -n "${VOLID:-}" ]; then
-    if diskutil apfs unlockVolume "$VOLID" -passphrasefile "$PF" >> "$LOG" 2>&1; then
+    if printf %s "$(cat "$PF")" | diskutil apfs unlockVolume "$VOLID" -stdinpassphrase >> "$LOG" 2>&1; then
       log "unlocked + mounted ${VOLID}"
       exit 0
     fi
