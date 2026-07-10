@@ -128,25 +128,21 @@ else
 fi
 
 # ── 5. Nótt HB (prod) — HB engine on Cloud Run (critical), chat/agents on Mac ─
-# De-SPOF'd 2026-07-10: prod HB compute (/analyze, /triage) is served by the GCP Cloud Run
-# engine (nott-engine); /chat + Sleep-Expert agents stay on the Mac (local-LLM). So the two
-# probes have different severities:
-#   • Cloud Run HB engine down → FAIL — the live HB decision-support feature is DOWN.
-#   • Mac tunnel down          → WARN — HB is unaffected (on Cloud Run); only /chat + agents degrade.
-# NB: Cloud Run RESERVES /healthz (GFE 404s it before the app) → probe /viewer/index.html for liveness.
+# De-SPOF'd 2026-07-10: prod HB compute (/analyze) is served by the GCP Cloud Run engine
+# (nott-engine); /chat + Sleep-Expert agents stay on the Mac (local-LLM).
+# LOCKED DOWN 2026-07-10: the engine is IAM-restricted — only the mega-care backend SA may invoke
+# it — so an UNAUTHENTICATED probe now returns HTTP 403. A 401/403 therefore means "up + auth
+# working" (healthy); only a connection failure (000) or a 5xx means the service itself is down.
+# We can no longer run an unauthenticated /triage functional probe — liveness (any HTTP response)
+# is the check. (Cloud Run also RESERVES /healthz — GFE 404s it — so probe /viewer/index.html.)
 section "🩸 Nótt HB (prod)"
 NOTT_ENGINE_URL="${NOTT_ENGINE_URL:-https://nott-engine-842423068850.asia-southeast1.run.app}"
-if curl -sf --max-time 10 "$NOTT_ENGINE_URL/viewer/index.html" >/dev/null 2>&1; then
-  ok "Nótt HB engine reachable (Cloud Run)"
-  if curl -sf --max-time 10 -X POST "$NOTT_ENGINE_URL/triage" -H 'Content-Type: application/json' \
-       -d '{"ahi":25,"hb":150}' 2>/dev/null | grep -q '"hb_severity"'; then
-    ok "Nótt HB engine /triage computes severity"
-  else
-    warn "Nótt HB engine reachable but /triage not returning hb_severity (stale / broken image)"
-  fi
-else
-  fail "Nótt HB engine (Cloud Run) unreachable — prod Doctor-Consult Hypoxic Burden is DOWN"
-fi
+code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$NOTT_ENGINE_URL/viewer/index.html" 2>/dev/null)
+case "$code" in
+  200)     ok "Nótt HB engine reachable (Cloud Run, HTTP 200)" ;;
+  401|403) ok "Nótt HB engine reachable (Cloud Run, HTTP $code — IAM-locked, backend-only)" ;;
+  *)       fail "Nótt HB engine (Cloud Run) unreachable/erroring (HTTP ${code:-000}) — prod Doctor-Consult Hypoxic Burden at risk" ;;
+esac
 # chat + Sleep-Expert agents run on the Mac (local-LLM). Tunnel down = degrade only (HB unaffected).
 NOTT_CHAT_HC="${NOTT_CHAT_HC:-https://nott.megawiz.co.th}"
 if curl -sf --max-time 8 "$NOTT_CHAT_HC/healthz" >/dev/null 2>&1; then
