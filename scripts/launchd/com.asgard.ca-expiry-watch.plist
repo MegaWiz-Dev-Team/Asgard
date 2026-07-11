@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.asgard.ca-expiry-watch</string>
+
+    <!-- SAFETY NET (user LaunchAgent, no root). Read-only watchdog: alerts to
+         Discord before the Asgard root CA trust anchor silently expires or
+         drifts from the cluster. Independent of com.asgard.ca-distributor, so
+         it catches the case where that root daemon is missing or dead — the
+         exact failure that broke *.asgard.internal on 2026-07-08. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/mimir/Developer/Asgard/scripts/asgard-ca-expiry-check.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>KUBECONFIG</key>
+        <string>/Users/mimir/.kube/config</string>
+        <key>HOME</key>
+        <string>/Users/mimir</string>
+        <key>ASGARD_CA_WARN_DAYS</key>
+        <string>30</string>
+    </dict>
+
+    <!-- Daily check (86400s) + at load. Cheap + read-only. -->
+    <key>StartInterval</key>
+    <integer>86400</integer>
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/ca-expiry-watch-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/ca-expiry-watch-stderr.log</string>
+</dict>
+</plist>
