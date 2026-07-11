@@ -69,16 +69,28 @@ elif (( BEST_LEFT < THRESHOLD_DAYS )); then
   PROBLEM=1
 fi
 
-# ── 2. DRIFT: does the keychain trust the CURRENT cluster root? ───────────
+# ── 2. TRUST: is the newest Asgard root actually a TRUSTED anchor? ────────
+# A cert can be PRESENT in the keychain yet carry no trust setting (e.g. a
+# launchd daemon's `add-trusted-cert -d` fails "no user interaction possible").
+# macOS then rejects it (CSSMERR_TP_NOT_TRUSTED) — present ≠ trusted.
+if security dump-trust-settings -d 2>/dev/null | grep -qi "asgard"; then
+  log "OK: Asgard root has an admin trust setting (trusted anchor)"
+else
+  log "CRITICAL: Asgard root is PRESENT but has NO admin trust setting — macOS will reject *.asgard.internal"
+  notify "❌ Asgard root present but NOT trusted (no admin trust setting). Fix interactively: sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /usr/local/share/asgard/ca-dist/asgard-root-ca.crt"
+  PROBLEM=2
+fi
+
+# ── 3. DRIFT: does the keychain hold the CURRENT cluster root? ────────────
 kubectl get secret "$SECRET" -n "$NS" -o jsonpath='{.data.ca\.crt}' 2>/dev/null | base64 -d > "$TMP/live.crt" 2>/dev/null || true
 [[ -s "$TMP/live.crt" ]] || kubectl get secret "$SECRET" -n "$NS" -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d > "$TMP/live.crt" 2>/dev/null || true
 if [[ -s "$TMP/live.crt" ]] && openssl x509 -in "$TMP/live.crt" -noout >/dev/null 2>&1; then
   LIVE_FP="$(fp256 "$TMP/live.crt")"
   if [[ " $KC_FPS " == *" $LIVE_FP "* ]]; then
-    log "OK: keychain trusts the live cluster root ($LIVE_FP)"
+    log "OK: keychain holds the live cluster root ($LIVE_FP)"
   else
-    log "DRIFT: cluster root fp=$LIVE_FP is NOT trusted in the keychain — a re-issue was not distributed"
-    notify "⚠️ Keychain has DRIFTED from the cluster root (re-issue not synced). Run: sudo launchctl kickstart -k system/com.asgard.ca-distributor  (or the install script if not yet installed)"
+    log "DRIFT: cluster root fp=$LIVE_FP is NOT in the keychain — a re-issue was not distributed"
+    notify "⚠️ Keychain has DRIFTED from the cluster root (re-issue not synced). Run: sudo launchctl kickstart -k system/com.asgard.ca-distributor  (then re-grant trust interactively — see fix above)"
     PROBLEM=$(( PROBLEM > 1 ? PROBLEM : 1 ))
   fi
 else
