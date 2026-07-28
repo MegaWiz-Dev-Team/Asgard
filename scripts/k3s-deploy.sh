@@ -1,7 +1,7 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
 # Project Asgard — K3s Deploy Script
-# Usage: ./scripts/k3s-deploy.sh [api|dashboard|bifrost|tyr|portal|all] [--no-build]
+# Usage: ./scripts/k3s-deploy.sh [api|dashboard|bifrost|tyr|portal|nott|all] [--no-build]
 #
 # Examples:
 #   ./scripts/k3s-deploy.sh all          # Build + deploy everything
@@ -9,6 +9,7 @@
 #   ./scripts/k3s-deploy.sh dashboard    # Build + deploy dashboard only
 #   ./scripts/k3s-deploy.sh bifrost      # Build + deploy bifrost only
 #   ./scripts/k3s-deploy.sh tyr          # Deploy Týr (Wazuh SIEM)
+#   ./scripts/k3s-deploy.sh nott         # Build + deploy Nótt Box edge (+ mosquitto broker)
 #   ./scripts/k3s-deploy.sh all --no-build  # Just apply YAML + rollout restart (no rebuild)
 #
 # Image strategy: builds as :latest (imagePullPolicy: Never in K3s).
@@ -156,6 +157,27 @@ build_hermodr() {
     ok "Built asgard-hermodr:latest"
 }
 
+# ─── Nótt Box edge ──────────────────────────────────────────────
+build_nott() {
+    step "Building asgard-nott-box-edge:latest"
+    cd "$ROOT_DIR/../nott-box"
+    docker build \
+        -t "asgard-nott-box-edge:latest" \
+        .
+    ok "Built asgard-nott-box-edge:latest"
+}
+
+deploy_nott() {
+    step "Deploying mosquitto (broker) + nott-box-edge"
+    kubectl apply -f "$ROOT_DIR/k8s/01-infra/mosquitto/deployment.yaml"
+    kubectl rollout status deployment/mosquitto -n asgard-infra --timeout=120s
+    kubectl apply -f "$ROOT_DIR/k8s/02-services/nott-box-edge/deployment.yaml"
+    kubectl rollout restart deployment/nott-box-edge -n "$NAMESPACE"
+    info "Waiting for rollout..."
+    kubectl rollout status deployment/nott-box-edge -n "$NAMESPACE" --timeout=120s
+    _health_check nott-box-edge 8180 /healthz
+}
+
 # ─── Tyr ────────────────────────────────────────────────────────
 deploy_tyr() {
     step "Deploying Týr (Wazuh SIEM) & Hermóðr Bridge"
@@ -217,6 +239,10 @@ case "$TARGET" in
         [ "$NO_BUILD" != "--no-build" ] && build_hermodr
         deploy_tyr
         ;;
+    nott)
+        [ "$NO_BUILD" != "--no-build" ] && build_nott
+        deploy_nott
+        ;;
     all)
         if [ "$NO_BUILD" != "--no-build" ]; then
             build_bifrost
@@ -224,15 +250,17 @@ case "$TARGET" in
             build_api
             build_dashboard
             build_portal
+            build_nott
         fi
         deploy_bifrost
         deploy_api
         deploy_dashboard
         deploy_portal
         deploy_tyr
+        deploy_nott
         ;;
     *)
-        fail "Unknown target: '$TARGET' (valid: api, dashboard, portal, bifrost, tyr, all)"
+        fail "Unknown target: '$TARGET' (valid: api, dashboard, portal, bifrost, tyr, nott, all)"
         ;;
 esac
 
@@ -247,6 +275,6 @@ echo "  Dashboard: http://localhost:30001"
 echo ""
 echo "  Pods:"
 kubectl get pods -n "$NAMESPACE" \
-    -l "app in (mimir-api,mimir-dashboard,bifrost,asgard-portal)" \
+    -l "app in (mimir-api,mimir-dashboard,bifrost,asgard-portal,nott-box-edge)" \
     --no-headers 2>/dev/null | sed 's/^/    /'
 echo ""

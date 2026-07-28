@@ -1,0 +1,112 @@
+# 🌙 Nótt Box Edge — MQTT ingest → durable queue (PVC) → forward to mega-care
+#
+# Repo: MegaWiz-Dev-Team/nott-box (checkout at ../nott-box, image built locally).
+# Forwarding stays queued until mega-care's /api/v1/devices/telemetry endpoint +
+# forward token exist (SPEC §5) — that is by design (store-and-forward).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nott-box-edge-config
+  namespace: asgard
+data:
+  config.toml: |
+    site_id = "dev"
+
+    [mqtt]
+    url = "mqtt://mosquitto.asgard-infra.svc:1883"
+    ca_cert = "/etc/nott-box/tls/ca.pem"
+    client_cert = "/etc/nott-box/tls/edge.pem"
+    client_key = "/etc/nott-box/tls/edge.key"
+
+    [queue]
+    path = "/var/lib/nott-box/queue"
+    channel_capacity = 1024
+    batch_size = 100
+
+    [forward]
+    api_base = "https://backend.megawiz.co.th"
+    auth = "token"
+    retry_backoff_ms = 2000
+
+    [health]
+    bind = "0.0.0.0:8180"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nott-box-edge-queue
+  namespace: asgard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nott-box-edge
+  namespace: asgard
+  labels:
+    app: nott-box-edge
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # single writer on the sled queue PVC — never two pods at once
+  selector:
+    matchLabels:
+      app: nott-box-edge
+  template:
+    metadata:
+      labels:
+        app: nott-box-edge
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: nott-box-edge
+          image: asgard-nott-box-edge:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8180
+          env:
+            - name: RUST_LOG
+              value: info
+            - name: NOTT_EDGE_FORWARD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: NOTT_EDGE_FORWARD_TOKEN
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8180
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nott-box
+            - name: queue
+              mountPath: /var/lib/nott-box/queue
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+      volumes:
+        - name: config
+          configMap:
+            name: nott-box-edge-config
+        - name: queue
+          persistentVolumeClaim:
+            claimName: nott-box-edge-queue
