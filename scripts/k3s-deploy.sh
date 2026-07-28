@@ -9,7 +9,8 @@
 #   ./scripts/k3s-deploy.sh dashboard    # Build + deploy dashboard only
 #   ./scripts/k3s-deploy.sh bifrost      # Build + deploy bifrost only
 #   ./scripts/k3s-deploy.sh tyr          # Deploy Týr (Wazuh SIEM)
-#   ./scripts/k3s-deploy.sh nott         # Build + deploy Nótt Box edge (+ mosquitto broker)
+#   ./scripts/k3s-deploy.sh nott         # Nótt Box edge + mosquitto — on-prem VARIANT (dormant;
+#                                        #   NOT in 'all'. Pilot path is box→HTTPS→mega-care)
 #   ./scripts/k3s-deploy.sh all --no-build  # Just apply YAML + rollout restart (no rebuild)
 #
 # Image strategy: builds as :latest (imagePullPolicy: Never in K3s).
@@ -250,14 +251,12 @@ case "$TARGET" in
             build_api
             build_dashboard
             build_portal
-            build_nott
         fi
         deploy_bifrost
         deploy_api
         deploy_dashboard
         deploy_portal
         deploy_tyr
-        deploy_nott
         ;;
     *)
         fail "Unknown target: '$TARGET' (valid: api, dashboard, portal, bifrost, tyr, nott, all)"
@@ -275,6 +274,6 @@ echo "  Dashboard: http://localhost:30001"
 echo ""
 echo "  Pods:"
 kubectl get pods -n "$NAMESPACE" \
-    -l "app in (mimir-api,mimir-dashboard,bifrost,asgard-portal,nott-box-edge)" \
+    -l "app in (mimir-api,mimir-dashboard,bifrost,asgard-portal)" \
     --no-headers 2>/dev/null | sed 's/^/    /'
 echo ""
