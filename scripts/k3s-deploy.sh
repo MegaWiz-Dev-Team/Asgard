@@ -160,11 +160,14 @@ build_hermodr() {
 
 # ─── Nótt Box edge ──────────────────────────────────────────────
 build_nott() {
-    step "Building asgard-nott-box-edge:latest"
-    cd "$ROOT_DIR/../nott-box"
-    docker build \
-        -t "asgard-nott-box-edge:latest" \
-        .
+    # nott-box HEAD is firmware-only; the edge service lives at this tag.
+    local edge_tag="edge-v0.1.0"
+    local wt="/tmp/nott-edge-build"
+    step "Building asgard-nott-box-edge:latest (nott-box tag ${edge_tag})"
+    git -C "$ROOT_DIR/../nott-box" worktree remove --force "$wt" 2>/dev/null || true
+    git -C "$ROOT_DIR/../nott-box" worktree add --force "$wt" "$edge_tag"
+    docker build -t "asgard-nott-box-edge:latest" "$wt"
+    git -C "$ROOT_DIR/../nott-box" worktree remove --force "$wt"
     ok "Built asgard-nott-box-edge:latest"
 }
 
