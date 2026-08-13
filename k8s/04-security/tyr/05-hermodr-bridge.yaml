@@ -28,7 +28,7 @@ spec:
       containers:
         - name: hermodr
           image: ghcr.io/megawiz-dev-team/asgard-hermodr:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: SERVICE_NAME
               value: "wazuh"
