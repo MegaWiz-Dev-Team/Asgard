@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: mimir-api
-          image: asgard-mimir-api:latest
+          image: asgard-mimir-api:v1.8.0
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
