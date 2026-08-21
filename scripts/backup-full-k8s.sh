@@ -36,6 +36,21 @@ SKIP(){ echo "$(date +%H:%M:%S) [  ⏭️  ] $*"; }
 declare -a RESULTS=()
 record() { RESULTS+=("$1|$2|$3"); }   # name|status|detail
 
+# One run at a time. Two of these fight over the same helper pods and scale the
+# same deployments up and down underneath each other: on 2026-08-21 a manual run
+# overlapped the launchd run and the Neo4j dump died between them (the other run
+# owned neo4j-backup-helper, and deleted it mid-flight).
+LOCK="/tmp/asgard-backup-full-k8s.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  if [ -n "$(find "$LOCK" -maxdepth 0 -mmin +180 2>/dev/null)" ]; then
+    LOG "stale lock older than 3h — taking it over ($LOCK)"
+  else
+    ERR "another backup-full-k8s.sh is already running ($LOCK) — refusing to run twice"
+    exit 3
+  fi
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+
 mkdir -p "$DEST"/{01-databases,02-snapshots,03-pv-raw,04-k8s,05-vault}
 LOG "=== Asgard Full Backup ${TS} ==="
 LOG "Destination: ${DEST}"
