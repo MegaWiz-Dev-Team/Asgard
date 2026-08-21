@@ -10,7 +10,7 @@ set -euo pipefail
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 ARCHIVE_DIR="${ASGARD_ARCHIVE_DIR:-/Volumes/T7 Shield/Asgard-Archives/Heimdall-Logs}"
-LOG_DIR="${HEIMDALL_LOG_DIR:?Set HEIMDALL_LOG_DIR to the absolute path of Heimdall's logs/ directory}"
+LOG_DIR="${HEIMDALL_LOG_DIR:?Set HEIMDALL_LOG_DIR to the absolute path of the Heimdall logs/ directory}"
 
 # Ensure the archive directory exists
 mkdir -p "$ARCHIVE_DIR"
