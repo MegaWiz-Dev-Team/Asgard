@@ -91,7 +91,13 @@ backup_neo4j() {
   local orig; orig=$(kubectl get deploy "$deploy" -n "$ns" -o jsonpath='{.spec.replicas}' 2>/dev/null); orig="${orig:-1}"
   kubectl scale deploy/"$deploy" -n "$ns" --replicas=0 >/dev/null 2>&1
   for i in $(seq 1 24); do kubectl get pods -n "$ns" --no-headers 2>/dev/null | grep -q "^${deploy}-" || break; sleep 5; done
-  kubectl apply -f - >/dev/null 2>&1 <<YAML
+  # 2026-08-21: this whole step failed in about one second and recorded only
+  # "neo4j | FAIL | copyout" — every command was silenced, so the real error was
+  # gone. Surface the errors, and pre-delete a stale helper (a pod left over from
+  # an interrupted run makes `apply` fail outright, since pod specs are immutable).
+  kubectl delete pod neo4j-backup-helper -n "$ns" --ignore-not-found --timeout=90s >/dev/null 2>&1
+  local apply_err
+  apply_err=$(kubectl apply -f - 2>&1 <<YAML
 apiVersion: v1
 kind: Pod
 metadata: {name: neo4j-backup-helper, namespace: ${ns}}
@@ -102,9 +108,13 @@ spec:
   volumes:
   - {name: data, persistentVolumeClaim: {claimName: ${pvc}}}
 YAML
-  kubectl wait --for=condition=Ready pod/neo4j-backup-helper -n "$ns" --timeout=120s >/dev/null 2>&1
-  kubectl exec -n "$ns" neo4j-backup-helper -- neo4j-admin database dump neo4j --to-path=/tmp --overwrite-destination >/dev/null 2>&1 \
-    && OK "  dump complete" || ERR "  dump failed"
+) || ERR "  helper pod apply failed: ${apply_err}"
+  if ! kubectl wait --for=condition=Ready pod/neo4j-backup-helper -n "$ns" --timeout=120s >/dev/null 2>&1; then
+    ERR "  helper pod not Ready: $(kubectl get pod neo4j-backup-helper -n "$ns" --no-headers 2>&1 | tail -1)"
+  fi
+  local dump_out
+  dump_out=$(kubectl exec -n "$ns" neo4j-backup-helper -- neo4j-admin database dump neo4j --to-path=/tmp --overwrite-destination 2>&1) \
+    && OK "  dump complete" || ERR "  dump failed: $(echo "$dump_out" | grep -iE 'error|failed' | tail -1)"
   if kubectl exec -n "$ns" neo4j-backup-helper -- cat /tmp/neo4j.dump > "${DEST}/01-databases/neo4j.dump" 2>/dev/null && [ -s "${DEST}/01-databases/neo4j.dump" ]; then
     local sz; sz=$(du -h "${DEST}/01-databases/neo4j.dump" | cut -f1); OK "Neo4j → neo4j.dump ($sz)"; record "neo4j" OK "$sz"
   else ERR "Neo4j copy-out failed"; record "neo4j" FAIL "copyout"; fi
