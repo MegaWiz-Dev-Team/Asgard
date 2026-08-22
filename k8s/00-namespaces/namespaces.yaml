@@ -1,10 +1,28 @@
 # 🏰 Asgard — Kubernetes Namespaces
+#
+# The labels here are not decoration: k8s/04-security/network-policies.yaml
+# selects namespaces by `app.kubernetes.io/part-of: asgard` (infra DB access,
+# monitoring scrape) and asgard-rl's own policy selects by `name: <namespace>`.
+# A namespace missing one of these labels is silently denied by every policy
+# that selects on it — which is exactly what took SSO, Bifrost and mimir-api
+# down on 2026-08-22, when an OrbStack restart re-evaluated the policies and
+# the `asgard` namespace (57 pods, never declared here) turned out to have no
+# part-of label at all.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: asgard
+  labels:
+    app.kubernetes.io/part-of: asgard
+    name: asgard
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: asgard-infra
   labels:
     app.kubernetes.io/part-of: asgard
+    name: asgard-infra
     tier: infrastructure
 ---
 apiVersion: v1
@@ -13,6 +31,7 @@ metadata:
   name: asgard-services
   labels:
     app.kubernetes.io/part-of: asgard
+    name: asgard-services
     tier: services
 ---
 apiVersion: v1
@@ -21,4 +40,13 @@ metadata:
   name: asgard-monitoring
   labels:
     app.kubernetes.io/part-of: asgard
+    name: asgard-monitoring
     tier: monitoring
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: asgard-rl
+  labels:
+    app.kubernetes.io/part-of: asgard
+    name: asgard-rl

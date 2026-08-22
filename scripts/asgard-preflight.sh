@@ -29,7 +29,7 @@ JSON=0
 # Tunables
 MIN_FREE_GB="${MIN_FREE_GB:-8}"
 BACKUP_MAX_AGE_DAYS="${BACKUP_MAX_AGE_DAYS:-3}"
-KUBE_NS="${KUBE_NS:-asgard asgard-infra wazuh}"
+KUBE_NS="${KUBE_NS:-asgard asgard-infra asgard-rl wazuh}"
 KCTL="kubectl --request-timeout=8s"
 T7_BASE="${T7_BASE:-/Volumes/T7 Shield}"   # quoted everywhere (path has a space)
 
@@ -182,6 +182,61 @@ while read -r LABEL; do
   esac
 done < <(launchctl list 2>/dev/null | grep -oE 'com\.asgard\.[a-z0-9.-]+' | sort -u)
 (( LD_BAD == 0 )) && ok "launchd asgard jobs healthy"
+
+# ── 7. NetworkPolicy selectors that match nothing ─────────────────────────
+# 2026-08-22: an OrbStack restart re-evaluated every NetworkPolicy, and three
+# namespaces turned out to be missing the labels those policies select on — so
+# rules written to ALLOW database traffic could only deny it. Zitadel lost
+# Postgres, SSO died with it, and Bifrost/mimir-api followed. A namespaceSelector
+# that matches no namespace is never a working allow-rule; it is an outage
+# waiting for the next restart.
+section "🔒 NetworkPolicy selectors"
+NS_JSON="$($KCTL get ns -o json 2>/dev/null)"
+# A dormant namespace (no pods) with a broken selector is a warning; the same
+# break in a namespace that is actually serving is an outage in waiting.
+NS_WITH_PODS="$($KCTL get pods -A --no-headers 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ')"
+# NSJSON has to sit on the python3 command: in a pipeline the env prefix only
+# reaches the FIRST command, so hanging it off kubectl leaves python blind and
+# every selector then "matches no namespace".
+NP_ORPHANS=$($KCTL get netpol -A -o json 2>/dev/null | NSJSON="$NS_JSON" PODNS="$NS_WITH_PODS" python3 -c '
+import json, os, sys
+pols = json.load(sys.stdin).get("items", [])
+nss = json.loads(os.environ.get("NSJSON") or "{}").get("items", [])
+labels = [n["metadata"].get("labels") or {} for n in nss]
+live = set((os.environ.get("PODNS") or "").split())
+out = []
+for pol in pols:
+    meta = pol["metadata"]
+    ns_name = meta["namespace"]
+    pol_name = meta["name"]
+    for direction, key in (("ingress", "from"), ("egress", "to")):
+        for rule in pol.get("spec", {}).get(direction) or []:
+            for peer in rule.get(key) or []:
+                sel = (peer.get("namespaceSelector") or {}).get("matchLabels")
+                if not sel:
+                    continue
+                if not any(all(l.get(k) == v for k, v in sel.items()) for l in labels):
+                    pairs = ",".join(k + "=" + v for k, v in sorted(sel.items()))
+                    sev = "FAIL" if ns_name in live else "WARN"
+                    out.append(sev + "|" + ns_name + "/" + pol_name + " " + direction + " selects [" + pairs + "] - matches NO namespace")
+print("\n".join(sorted(set(out))))
+')
+NP_RC=$?
+if (( NP_RC != 0 )); then
+  # A check that cannot run must not read as a pass — that is how the label gap
+  # stayed invisible in the first place.
+  warn "netpol selector check failed to run (rc=${NP_RC})"
+elif [[ -n "$NP_ORPHANS" ]]; then
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    case "$line" in
+      FAIL\|*) fail "netpol ${line#FAIL|}" ;;
+      *)       warn "netpol ${line#WARN|} (namespace has no pods — latent)" ;;
+    esac
+  done <<< "$NP_ORPHANS"
+else
+  ok "every NetworkPolicy namespaceSelector matches a live namespace"
+fi
 
 # ── verdict ───────────────────────────────────────────────────────────────
 CODE=0; (( ${#WARNS[@]} > 0 )) && CODE=1; (( ${#FAILS[@]} > 0 )) && CODE=2
