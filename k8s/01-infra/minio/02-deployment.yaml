@@ -24,14 +24,18 @@ spec:
             - |
               mkdir -p /data/mimir-uploads
               minio server /data --console-address ":9001"
+          # Root credentials from the `minio-credentials` secret (asgard-infra).
+          # Create the secret BEFORE applying — see docs/security/minio-credential-rotation.md.
           env:
             - name: MINIO_ROOT_USER
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef: { name: minio-credentials, key: access-key }
             - name: MINIO_ROOT_PASSWORD
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef: { name: minio-credentials, key: secret-key }
           ports:
-            - containerPort: 9000
-            - containerPort: 9001
+            - { containerPort: 9000, name: api }
+            - { containerPort: 9001, name: console }
           volumeMounts:
             - name: storage
               mountPath: "/data"
