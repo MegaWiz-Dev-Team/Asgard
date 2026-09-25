@@ -18,6 +18,13 @@ spec:
       containers:
         - name: minio
           image: quay.io/minio/minio:latest
+          # INC-2026-09-25: a :latest tag defaults to imagePullPolicy Always, and
+          # quay.io/minio/minio no longer serves any public tag (pull → unauthorized),
+          # so after the 2026-09-23 image GC the pod sat in ImagePullBackOff even
+          # though the image is present on the node. Use the local copy; it is also
+          # snapshotted to T7 (asgard-backups/images). Moving to a pinned MinIO
+          # release from a registry that still publishes one is the real fix.
+          imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
