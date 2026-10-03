@@ -116,12 +116,3 @@ spec:
               service:
                 name: eir
                 port: { number: 80 }
-    - host: laminar.asgard.internal
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: laminar-frontend
-                port: { number: 5667 }
