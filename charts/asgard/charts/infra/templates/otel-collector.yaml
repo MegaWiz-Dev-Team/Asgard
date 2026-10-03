@@ -22,13 +22,12 @@ data:
       # operator sets .Values.infra.laminarApiKey explicitly OR re-wires
       # this to read from the asgard-secrets Secret via envFrom on the
       # collector pod (TODO: Sprint 51e+1).
-      otlp/laminar:
-        endpoint: "laminar-app-server.{{ .Release.Namespace }}.svc:8001"
-        tls:
-          insecure: true
-        headers:
-          authorization: Bearer {{ .Values.laminarApiKey | default "LMNR_PROJECT_API_KEY_PLACEHOLDER" }}
-      
+      # Traces: Laminar (LLM tracing) was removed 2026-10-03 and there is no trace backend. Traces are counted
+      # and dropped here (debug exporter, basic = one summary line per batch) so senders get no errors.
+      # Wire a real backend in here if traces are wanted again.
+      debug/traces:
+        verbosity: basic
+
       # Export logs directly to console (Vardr picks this up) or specific webhook for Tyr SIEM
       logging/tyr:
         verbosity: detailed
@@ -43,7 +42,7 @@ data:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp/laminar]
+          exporters: [debug/traces]
         metrics:
           receivers: [otlp]
           processors: [batch]
