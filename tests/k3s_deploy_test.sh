@@ -86,6 +86,7 @@ check() {
 called()     { grep -qE -- "$1" "$CALLS"; }
 not_called() { ! grep -qE -- "$1" "$CALLS"; }
 applied()    { grep -qE -- "$1" "$APPLIED"; }
+output_lacks() { ! grep -q -- "$1" <<< "$OUT"; }
 
 MIMIR_SHA=$(git -C "$WORK/dev/Mimir" rev-parse --short HEAD)
 TAG_RE="asgard-mimir-api:${MIMIR_SHA}-[0-9]{14}"
@@ -132,6 +133,7 @@ check "--dry-run: exits 0"                           [ "$RC" = 0 ]
 check "--dry-run: gates still run"                   called "^gate gate asgard-portal"
 check "--dry-run: no build, apply or restart"        not_called "^docker|apply|rollout"
 check "--dry-run: prints the tagged build"           grep -qE "\+ docker build .* -t $TAG_RE" <<< "$OUT"
+check "--dry-run: does not claim a deploy"           output_lacks "Deploy Complete"
 
 deploy tyr
 check "tyr: exits 0"                                 [ "$RC" = 0 ]

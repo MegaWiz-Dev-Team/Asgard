@@ -343,6 +343,11 @@ case "$TARGET" in
 esac
 
 # ─── Summary ─────────────────────────────────────────────────────
+if [ "$DRY_RUN" = 1 ]; then
+    echo ""
+    ok "Dry run: gates ran; nothing was built, applied or restarted"
+    exit 0
+fi
 echo ""
 echo "╔══════════════════════════════════════════════╗"
 echo "║   ✅ Deploy Complete                         ║"
