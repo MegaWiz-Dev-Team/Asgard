@@ -168,7 +168,7 @@ graph LR
 |:--|:--|:--|:--|:--|:--|
 | 🧠 **[Mimir](https://github.com/MegaWiz-Dev-Team/Mimir)** | RAG Pipeline, Agent Builder, Dashboard | Rust (Axum), Next.js 14, MariaDB, Qdrant | 255+ | ✅ Sprint 38 | 🌐 Public |
 | 🛡️ **[Heimdall](https://github.com/MegaWiz-Dev-Team/Heimdall)** | LLM Gateway — multi-backend proxy | Rust (Axum) + MLX + fastembed | Benchmarked | ✅ Sprint 38 | 🌐 Public |
-| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Skills, Memory | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 | 🌐 Public |
+| ⚡ **[Bifrost](https://github.com/MegaWiz-Dev-Team/Bifrost)** | Multi-Agent Orchestrator — ReAct, MCP, Memory (SKILL.md loader: [design draft](https://github.com/MegaWiz-Dev-Team/Bifrost/blob/main/docs/design/skill-loader-runtime.md)) | **Rust (Axum + rig.rs)** | 146 | ✅ Sprint 35 | 🌐 Public |
 | 🐺 **[Fenrir](https://github.com/MegaWiz-Dev-Team/Fenrir)** | Computer-Use Agent — Browser Automation + FHIR + Docker Sandbox | Rust + Python sidecar | 47 | ✅ Sprint 1.5 | 🌐 Public |
 | 🏥 **[Eir](https://github.com/MegaWiz-Dev-Team/Eir)** | Rust API Gateway + OpenEMR, Chat UI, MCP Server | Rust (Axum) + PHP | 47 | ✅ Sprint 3 | 🌐 Public |
 | 🌳 **Yggdrasil** | Auth Service — Zitadel OIDC + JWT + FastAPI Auth | Zitadel (Go) + Python | 31 | ✅ Sprint 2 | 🔒 Private |
@@ -293,7 +293,7 @@ The only contract is a RS256 JWT carrying the expected claims (e.g.
 - [x] Týr — Security Information & Event Management (Wazuh SIEM, ISO 27001 Log Archiving, macOS Log Shipper)
 - [x] Unified K3s Cluster Deployment — OrbStack integration for 15+ microservices
 - [x] AGPL-3.0 licensing + CLA
-- [x] Bifrost Sprint 35 — Skills system, long-term memory, context engineering (146 tests)
+- [x] Bifrost Sprint 35 — Skills system, long-term memory, context engineering (146 tests). The Python skills loader went with the Python legacy on 2026-04-08; the Rust loader is in design
 - [x] Asgard `skills/` — 5 built-in skills (DeerFlow-compatible SKILL.md format)
 
 ### Phase 2: Integration & Growth 🚧
