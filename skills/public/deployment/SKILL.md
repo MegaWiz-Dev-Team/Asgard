@@ -1,60 +1,37 @@
 ---
 name: deployment
-description: Use for deploying Asgard services, managing Docker containers, docker-compose operations, CI/CD pipeline tasks, and environment management. Trigger on deploy, release, build, or infrastructure requests.
-version: "1.0"
+description: Use for building and redeploying Asgard services on the K3s cluster. Covers the pre-deploy gates, deploying one target with scripts/k3s-deploy.sh, verifying the rollout, and rolling back. Trigger on deploy, redeploy, release, rollout, or rollback requests.
+version: "2.0"
 author: asgard-team
-tags: [devops, deployment, docker, CI/CD, infrastructure]
-tools: [fenrir_execute, docker_compose]
+tags: [devops, deployment, k3s, kubernetes, rollback]
+tools: [fenrir_execute]
 ---
 
 # Deployment
 
 ## Overview
-Service deployment and infrastructure management skill for the Asgard ecosystem. Handles Docker-based deployments, environment configuration, and CI/CD pipeline operations.
+Asgard runs on K3s (OrbStack) on the Mac mini. `scripts/k3s-deploy.sh <target>` is the one deploy path: it builds the image locally and applies the target's manifests. This skill wraps it with the two gates that came out of real regressions, and makes the rollback ready before the deploy starts.
 
-## When to Use
-- Deploying new service versions
-- Docker container management (build, push, restart)
-- docker-compose operations
-- Environment variable configuration
-- Health check verification post-deploy
-- Rollback operations
+A deploy changes production. Prepare everything, then stop for a human's approval before step 3.
 
 ## Instructions
-1. **Pre-deployment checks**:
-   - Verify all tests pass (check Forseti)
-   - Verify security scan clean (check Huginn)
-   - Confirm target environment and version
-2. **Build phase**:
-   - Build Docker images with version tags
-   - Tag with both version and `latest`
-   - Push to container registry
-3. **Deploy phase**:
-   - Update docker-compose.yml with new image tags
-   - Run `docker-compose up -d` for target services
-   - Wait for health checks to pass
-4. **Post-deployment verification**:
-   - Hit health endpoints for all deployed services
-   - Verify API responses are correct
-   - Check logs for startup errors
-5. **Rollback plan**:
-   - If health checks fail, revert to previous image tag
-   - Document failure reason
+1. **Run the gates** from `scripts/`. Do not continue on a FAIL.
+   - `./asgard-deploy-check.sh <deploy>` exits 0 for OK, 1 for WARN (read it, then decide), and 2 for FAIL (do not deploy). It catches a build branch behind `origin/main`, a dirty tree, and sqlx migration drift: an applied migration that the build does not embed makes mimir-api panic on boot. Pending migrations mean you back up the DB first. Its defaults point at mimir-api; for another service set `REPO` to that service's checkout and `MIG_DIR=` (empty) unless it embeds sqlx migrations.
+   - `./asgard-build-guard.sh` checks host disk, memory, and cluster health.
+2. **Make the rollback ready.** Copy the current image and the rollback command that `asgard-deploy-check.sh` prints into the deploy log.
+3. **Deploy, with a human's approval.** From the repo root, run `./scripts/k3s-deploy.sh <target>`, one of the targets listed below. Add `--no-build` to re-apply manifests and restart without rebuilding.
+4. **Verify.** `kubectl -n asgard rollout status deploy/<deploy> --timeout=120s`, then call the readiness path that `asgard-deploy-check.sh` printed. A new pod can return 404 for 3 to 5 seconds after the rollout, so retest before you call it failed.
+5. **Roll back** with the step 2 command if the rollout or the health check fails, and record why.
 
-## Asgard Services Reference
+## Deploy targets
+Generated from the `case "$TARGET" in` arms of `scripts/k3s-deploy.sh`; edit the script, then run `skill-check --write`.
 
-| Service | Port | Health Endpoint |
-|---|---|---|
-| Mimir | 3000 | `/health` |
-| Bifrost | 8100 | `/health` |
-| Heimdall | 8080 | `/health` |
-| Eir | 8300 | `/api/health` |
-| Fenrir | 8200 | `/health` |
-| Yggdrasil | 8085 | `/health` |
-| Ratatoskr | 8400 | `/health` |
+<!-- skill-check:begin k3s-deploy-targets -->
+`api`, `dashboard`, `portal`, `bifrost`, `tyr`, `all`
+<!-- skill-check:end -->
 
 ## Quality Bar
-- Zero-downtime deployment when possible
-- All health checks must pass before declaring success
-- Deployment log must be recorded
-- Version tag must match git tag
+- Both gates ran, and their verdicts are in the deploy log
+- A rollback command was recorded before the deploy
+- Rollout status and the health check passed after the deploy
+- No deploy ran without a human's approval

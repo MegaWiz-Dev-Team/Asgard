@@ -1,0 +1,36 @@
+# 🏰 Asgard — skills/ check
+#
+# Runs tools/skill-check: SKILL.md frontmatter against skills/SPEC.md, plus the
+# generated blocks (skill index, k3s-deploy targets). A change to
+# scripts/k3s-deploy.sh that adds or drops a target fails here until
+# `skill-check --write` refreshes the deployment skill.
+
+name: Skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'tools/skill-check/**'
+      - 'scripts/k3s-deploy.sh'
+      - '.github/workflows/skills.yml'
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'tools/skill-check/**'
+      - 'scripts/k3s-deploy.sh'
+      - '.github/workflows/skills.yml'
+  workflow_dispatch:
+
+jobs:
+  skill-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Invariant tests
+        run: cargo test --locked --manifest-path tools/skill-check/Cargo.toml
+      - name: Check skills/
+        run: cargo run --locked --quiet --manifest-path tools/skill-check/Cargo.toml -- --root .

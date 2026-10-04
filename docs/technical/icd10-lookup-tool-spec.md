@@ -1,9 +1,9 @@
 # 🇹🇭 ICD-10 Coding (with Thai Modification)
 
-**Skill ID:** `icd10-coding`
+**Tool:** `icd10_lookup` (this file was `skills/icd10-coding/SKILL.md` until 2026-10-04; it is a tool spec, not an agent skill)
 **Owner:** Asgard / Hermodr
 **Sprint:** 48 (Thai Clinical Coding Foundation)
-**Status:** 📋 Spec only — not yet implemented
+**Status:** ✅ Live — `GET /api/v1/icd10/{lookup,code/:code,sources}` in ro-ai-bridge (verified on mimir-api v1.11.0, 2026-10-04)
 **License:** AGPL-3.0 (Asgard handler) + ICD-10-TM data per MoPH terms
 
 ---
@@ -22,7 +22,7 @@ Single-source-of-truth ICD-10 code lookup for all Eir Agents — supporting:
 | Surface | Status | Role |
 |---|---|---|
 | **Rust route** `/api/v1/icd10/*` (ro-ai-bridge) | ✅ deployed | **Production path** — all Eir agents + clients call this |
-| **Qdrant collection** `icd10-th` | ✅ 15,376 vectors | Semantic search backend (Ollama nomic-embed-text) |
+| **Qdrant collection** `icd10-th` | ✅ 15,376 vectors | Semantic search backend (BGE-M3, 1024-d cosine, embedded via Heimdall) |
 | **MariaDB** `icd10_codes` table | ✅ 15,376 rows | Master reference data, exact/prefix/naive search |
 | Python CLI `icd10_lookup.py` | 🟡 dev tool | Test convenience — NOT production. Will be deprecated as Rust route stabilizes |
 | Python ETL `icd10_tm_anamai_ingest.py` | 🟡 one-shot | Used once for Phase A bootstrap — replace with Rust ingest if dataset refresh needs scheduling |
