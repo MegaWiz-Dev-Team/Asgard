@@ -74,6 +74,36 @@ pub enum BundleEntry {
 - Adding a new resource = touching `BundleEntry` enum + all match sites in `validate_bundle`, `to_json`, `from_json`. Acceptable.
 - External code that wants to receive arbitrary `BundleEntry` cannot ignore unknown variants — the enum is closed. This is the safety property we want.
 
+## Amendment 1 to Decision 2 (2026-10-04) — history snapshot table + stored `meta.versionId`
+
+**Status:** Accepted 2026-10-04 (Paripol). **Trigger:** Nótt Local — an on-premise appliance (one Mac mini per
+customer, `docs/product/nott-local-*` in asgard-nott) that has **no Tyr**, and whose physician sign-off must
+`vread` the exact version that was signed. The original Decision 2 already named this exit: *"if needed, add a
+history snapshot table later"* (Consequences).
+
+**Amended decision.** The `mimir-fhir` store keeps the current-state row **and** an append-only
+`resource_history(type, id, version_id, last_updated, json, sha256)` table. `meta.versionId` (monotonic
+integer per resource) and `meta.lastUpdated` are **stored**, taken from the history row written in the same
+transaction as the change.
+
+**Why this does not reintroduce the drift Decision 2 rejected**
+1. One write path: current row + history row + audit event are written in **one SQLite/DB transaction**;
+   there is no path that updates one without the others (enforced in the store API, tested).
+2. The audit event carries the history row's `sha256`; the audit hash chain (ADR-002 local sink when Tyr is
+   absent, Tyr when present) stays the **integrity** authority, the history table is the **retrieval** path.
+   A test re-derives every history hash from the chain.
+3. Where Tyr exists, events are still mirrored to Tyr unchanged; the history table is additive.
+
+**What this enables:** FHIR `vread` / `_history`, `If-Match` optimistic concurrency on `meta.versionId`,
+`DiagnosticReport` final → amended with the signed version retrievable verbatim, and `Provenance.target`
+pointing at `Resource/id/_history/n`.
+
+**Cost accepted:** extra storage per change (one JSON snapshot); acceptable at single-site appliance scale.
+Revisit if a high-write multi-tenant deployment needs compaction.
+
+**Acceptance (replaces the line in the checklist):** stored `meta.versionId` equals the history row version;
+every history `sha256` appears in the audit chain; a write that fails audit rolls back all three.
+
 ## Decision 2 — Resource versioning
 
 ### Chosen: Audit-via-Tyr (no in-resource version tracking)
@@ -299,7 +329,7 @@ This ADR is validated when:
 - [ ] `cargo build` succeeds with `schemars` derives on every resource
 - [ ] Bundle round-trips: `Bundle → JSON → Bundle` is identity for the test corpus
 - [ ] `ExternalPatient` parses a real EHR export (e.g., HL7 v2-translated Hosxp output) without panic
-- [ ] Audit-derived `meta.versionId` matches the latest audit event hash for the resource
+- [ ] Stored `meta.versionId` equals the `resource_history` version; every history `sha256` is present in the audit chain (Amendment 1)
 - [ ] Multi-locale HumanName test: one Patient with Thai + Latin names round-trips
 - [ ] Generated JSON Schema validates the test corpus
 
