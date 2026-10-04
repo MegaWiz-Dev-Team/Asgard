@@ -1,0 +1,38 @@
+# 🏰 Asgard — k3s-deploy.sh behaviour tests
+#
+# tests/k3s_deploy_test.sh drives scripts/k3s-deploy.sh against fake docker,
+# kubectl and gate scripts, with a dead KUBECONFIG and DOCKER_HOST so nothing
+# real can be reached.
+
+name: Deploy script
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/k3s-deploy.sh'
+      - 'scripts/asgard-deploy-check.sh'
+      - 'scripts/asgard-build-guard.sh'
+      - 'tests/k3s_deploy_test.sh'
+      - 'k8s/02-services/**'
+      - 'k8s/04-security/tyr/**'
+      - '.github/workflows/deploy-script.yml'
+  pull_request:
+    paths:
+      - 'scripts/k3s-deploy.sh'
+      - 'scripts/asgard-deploy-check.sh'
+      - 'scripts/asgard-build-guard.sh'
+      - 'tests/k3s_deploy_test.sh'
+      - 'k8s/02-services/**'
+      - 'k8s/04-security/tyr/**'
+      - '.github/workflows/deploy-script.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash tests/k3s_deploy_test.sh
