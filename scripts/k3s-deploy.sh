@@ -38,7 +38,10 @@ NC='\033[0m'
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DEV_DIR="${DEV_DIR:-$ROOT_DIR/..}"
-MIMIR_DIR="$DEV_DIR/Mimir"
+# Build Mimir from a clean origin/main worktree, not the shared checkout:
+#   git -C ~/Developer/Mimir worktree add /tmp/mimir-main origin/main
+#   MIMIR_DIR=/tmp/mimir-main ./scripts/k3s-deploy.sh api
+MIMIR_DIR="${MIMIR_DIR:-$DEV_DIR/Mimir}"
 NAMESPACE="asgard"
 TARGET="${1:-all}"
 NO_BUILD=""

@@ -141,6 +141,13 @@ check "tyr: deploy-check targets hermodr-wazuh"      called "^gate gate hermodr-
 check "tyr: bridge applied with the built hermodr"   applied "image: asgard-hermodr:[0-9a-f]+-[0-9]{14}$"
 check "tyr: wazuh manifests applied as they are"     called "apply -f $ROOT/k8s/04-security/tyr/03-wazuh-manager.yaml"
 
+mkdir -p "$WORK/mimir-main"; git -C "$WORK/mimir-main" init -q
+git -C "$WORK/mimir-main" -c user.name=t -c user.email=t@t commit -q --allow-empty -m main
+MAIN_SHA=$(git -C "$WORK/mimir-main" rev-parse --short HEAD)
+MIMIR_DIR="$WORK/mimir-main" deploy api
+check "MIMIR_DIR: gate checks that checkout"         called "^gate gate mimir-api NS=asgard REPO=$WORK/mimir-main "
+check "MIMIR_DIR: tag comes from that checkout"      called "^docker build .* -t asgard-mimir-api:${MAIN_SHA}-[0-9]{14} "
+
 deploy nonsense
 check "unknown target: exits non-zero"               [ "$RC" != 0 ]
 deploy api --bogus
