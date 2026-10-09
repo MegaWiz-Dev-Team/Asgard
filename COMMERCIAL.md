@@ -56,7 +56,7 @@ The Enterprise Edition includes all Community features plus:
 | **Professional Enterprise** | $20,000/yr (฿700,000/yr) |
 | **Custom Enterprise** | Contact us |
 
-We also offer **Hardware Bundles** (Asgard pre-installed on Mac Mini / Mac Studio / DGX Spark / NVIDIA GPU). See [pricing-strategy.md](docs/business/pricing-strategy.md) for details.
+We also offer **Hardware Bundles** (Asgard pre-installed on Mac Mini / Mac Studio / DGX Spark / NVIDIA GPU). Contact us for hardware bundle pricing.
 
 - 📧 **Email:** paripol@megawiz.co
 - 🌐 **Website:** asgardai.dev (coming soon)
