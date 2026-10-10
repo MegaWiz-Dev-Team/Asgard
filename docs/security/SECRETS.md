@@ -20,6 +20,9 @@ values via `secretKeyRef` — no plaintext rendering in deployment manifests.
 | `NEO4J_PASSWORD` | Mimir API + Neo4j init | Set during Neo4j first-boot; rotate via cypher `ALTER USER`. |
 | `HEIMDALL_API_KEY` | Bifrost + Mimir | Issued by Heimdall (host-side); rotate by re-running Heimdall key-gen. |
 | `EIR_CLIENT_ID` / `EIR_CLIENT_SECRET` | Eir Gateway → Bifrost agent | OIDC app in Zitadel. |
+| `EIR_MYSQL_ROOT_PASSWORD` | Eir (OpenEMR) container | Set once at OpenEMR install; rotate via MariaDB `ALTER USER 'root'@...`. Added 10 Oct 2026 (was plaintext `MYSQL_ROOT_PASS: root` in eir.yaml — public-repo audit). |
+| `EIR_MYSQL_PASSWORD` | Eir (OpenEMR) container | Rotate via MariaDB `ALTER USER 'openemr'@...`. Added 10 Oct 2026 (was plaintext `MYSQL_PASS: openemr`). |
+| `EIR_OE_PASSWORD` | Eir (OpenEMR) container, admin UI login | OpenEMR admin password set at install. Rotate via OpenEMR admin UI or `oe_pass_reset`. Added 10 Oct 2026 (was plaintext `OE_PASS`). |
 
 Disabled but committed (will be active when laminar re-enabled):
 
@@ -116,8 +119,29 @@ kubectl create secret generic asgard-secrets -n asgard \
   --from-literal=NEO4J_PASSWORD="$(openssl rand -base64 24)" \
   --from-literal=HEIMDALL_API_KEY="<from-heimdall-keygen>" \
   --from-literal=EIR_CLIENT_ID="<from-zitadel-ui>" \
-  --from-literal=EIR_CLIENT_SECRET="<from-zitadel-ui>"
+  --from-literal=EIR_CLIENT_SECRET="<from-zitadel-ui>" \
+  --from-literal=EIR_MYSQL_ROOT_PASSWORD="<strong random>" \
+  --from-literal=EIR_MYSQL_PASSWORD="<strong random>" \
+  --from-literal=EIR_OE_PASSWORD="<strong random>"
 ```
+
+### EIR_MYSQL_ROOT_PASSWORD / EIR_MYSQL_PASSWORD / EIR_OE_PASSWORD (10 Oct 2026 containment)
+
+These replace plaintext `MYSQL_ROOT_PASS` / `MYSQL_PASS` / `OE_PASS` env values that were
+committed directly in `k8s/02-services/eir/eir.yaml`. The `eir` Deployment now reads them via
+`secretKeyRef`, so `asgard-secrets` must carry all three keys before the next rollout of
+`eir`, or the pod will fail to start:
+
+```bash
+kubectl create secret generic asgard-secrets -n asgard \
+  --from-literal=EIR_MYSQL_ROOT_PASSWORD="<value>" \
+  --from-literal=EIR_MYSQL_PASSWORD="<value>" \
+  --from-literal=EIR_OE_PASSWORD="<value>" \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Per the incident-response section below, prefer rotating these three credentials now that the
+old values are public (git history), rather than carrying the leaked values forward unrotated.
 
 ## Security incident response (post-leak)
 

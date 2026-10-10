@@ -41,20 +41,20 @@ spec:
                 echo "Populating fresh PVC..."
                 mkdir -p /mnt/sites/default
                 cp -R /var/www/localhost/htdocs/openemr/sites/default/* /mnt/sites/default/ || true
-                cat << 'EOF' > /mnt/sites/default/sqlconf.php
+                cat << EOF > /mnt/sites/default/sqlconf.php
               <?php
-              $host    = 'mariadb.asgard-infra.svc';
-              $port    = '3306';
-              $login   = 'openemr';
-              $pass    = 'openemr';
-              $dbase   = 'openemr';
-              $sqlconf = array();
-              $sqlconf["host"]= $host;
-              $sqlconf["port"]= $port;
-              $sqlconf["login"]= $login;
-              $sqlconf["pass"]= $pass;
-              $sqlconf["dbase"]= $dbase;
-              $config = 1;
+              \$host    = 'mariadb.asgard-infra.svc';
+              \$port    = '3306';
+              \$login   = 'openemr';
+              \$pass    = '$MYSQL_PASS';
+              \$dbase   = 'openemr';
+              \$sqlconf = array();
+              \$sqlconf["host"]= \$host;
+              \$sqlconf["port"]= \$port;
+              \$sqlconf["login"]= \$login;
+              \$sqlconf["pass"]= \$pass;
+              \$sqlconf["dbase"]= \$dbase;
+              \$config = 1;
               ?>
               EOF
               fi
@@ -64,6 +64,12 @@ spec:
               mkdir -p /mnt/sites/default/documents/smarty/templates_c
               chown -R apache:apache /mnt/sites
               chmod -R 777 /mnt/sites
+          env:
+            - name: MYSQL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_MYSQL_PASSWORD
           volumeMounts:
             - name: eir-sites
               mountPath: /mnt/sites
@@ -96,17 +102,26 @@ spec:
             - name: MYSQL_HOST
               value: mariadb.asgard-infra.svc
             - name: MYSQL_ROOT_PASS
-              value: root
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_MYSQL_ROOT_PASSWORD
             - name: MYSQL_USER
               value: openemr
             - name: MYSQL_PASS
-              value: openemr
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_MYSQL_PASSWORD
             - name: MYSQL_DATABASE
               value: openemr
             - name: OE_USER
               value: admin
             - name: OE_PASS
-              value: "1qazXSW@"
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_OE_PASSWORD
           resources:
             requests:
               memory: 256Mi
@@ -158,7 +173,7 @@ metadata:
   name: eir
   namespace: asgard
 spec:
-  type: LoadBalancer
+  type: ClusterIP  # 10 Oct 2026: live svc is ClusterIP; LoadBalancer here would expose OpenEMR 80/443 on the host (header auth-skip, see Eir#6)
   selector:
     app: eir
   ports:
@@ -222,7 +237,12 @@ metadata:
   name: eir-gateway
   namespace: asgard
 spec:
-  type: LoadBalancer
+  # ClusterIP since 10 Oct 2026 (public-repo audit): eir-gateway runs with
+  # AUTH_ENABLED off and vouches for every caller to OpenEMR with system
+  # role. LoadBalancer exposed it on host :3000 to the LAN/tailnet with no
+  # auth in front. Do not revert to LoadBalancer until AUTH_ENABLED is on
+  # and EIR_GATEWAY_SECRET is enforced (Eir#6/#7).
+  type: ClusterIP
   selector:
     app: eir-gateway
   ports:
@@ -271,7 +291,10 @@ metadata:
   name: hermodr-eir
   namespace: asgard
 spec:
-  type: LoadBalancer
+  # ClusterIP since 10 Oct 2026 (public-repo audit) — see eir-gateway
+  # Service above; hermodr-eir proxies straight to eir-gateway on host
+  # :3005 and inherits the same no-auth exposure.
+  type: ClusterIP
   selector:
     app: hermodr-eir
   ports:
