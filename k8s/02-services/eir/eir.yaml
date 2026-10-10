@@ -41,20 +41,20 @@ spec:
                 echo "Populating fresh PVC..."
                 mkdir -p /mnt/sites/default
                 cp -R /var/www/localhost/htdocs/openemr/sites/default/* /mnt/sites/default/ || true
-                cat << 'EOF' > /mnt/sites/default/sqlconf.php
+                cat << EOF > /mnt/sites/default/sqlconf.php
               <?php
-              $host    = 'mariadb.asgard-infra.svc';
-              $port    = '3306';
-              $login   = 'openemr';
-              $pass    = 'openemr';
-              $dbase   = 'openemr';
-              $sqlconf = array();
-              $sqlconf["host"]= $host;
-              $sqlconf["port"]= $port;
-              $sqlconf["login"]= $login;
-              $sqlconf["pass"]= $pass;
-              $sqlconf["dbase"]= $dbase;
-              $config = 1;
+              \$host    = 'mariadb.asgard-infra.svc';
+              \$port    = '3306';
+              \$login   = 'openemr';
+              \$pass    = '$MYSQL_PASS';
+              \$dbase   = 'openemr';
+              \$sqlconf = array();
+              \$sqlconf["host"]= \$host;
+              \$sqlconf["port"]= \$port;
+              \$sqlconf["login"]= \$login;
+              \$sqlconf["pass"]= \$pass;
+              \$sqlconf["dbase"]= \$dbase;
+              \$config = 1;
               ?>
               EOF
               fi
@@ -64,6 +64,12 @@ spec:
               mkdir -p /mnt/sites/default/documents/smarty/templates_c
               chown -R apache:apache /mnt/sites
               chmod -R 777 /mnt/sites
+          env:
+            - name: MYSQL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-secrets
+                  key: EIR_MYSQL_PASSWORD
           volumeMounts:
             - name: eir-sites
               mountPath: /mnt/sites
