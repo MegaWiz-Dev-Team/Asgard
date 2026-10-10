@@ -64,6 +64,25 @@ Operator pre-creates `asgard-secrets` in the release namespace by whichever
 mechanism (Vault Agent Injector → annotations on Deployment, External
 Secrets Operator → `ExternalSecret` CR, etc.).
 
+> ⚠️ **Never `kubectl apply` an existing `asgard-secrets`-style Secret.**
+> `asgard-secrets` in prod holds ~19 keys, but its
+> `last-applied-configuration` annotation (written the last time anyone
+> `kubectl apply`'d it) only lists whichever key was in *that* manifest.
+> `kubectl apply` does a 3-way merge against that annotation: any key
+> that's live in the cluster but missing from the annotation **and**
+> missing from the file you're applying gets deleted. A rotation
+> instruction that only sets one key (e.g. just
+> `MARIADB_PASSWORD`/`MIMIR_DATABASE_URL`) would silently wipe every
+> other key — `HEIMDALL_API_KEY`, `YGGDRASIL_CLIENT_SECRET`,
+> `EIR_MYSQL_PASSWORD`, etc. — breaking bifrost, mimir-api, embla,
+> muninn, vor and syn-api all at once.
+>
+> Always use `kubectl patch secret <name> -n <ns> --type merge -p
+> '{"stringData":{"KEY":"<value>"}}'` to add or change one or more keys
+> on an **existing** secret. `kubectl create secret ... --dry-run=client
+> -o yaml | kubectl apply -f -` is fine only for a secret that does not
+> exist yet (a fresh cluster, step "Bulk seed" below).
+
 ## Rotation runbook
 
 ### YGGDRASIL_CLIENT_SECRET (most common rotation)
@@ -93,11 +112,10 @@ Order matters — change DB-side first, then K8s, then restart consumers:
 kubectl exec -n asgard-infra mariadb-0 -- mariadb -u root -p \
   -e "ALTER USER 'mimir'@'%' IDENTIFIED BY '<NEW_PW>'; FLUSH PRIVILEGES;"
 
-# 2. Update K8s Secret
-kubectl create secret generic asgard-secrets -n asgard \
-  --from-literal=MARIADB_PASSWORD="<NEW_PW>" \
-  --from-literal=MIMIR_DATABASE_URL="mysql://mimir:<NEW_PW>@mariadb.asgard-infra.svc:3306/mimir" \
-  --dry-run=client -o yaml | kubectl apply -f -
+# 2. Update K8s Secret (asgard-secrets already exists — patch, never apply;
+#    see the warning above)
+kubectl patch secret asgard-secrets -n asgard --type merge -p \
+  "{\"stringData\":{\"MARIADB_PASSWORD\":\"<NEW_PW>\",\"MIMIR_DATABASE_URL\":\"mysql://mimir:<NEW_PW>@mariadb.asgard-infra.svc:3306/mimir\"}}"
 
 # 3. Restart consumers
 kubectl rollout restart deploy/mimir-api -n asgard
