@@ -69,14 +69,37 @@ spec:
     - port: 3306
       targetPort: 3306
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mariadb-secret
-  namespace: asgard-infra
-type: Opaque
-stringData:
-  MYSQL_ROOT_PASSWORD: root
-  MYSQL_DATABASE: mimir
-  MYSQL_USER: mimir
-  MYSQL_PASSWORD: REDACTED-PW
+# NOTE: This Secret is no longer applied from git. Create (or rotate) it
+# out-of-band instead:
+#
+#   New secret (does not exist yet):
+#     kubectl create secret generic mariadb-secret -n asgard-infra \
+#       --from-literal=MYSQL_ROOT_PASSWORD="$(cat /path/to/root-password)" \
+#       --from-literal=MYSQL_DATABASE=mimir \
+#       --from-literal=MYSQL_USER=mimir \
+#       --from-literal=MYSQL_PASSWORD="$(cat /path/to/mimir-password)" \
+#       --dry-run=client -o yaml | kubectl apply -f -
+#
+#   Existing secret — rotate a key without dropping the others:
+#     kubectl patch secret mariadb-secret -n asgard-infra --type merge \
+#       -p "{\"stringData\":{\"MYSQL_ROOT_PASSWORD\":\"$NEW_ROOT\"}}"
+#
+# The mariadb container must read MYSQL_ROOT_PASSWORD/MYSQL_PASSWORD only
+# from this Secret's envFrom above — never add a literal env on the
+# Deployment that overrides it (a prior literal override is what let the
+# old root password keep working after rotation; `kubectl set env
+# deploy/mariadb -n asgard-infra MYSQL_ROOT_PASSWORD- MYSQL_PASSWORD-`
+# removes such an override). Kept here as a documented schema only. See
+# docs/security/SECRETS.md for the full rotation runbook.
+#
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: mariadb-secret
+#   namespace: asgard-infra
+# type: Opaque
+# stringData:
+#   MYSQL_ROOT_PASSWORD: <REDACTED — see runbook>
+#   MYSQL_DATABASE: mimir
+#   MYSQL_USER: mimir
+#   MYSQL_PASSWORD: <REDACTED — see runbook>
