@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.asgard.ca-distributor</string>
+
+    <!-- Auto-distributes the live Asgard root CA into the System keychain,
+         published .crt files, and the LAN portal dir. Runs as ROOT because
+         writing /Library/Keychains/System.keychain requires it. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/mimir/Developer/Asgard/scripts/asgard-ca-distributor.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>KUBECONFIG</key>
+        <string>/Users/mimir/.kube/config</string>
+        <key>HOME</key>
+        <string>/Users/mimir</string>
+    </dict>
+
+    <!-- Periodic check (every 6h) + on load/boot. Not a daemon → no KeepAlive. -->
+    <key>StartInterval</key>
+    <integer>21600</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/ca-distributor-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mimir/Developer/Asgard/logs/ca-distributor-stderr.log</string>
+</dict>
+</plist>
