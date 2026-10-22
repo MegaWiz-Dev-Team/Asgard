@@ -1,6 +1,6 @@
-# ADR-026: Lamun (ละมุน) — Cognitive Screening from Singing and Speech — `mimir-cognition` engine + `eir-cognition` agent
+# ADR-026: Nemelo — Cognitive Screening from Singing and Speech — `mimir-cognition` engine + `eir-cognition` agent
 
-**Product name:** **Lamun (ละมุน)** — Thai for "soft, gentle"; chosen by Paripol 22 Oct 2026, pending a formal trademark search (DIP + WIPO, classes 9/10/42/44). Product label only; the screen shown to older adults says "ร้องเพลงด้วยกัน", not the brand. *Infra keeps the family-naming rule, same as Nótt (ADR-025):* engine = **`mimir-cognition`** (Mimir family), clinical agent = **`eir-cognition`** (Eir CDS family).
+**Product name:** **Nemelo** (เนเมโล) — coined from Greek *mnēmē* (memory) + *melos* (melody), spelled as it is said; chosen by Paripol 22 Oct 2026 (replacing an earlier pick, Lamun, which two unrelated projects started using in Aug–Sep 2026), pending a formal trademark search (DIP + WIPO, classes 9/10/42/44; check against Nemlia, an elder-care monitoring start-up). Mascot: น้องเมโล่ (Melo). Product label only; the screen shown to older adults says "ร้องเพลงด้วยกัน", not the brand. Avoid "Nemo"/clownfish imagery (Disney's *Finding Nemo*, whose Dory is a memory-loss gag).
 
 **Status:** Accepted — structure approved by Paripol, 22 Oct 2026
 **Date:** 2026-10-22
@@ -18,7 +18,7 @@
 
 ## Decision
 
-> **No new top-level component. A product repo (`asgard-lamun`, like `asgard-nott`) holds a Rust engine `mimir-cognition` that turns session recordings into versioned, deterministic features. `eir-cognition` drafts a referral note for a clinician later. Songs and prompts are made offline; the session client only plays and records; analysis runs afterwards as a batch on the customer's Mac mini.**
+> **No new top-level component. A product repo (`asgard-nemelo`, like `asgard-nott`) holds a Rust engine `mimir-cognition` that turns session recordings into versioned, deterministic features. `eir-cognition` drafts a referral note for a clinician later. Songs and prompts are made offline; the session client only plays and records; analysis runs afterwards as a batch on the customer's Mac mini.**
 
 1. **Components and homes.**
    - `mimir-cognition` (Rust, Mimir-family data engine by role, housed in the product repo — same arrangement as `mimir-sleep` in `asgard-nott`).
@@ -75,7 +75,7 @@
 - **+** Songs cost nothing per item, stay on our hardware, and can be regenerated as alternate forms.
 - **−** Clinical validity is unproven until Phase 2; the team has no clinician, so a partner clinic is a hard dependency.
 - **−** ACE-Step on MPS currently holds ~21.7 GB of duplicate PyTorch weights next to ~10 GB of MLX; trim before it runs on a customer Mac mini.
-- **Open:** trademark search for "Lamun" (lamun.com is taken; lamun.ai and lamun.co.th were free on 22 Oct 2026); partner clinic; MMSE/MoCA licensing; ACE-Step training-data provenance.
+- **Open:** trademark search for "Nemelo" (nemelo.com is taken; nemelo.co, .ai, .health, .app and .co.th were free on 22 Oct 2026); partner clinic; MMSE/MoCA licensing; ACE-Step training-data provenance.
 
 ## References
 
