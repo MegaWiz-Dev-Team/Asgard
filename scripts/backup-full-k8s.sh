@@ -56,16 +56,43 @@ LOG "=== Asgard Full Backup ${TS} ==="
 LOG "Destination: ${DEST}"
 echo
 
-# Resolve current pod name by namespace + label-ish name prefix
-pod_for() {  # $1=ns $2=name-prefix
+# Resolve the running pod of a workload. $2 is a Deployment/StatefulSet name: its label
+# selector survives rollouts, unlike the ReplicaSet-hash pod prefixes this used to take
+# ("mariadb-585" stopped matching and the asgard-infra MariaDB — the `mimir` db — was
+# skipped). Anything that is not a Deployment/StatefulSet falls back to a pod-name prefix.
+pod_for() {  # $1=ns $2=deployment|statefulset name, or pod-name prefix
+  local kind sel
+  for kind in deployment statefulset; do
+    sel=$(kubectl get "$kind" "$2" -n "$1" \
+      -o go-template='{{range $k, $v := .spec.selector.matchLabels}}{{$k}}={{$v}},{{end}}' 2>/dev/null)
+    if [ -n "$sel" ]; then
+      kubectl get pods -n "$1" -l "${sel%,}" --field-selector=status.phase=Running \
+        -o jsonpath='{.items[0].metadata.name}' 2>/dev/null
+      return 0
+    fi
+  done
   kubectl get pods -n "$1" --no-headers 2>/dev/null \
     | awk -v p="$2" '$1 ~ "^"p && $3=="Running" {print $1; exit}'
+}
+
+# No running pod: FAIL when the workload wants replicas (it should have been backed up),
+# SKIP when it is scaled to 0 or absent. A silent SKIP is how the MariaDB miss went unseen.
+missing_pod() {  # $1=ns $2=name $3=label for the log $4=record key
+  local kind want=""
+  for kind in deployment statefulset; do
+    want=$(kubectl get "$kind" "$2" -n "$1" -o jsonpath='{.spec.replicas}' 2>/dev/null) && [ -n "$want" ] && break
+  done
+  if [ "${want:-0}" -gt 0 ] 2>/dev/null; then
+    ERR "$3 ${1}/$2 — ${want} replica(s) wanted but no running pod"; record "$4" FAIL "no running pod"
+  else
+    SKIP "$3 ${1}/$2 — no running pod"; record "$4" SKIP "no pod"
+  fi
 }
 
 # ── 1. MariaDB (logical) ──
 backup_mariadb() {  # $1=ns $2=podprefix $3=outfile
   local ns="$1" pod; pod=$(pod_for "$ns" "$2")
-  [ -z "$pod" ] && { SKIP "MariaDB ${ns}/$2 — no running pod"; record "mariadb-${ns}" SKIP "no pod"; return; }
+  [ -z "$pod" ] && { missing_pod "$ns" "$2" "MariaDB" "mariadb-${ns}"; return; }
   LOG "📊 MariaDB ${ns}/${pod} → $3"
   # NOTE: mariadb:11 image ships `mariadb-dump`, not `mysqldump` (no symlink)
   if kubectl exec -n "$ns" "$pod" -- sh -c \
@@ -81,7 +108,7 @@ backup_mariadb() {  # $1=ns $2=podprefix $3=outfile
 # ── 2. PostgreSQL (logical) ──
 backup_postgres() {  # $1=ns $2=podprefix $3=outfile
   local ns="$1" pod; pod=$(pod_for "$ns" "$2")
-  [ -z "$pod" ] && { SKIP "Postgres ${ns}/$2 — no running pod"; record "postgres-${ns}-$2" SKIP "no pod"; return; }
+  [ -z "$pod" ] && { missing_pod "$ns" "$2" "Postgres" "postgres-${ns}-$2"; return; }
   LOG "🐘 Postgres ${ns}/${pod} → $3"
   if kubectl exec -n "$ns" "$pod" -- sh -c \
       'PGPASSWORD="${POSTGRES_PASSWORD:-${PGPASSWORD:-}}" pg_dumpall -U "${POSTGRES_USER:-postgres}" 2>/dev/null' \
@@ -141,7 +168,7 @@ YAML
 # ── 4. Qdrant (snapshot API via port-forward) ──
 backup_qdrant() {  # $1=ns $2=podprefix $3=subdir $4=localport
   local ns="$1" pod; pod=$(pod_for "$ns" "$2")
-  [ -z "$pod" ] && { SKIP "Qdrant ${ns} — no pod"; record "qdrant-${ns}" SKIP "no pod"; return; }
+  [ -z "$pod" ] && { missing_pod "$ns" "$2" "Qdrant" "qdrant-${ns}"; return; }
   local lp="$4"
   LOG "🔍 Qdrant ${ns}/${pod} (pf :$lp)"
   kubectl port-forward -n "$ns" "pod/$pod" "${lp}:6333" >/dev/null 2>&1 &
@@ -283,14 +310,14 @@ backup_k8s() {
 }
 
 # ════════════ RUN ════════════
-backup_mariadb  asgard       "mariadb-67c"        "mariadb-asgard.sql.gz"
-backup_mariadb  asgard-infra "mariadb-585"        "mariadb-infra.sql.gz"
-backup_postgres asgard       "postgres-64"        "postgres-asgard.sql.gz"
-backup_postgres asgard-infra "postgres-66"        "postgres-infra.sql.gz"
+backup_mariadb  asgard       "mariadb"            "mariadb-asgard.sql.gz"
+backup_mariadb  asgard-infra "mariadb"            "mariadb-infra.sql.gz"
+backup_postgres asgard       "postgres"           "postgres-asgard.sql.gz"
+backup_postgres asgard-infra "postgres"           "postgres-infra.sql.gz"
 backup_postgres asgard       "laminar-postgres"   "postgres-laminar.sql.gz"
 backup_neo4j
-backup_qdrant   asgard       "qdrant-cf"   "qdrant-asgard" 16333
-backup_qdrant   asgard-infra "qdrant-5f"   "qdrant-infra"  16334
+backup_qdrant   asgard       "qdrant"      "qdrant-asgard" 16333
+backup_qdrant   asgard-infra "qdrant"      "qdrant-infra"  16334
 backup_clickhouse
 backup_rabbitmq
 backup_pv_raw   asgard       "laminar-quickwit-data" "quickwit.tar.gz"
