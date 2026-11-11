@@ -23,6 +23,11 @@
 #   asgard-deploy-check.sh for each target. FAIL (exit 2) always stops the
 #   deploy; WARN (exit 1) stops it unless --accept-warn is given.
 # A rollout that does not become ready is undone with `kubectl rollout undo`.
+#
+# Image copies: every image built here is saved to IMG_SNAPSHOT_DIR (the T7
+#   drive) before it is deployed, keeping the newest IMG_SNAPSHOT_KEEP (3) per
+#   image. Restore one with `gunzip -c <file> | docker load`. Without the drive
+#   the deploy stops before building; NO_SNAPSHOT=1 deploys without a copy.
 # ═══════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -75,6 +80,60 @@ image_tag() {
     local name="$1" src="$2" sha
     sha=$(git -C "$src" rev-parse --short HEAD 2>/dev/null) || { echo "❌ $src is not a git checkout" >&2; return 1; }
     echo "${name}:${sha}-${STAMP}"
+}
+
+# ─── Off-node image copies ──────────────────────────────────────
+# The images built here run with imagePullPolicy: Never and are in no
+# registry, so the node's image store is their only copy, and kubelet image
+# GC deletes every image no running container uses. It took 7 services down
+# on 2026-09-24 and 9 on 2026-10-17; the ones with a tarball came back with
+# `docker load`, the rest needed a rebuild.
+IMG_SNAPSHOT_DIR="${IMG_SNAPSHOT_DIR:-/Volumes/T7 Shield/asgard-backups/images}"
+IMG_SNAPSHOT_KEEP="${IMG_SNAPSHOT_KEEP:-3}"
+NO_SNAPSHOT="${NO_SNAPSHOT:-0}"
+[[ "$IMG_SNAPSHOT_KEEP" =~ ^[1-9][0-9]*$ ]] || fail "IMG_SNAPSHOT_KEEP must be 1 or more, got '$IMG_SNAPSHOT_KEEP'"
+
+# Saves a built image as <name>_<tag>.tar.gz in IMG_SNAPSHOT_DIR, then prunes.
+snapshot_image() {
+    local image="$1" name="${1%:*}" file
+    file="$IMG_SNAPSHOT_DIR/${name//\//_}_${image##*:}.tar.gz"
+    if [ "$NO_SNAPSHOT" = 1 ]; then
+        warn "NO_SNAPSHOT=1: $image has no off-node copy"
+        return 0
+    fi
+    if [ "$DRY_RUN" = 1 ]; then
+        echo "+ docker save $image | gzip > $file"
+        return 0
+    fi
+    [ -d "$IMG_SNAPSHOT_DIR" ] || fail "$IMG_SNAPSHOT_DIR not found; $image was built but not deployed"
+    if ! { docker save "$image" | gzip > "$file.partial" && gzip -t "$file.partial"; }; then
+        rm -f "$file.partial"
+        fail "could not save $image to $IMG_SNAPSHOT_DIR; not deployed"
+    fi
+    mv "$file.partial" "$file"
+    ok "Saved $image → $file"
+    prune_snapshots "$name"
+}
+
+# Keeps the newest IMG_SNAPSHOT_KEEP files this script wrote for one image
+# (<name>_<sha>-<stamp>.tar.gz, ordered by stamp). Files with any other name,
+# such as copies saved by hand, are never touched, and neither is the copy of
+# an image a deployment still runs. If the running images cannot be listed,
+# nothing is deleted.
+prune_snapshots() {
+    local name="$1" safe="${1//\//_}" in_use f rest tag
+    if ! in_use=$(kubectl get deployments -A -o jsonpath='{..image}' 2>/dev/null); then
+        warn "could not list running images; kept every older copy of $name"
+        return 0
+    fi
+    for f in "$IMG_SNAPSHOT_DIR/${safe}_"*.tar.gz; do
+        rest="${f##*/}"; rest="${rest#"${safe}_"}"; rest="${rest%.tar.gz}"
+        if [[ "$rest" =~ ^[0-9a-f]+-([0-9]{14})$ ]]; then echo "${BASH_REMATCH[1]} $rest"; fi
+    done | sort -r | tail -n +$((IMG_SNAPSHOT_KEEP + 1)) | while read -r _ tag; do
+        if tr ' ' '\n' <<< "$in_use" | grep -qxF "$name:$tag"; then continue; fi
+        rm -f "$IMG_SNAPSHOT_DIR/${safe}_${tag}.tar.gz"
+        info "Removed older copy ${safe}_${tag}.tar.gz"
+    done
 }
 
 # Applies a manifest with its one container image replaced by $2.
@@ -159,6 +218,16 @@ command -v kubectl >/dev/null 2>&1 || fail "kubectl is not installed"
 kubectl cluster-info >/dev/null 2>&1 || fail "Cannot connect to Kubernetes cluster"
 ok "Preflight OK"
 
+# A build that cannot be saved off the node would not be deployed, so check
+# the drive before spending a build on it.
+if [ "$NO_BUILD" != "--no-build" ] && [ "$NO_SNAPSHOT" != 1 ] && [ ! -d "$IMG_SNAPSHOT_DIR" ]; then
+    if [ "$DRY_RUN" = 1 ]; then
+        warn "$IMG_SNAPSHOT_DIR not found: the real deploy would stop here (is the T7 drive mounted?)"
+    else
+        fail "$IMG_SNAPSHOT_DIR not found (is the T7 drive mounted?). Built images need an off-node copy; NO_SNAPSHOT=1 deploys without one"
+    fi
+fi
+
 if [ "$NO_BUILD" != "--no-build" ]; then
     step "Deploy gates"
     "$BUILD_GUARD" || fail "asgard-build-guard.sh blocked the build (disk or cluster); FORCE=1 overrides it"
@@ -179,6 +248,7 @@ build_api() {
         -f ro-ai-bridge/Dockerfile \
         .
     ok "Built $API_IMAGE"
+    snapshot_image "$API_IMAGE"
 }
 
 deploy_api() {
@@ -204,6 +274,7 @@ build_dashboard() {
         -t "$DASHBOARD_IMAGE" \
         .
     ok "Built $DASHBOARD_IMAGE"
+    snapshot_image "$DASHBOARD_IMAGE"
 }
 
 deploy_dashboard() {
@@ -222,6 +293,7 @@ build_bifrost() {
         -f Bifrost/Dockerfile \
         .
     ok "Built $BIFROST_IMAGE"
+    snapshot_image "$BIFROST_IMAGE"
 }
 
 deploy_bifrost() {
@@ -239,6 +311,7 @@ build_portal() {
         -t "$PORTAL_IMAGE" \
         .
     ok "Built $PORTAL_IMAGE"
+    snapshot_image "$PORTAL_IMAGE"
 }
 
 deploy_portal() {
@@ -256,6 +329,7 @@ build_hermodr() {
         -t "$HERMODR_IMAGE" \
         .
     ok "Built $HERMODR_IMAGE"
+    snapshot_image "$HERMODR_IMAGE"
 }
 
 # ─── Tyr ────────────────────────────────────────────────────────
